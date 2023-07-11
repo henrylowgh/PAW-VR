@@ -25,7 +25,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   WaitForAllTasks: 0
   waitForTask: -1
-  list_index: 0
+  list_index: 1
   decisions:
   - {fileID: 937891121743794051}
   - {fileID: 3004435546196534271}
