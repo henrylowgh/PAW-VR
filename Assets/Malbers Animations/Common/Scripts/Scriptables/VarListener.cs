@@ -286,7 +286,7 @@ namespace MalbersAnimations
             InvokeOnEnable = serializedObject.FindProperty("InvokeOnEnable");
         }
 
-
+        public static GUIStyle StyleBlue => MTools.Style(MTools.MBlue);
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -296,7 +296,8 @@ namespace MalbersAnimations
                 if (ShowDescription.boolValue)
                 {
                     if (style == null)
-                        style = new GUIStyle(MTools.StyleBlue)
+                    {
+                        style = new GUIStyle(StyleBlue)
                         {
                             fontSize = 12,
                             fontStyle = FontStyle.Bold,
@@ -304,23 +305,26 @@ namespace MalbersAnimations
                             stretchWidth = true
                         };
 
-                    style.normal.textColor = EditorStyles.boldLabel.normal.textColor;
+                        style.normal.textColor = EditorStyles.boldLabel.normal.textColor;
+
+                    }
 
                     Description.stringValue = EditorGUILayout.TextArea(Description.stringValue, style);
                 }
+            } 
+
+            using (new GUILayout.HorizontalScope(EditorStyles.helpBox))
+
+            {
+                EditorGUIUtility.labelWidth = 55;
+                EditorGUILayout.PropertyField(value, GUILayout.MinWidth(25));
+                EditorGUIUtility.labelWidth = 40;
+                EditorGUILayout.PropertyField(Index, new GUIContent("    ID"), GUILayout.MinWidth(15));
+                EditorGUIUtility.labelWidth = 0;
+                ShowEvents.boolValue =
+                    GUILayout.Toggle(ShowEvents.boolValue,
+                    new GUIContent((ShowEvents.boolValue ? "▲" : "▼"), "Show Events"), EditorStyles.miniButton, GUILayout.Width(25));
             }
-
-
-            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
-            EditorGUIUtility.labelWidth = 55;
-            EditorGUILayout.PropertyField(value, GUILayout.MinWidth(25));
-            EditorGUIUtility.labelWidth = 40;
-            EditorGUILayout.PropertyField(Index, new GUIContent("    ID"),  GUILayout.MinWidth(15));
-            EditorGUIUtility.labelWidth = 0;
-            ShowEvents.boolValue = 
-                GUILayout.Toggle(ShowEvents.boolValue, 
-                new GUIContent((ShowEvents.boolValue ?"▲" : "▼"), "Show Events"), EditorStyles.miniButton, GUILayout.Width(25));
-            EditorGUILayout.EndHorizontal();
 
             if (ShowEvents.boolValue)
             {
@@ -341,10 +345,7 @@ namespace MalbersAnimations
             serializedObject.ApplyModifiedProperties();
         }
 
-
-        protected virtual void DrawEvents()  {
-          
-        }
+        protected virtual void DrawEvents()  {}
     }
 #endif
 }

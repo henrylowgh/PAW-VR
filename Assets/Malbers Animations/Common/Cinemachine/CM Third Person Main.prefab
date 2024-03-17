@@ -27,13 +27,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4119520938270541166}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.171588, y: -1.4399745, z: -1.3454216}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4119520939028466838}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4119520938270541154
 MonoBehaviour:
@@ -68,7 +68,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   IgnoreTag: Player
-  CameraRadius: 0.2
+  CameraRadius: 0.1
   DampingIntoCollision: 0
   DampingFromCollision: 2
 --- !u!114 &4119520938270541164
@@ -123,7 +123,9 @@ GameObject:
   - component: {fileID: 4119520939028466838}
   - component: {fileID: 4119520939028466839}
   - component: {fileID: 4119520939028466837}
+  - component: {fileID: 5133752284967792349}
   - component: {fileID: 1530111104}
+  - component: {fileID: 8695976954058303972}
   m_Layer: 0
   m_Name: CM Third Person Main
   m_TagString: Untagged
@@ -138,6 +140,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4119520939028466833}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -146,7 +149,6 @@ Transform:
   - {fileID: 4119520938270541165}
   - {fileID: 5879780386584498987}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4119520939028466839
 MonoBehaviour:
@@ -167,7 +169,7 @@ MonoBehaviour:
   m_Priority: 10
   m_StandbyUpdate: 0
   m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 5879780386584498987}
+  m_Follow: {fileID: 0}
   m_Lens:
     FieldOfView: 38
     OrthographicSize: 10
@@ -177,6 +179,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
+    FocusDistance: 10
     m_SensorSize: {x: 1, y: 1}
   m_Transitions:
     m_BlendHint: 0
@@ -200,6 +203,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Brain: {fileID: 0}
   updateMode: 0
+  priority: 10
+  cameraSide: 1
   Target:
     UseConstant: 0
     ConstantValue: {fileID: 0}
@@ -217,6 +222,10 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
+  CameraDistance:
+    UseConstant: 1
+    ConstantValue: 6
+    Variable: {fileID: 0}
   XMultiplier:
     UseConstant: 1
     ConstantValue: 1
@@ -232,6 +241,54 @@ MonoBehaviour:
   BottomClamp:
     UseConstant: 1
     ConstantValue: -30
+    Variable: {fileID: 0}
+  LerpRotation:
+    UseConstant: 1
+    ConstantValue: 15
+    Variable: {fileID: 0}
+  OnActiveCamera:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5133752284967792349}
+        m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+        m_MethodName: set_enabled
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &5133752284967792349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4119520939028466833}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1ee8c2bcec7e9449f3ee4474c89194, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateMode: 0
+  ZoomMin:
+    UseConstant: 1
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  ZoomMax:
+    UseConstant: 1
+    ConstantValue: 12
+    Variable: {fileID: 0}
+  ZoomStep:
+    UseConstant: 1
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  ZoomLerp:
+    UseConstant: 1
+    ConstantValue: 5
     Variable: {fileID: 0}
 --- !u!114 &1530111104
 MonoBehaviour:
@@ -250,6 +307,10 @@ MonoBehaviour:
     active:
       UseConstant: 1
       ConstantValue: 1
+      Variable: {fileID: 0}
+    ignoreOnPause:
+      UseConstant: 1
+      ConstantValue: 0
       Variable: {fileID: 0}
     type: 0
     input: Mouse X
@@ -306,6 +367,10 @@ MonoBehaviour:
     active:
       UseConstant: 1
       ConstantValue: 1
+      Variable: {fileID: 0}
+    ignoreOnPause:
+      UseConstant: 1
+      ConstantValue: 0
       Variable: {fileID: 0}
     type: 0
     input: Mouse Y
@@ -367,12 +432,14 @@ MonoBehaviour:
       ConstantValue: New Map
       Variable: {fileID: 0}
     inputs: []
+    selectedIndex: 0
   ActiveMap:
     name:
       UseConstant: 1
       ConstantValue: New Map
       Variable: {fileID: 0}
     inputs: []
+    selectedIndex: 0
   ResetAllInputsOnDisable: 1
   showInputEvents: 0
   ResetOnFocusLost: 0
@@ -387,6 +454,48 @@ MonoBehaviour:
     ConstantValue: 1
     Variable: {fileID: 0}
   PlayerID: Player0
+--- !u!114 &8695976954058303972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4119520939028466833}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0de379cfd30d65a4da8d0d1115c494a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnScrollUp:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5133752284967792349}
+        m_TargetAssemblyTypeName: MalbersAnimations.ThirdPersonFollowZoom, MalbersAnimations.Cinemachine
+        m_MethodName: ZoomIn
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnScrollDown:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5133752284967792349}
+        m_TargetAssemblyTypeName: MalbersAnimations.ThirdPersonFollowZoom, MalbersAnimations.Cinemachine
+        m_MethodName: ZoomOut
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &4448917256607583473
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,11 +519,11 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4448917256607583473}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4119520939028466838}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

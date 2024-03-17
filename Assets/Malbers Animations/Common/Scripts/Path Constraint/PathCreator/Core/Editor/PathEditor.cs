@@ -165,7 +165,6 @@ namespace MalbersAnimations.PathCreation
                     {
                         if (GUILayout.Button("Centre Transform"))
                         {
-
                             Vector3 worldCentre = bezierPath.CalculateBoundsWithTransform(creator.transform).center;
                             Vector3 transformPos = creator.transform.position;
                             if (bezierPath.Space == PathSpace.xy)

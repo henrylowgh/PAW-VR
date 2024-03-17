@@ -27,11 +27,11 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  Priority: 3
+  Priority: 9
   resetInputOnFailed: 0
   ResetLastState: 0
   General:
-    modify: -1
+    modify: 7423
     RootMotion: 0
     Sprint: 0
     Gravity: 1
@@ -88,6 +88,11 @@ MonoBehaviour:
   IncludeSleepState: 1
   SleepFromState: []
   SleepFromMode: []
+  DisableModes: []
+  noModes:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   QueueFrom: []
   ResetFrom: []
   SleepFromStance: []
@@ -123,11 +128,11 @@ MonoBehaviour:
   MovementStrafe: 1
   IdleStrafe: 1
   m_debug: 1
-  Editor_Tabs1: 4
+  Editor_Tabs1: 1
   SpeedSets: []
   ID: {fileID: 11400000, guid: 8078fbdb01991b44b9c1351f444b5efe, type: 2}
   AirControl:
-    UseConstant: 1
+    UseConstant: 0
     ConstantValue: 1
     Variable: {fileID: 11400000, guid: f39bbadf72c684c4d804bfe47b409b80, type: 2}
   AirRotation:
@@ -135,7 +140,7 @@ MonoBehaviour:
     ConstantValue: 10
     Variable: {fileID: 11400000, guid: 4c88f28c5af37e1448dc9d7345ad249b, type: 2}
   AirMovement:
-    UseConstant: 1
+    UseConstant: 0
     ConstantValue: 2
     Variable: {fileID: 11400000, guid: 8ee0bf1f77aecf64c83fe6307542d514, type: 2}
   AirSmooth:
@@ -150,6 +155,8 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
+  CheckFrontObstacle: 1
+  ShowFront: 0
   lengthMultiplier:
     UseConstant: 1
     ConstantValue: 0.9

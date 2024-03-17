@@ -14,6 +14,7 @@ namespace MalbersAnimations.Controller.AI
 
         public override void StartTask(MAnimalBrain brain, int index)
         {
+            brain.TaskDone(index);
             switch (send)
             {
                 case Affected.Self:
@@ -25,7 +26,7 @@ namespace MalbersAnimations.Controller.AI
                 default:
                     break;
             }
-            brain.TaskDone(index);
+           
         }
 
         void Reset() { Description = "Raise the Event when the Task start. Use this only for Scriptable Assets."; }

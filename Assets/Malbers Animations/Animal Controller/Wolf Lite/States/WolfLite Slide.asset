@@ -77,11 +77,11 @@ MonoBehaviour:
   ExitOnMain: 1
   EnterCooldown:
     UseConstant: 1
-    ConstantValue: 0
+    ConstantValue: 0.5
     Variable: {fileID: 0}
   ExitCooldown:
     UseConstant: 1
-    ConstantValue: 0
+    ConstantValue: 0.5
     Variable: {fileID: 0}
   CanStrafe: 0
   StrafeAnimations: 1
@@ -135,6 +135,10 @@ MonoBehaviour:
       UseConstant: 1
       ConstantValue: 10
       Variable: {fileID: 0}
+    UpDownMult:
+      UseConstant: 1
+      ConstantValue: 1
+      Variable: {fileID: 0}
     states: []
     stances: []
     Speeds:
@@ -158,10 +162,6 @@ MonoBehaviour:
       rotation:
         UseConstant: 1
         ConstantValue: 5
-        Variable: {fileID: 0}
-      lerpRotation:
-        UseConstant: 1
-        ConstantValue: 4
         Variable: {fileID: 0}
       lerpRotAnim:
         UseConstant: 1
@@ -198,7 +198,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   ExitSpeed:
     UseConstant: 1
-    ConstantValue: 0.5
+    ConstantValue: 3
     Variable: {fileID: 0}
   ExitSpeedStatus:
     UseConstant: 1

@@ -10,11 +10,13 @@ TagManager:
   - Fly
   - Animal
   - Water
+  - Button
+  - Target
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - 

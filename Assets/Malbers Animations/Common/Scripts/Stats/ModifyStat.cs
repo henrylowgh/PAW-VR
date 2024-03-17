@@ -31,12 +31,14 @@ namespace MalbersAnimations
           "Reset the Stat to the minimun Value",
           "Enable/Disable the Stat",
            "Set Imnune",
+           "Starts the Regeneration",
+           "Starts the Degeneration",
     };
 
 
         public Stats stats;
 
-        public List<StatModifier> modifiers = new List<StatModifier>();
+        public List<StatModifier> modifiers = new();
 
         public virtual void SetStats(GameObject go) => stats = go.FindComponent<Stats>();
         public virtual void SetStats(Component go) => SetStats(go.gameObject);
@@ -76,9 +78,9 @@ namespace MalbersAnimations
         //public bool active = true;
         public StatID ID;
         public StatOption modify = StatOption.None;
-        public FloatReference MinValue = new FloatReference(10f);
-        public FloatReference MaxValue = new FloatReference(10f);
-        public BoolReference enable = new BoolReference(true);
+        public FloatReference MinValue = new(10f);
+        public FloatReference MaxValue = new(10f);
+        public BoolReference enable = new(true);
 
         public float Value
         {
@@ -88,8 +90,8 @@ namespace MalbersAnimations
             }
             set
             {
-                MinValue = new FloatReference(value);
-                MaxValue = new FloatReference(value);
+                MinValue = new(value);
+                MaxValue = new(value);
             }
         }
 
@@ -97,18 +99,18 @@ namespace MalbersAnimations
         {
             ID = null;
             modify = StatOption.None;
-            MinValue = new FloatReference(10);
-            MinValue = new FloatReference(01);
-            enable = new BoolReference(true);
+            MinValue = new(10);
+            MinValue = new(01);
+            enable = new(true);
         }
 
         public StatModifier(StatModifier mod)
         {
             ID = mod.ID;
             modify = mod.modify;
-            MinValue = new FloatReference(mod.MinValue.Value);
-            MaxValue = new FloatReference(mod.MaxValue.Value);
-            enable = new BoolReference(true);
+            MinValue = new(mod.MinValue.Value);
+            MaxValue = new(mod.MaxValue.Value);
+            enable = new(true);
         }
         
 
@@ -121,7 +123,7 @@ namespace MalbersAnimations
         /// <summary>Modify the Stats on an animal </summary>
         public bool ModifyStat(Stats stats)
         {
-            if (stats && !IsNull)
+            if (stats && stats.enabled && !IsNull)
             {
                 return ModifyStat(stats.Stat_Get(ID));
             }
@@ -216,12 +218,16 @@ namespace MalbersAnimations
 
 
             EditorGUIUtility.labelWidth = LabelWith;
-            if (modify.intValue == (int)StatOption.None ||
+            if (
+               modify.intValue == (int)StatOption.None ||
                modify.intValue == (int)StatOption.Reset ||
-               modify.intValue == (int)StatOption.StopDegenerate ||
-               modify.intValue == (int)StatOption.StopRegenerate ||
+               modify.intValue == (int)StatOption.DegenerateOff ||
+               modify.intValue == (int)StatOption.RegenerateOff ||
                modify.intValue == (int)StatOption.ResetToMax ||
-               modify.intValue == (int)StatOption.ResetToMin)
+               modify.intValue == (int)StatOption.ResetToMin  ||
+               modify.intValue == (int)StatOption.RegenerateOn  ||
+               modify.intValue == (int)StatOption.DegenerateOn
+               )
             {
                 //Don't Draw anything
             }
@@ -251,12 +257,16 @@ namespace MalbersAnimations
         {
             var modify = property.FindPropertyRelative("modify");
 
-            if (modify.intValue == (int)StatOption.None ||
+            if (
+                modify.intValue == (int)StatOption.None ||
                 modify.intValue == (int)StatOption.Reset ||
-                modify.intValue == (int)StatOption.StopDegenerate ||
-               modify.intValue == (int)StatOption.StopRegenerate ||
+                modify.intValue == (int)StatOption.DegenerateOff ||
+                modify.intValue == (int)StatOption.RegenerateOff ||
                 modify.intValue == (int)StatOption.ResetToMax ||
-                modify.intValue == (int)StatOption.ResetToMin)
+                modify.intValue == (int)StatOption.ResetToMin ||
+                modify.intValue == (int)StatOption.RegenerateOn ||
+                modify.intValue == (int)StatOption.DegenerateOn
+                )
 
             {
                 return 18;

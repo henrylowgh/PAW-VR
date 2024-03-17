@@ -15,9 +15,9 @@ namespace MalbersAnimations
         public IInputSystem Input_System;
        // public Dictionary<string, InputRow> DInputs = new Dictionary<string, InputRow>();        //Shame it cannot be Serialided :(
         /// <summary>Default Input Row Values </summary>
-        public List<InputRow> inputs = new List<InputRow>();                                     //Used to convert them to dictionary
-        public List<InputRow> AllInputs = new List<InputRow>();
-        public List<MInputMap> actionMaps = new List<MInputMap>();                                     //Used to convert them to dictionary
+        public List<InputRow> inputs = new();                                     //Used to convert them to dictionary
+        public List<InputRow> AllInputs = new();
+        public List<MInputMap> actionMaps = new();                                     //Used to convert them to dictionary
         public int ActiveMapIndex;
         public MInputMap DefaultMap;
         public MInputMap ActiveMap;
@@ -29,11 +29,11 @@ namespace MalbersAnimations
 
         [Tooltip("It will reset the Inputs to False if the Game Window Loses Focus")]
         public bool ResetOnFocusLost = false;
-        public UnityEvent OnInputEnabled = new UnityEvent();
-        public UnityEvent OnInputDisabled = new UnityEvent();
+        public UnityEvent OnInputEnabled = new();
+        public UnityEvent OnInputDisabled = new();
 
         [Tooltip("Inputs won't work on Time.Scale = 0")]
-        public BoolReference IgnoreOnPause = new BoolReference(true);
+        public BoolReference IgnoreOnPause = new(true);
 
         public string PlayerID = "Player0"; //This is use for Rewired Asset
 
@@ -60,6 +60,37 @@ namespace MalbersAnimations
                 ActiveMapIndex = index+1; 
             }
         }
+
+        /// <summary>
+        /// Remap an Input using KeyCode
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="newKeyCode"></param>
+        public virtual void RemapInput(string name, KeyCode newKeyCode )
+        {
+            var foundInput = ActiveMap.inputs.Find(inputs => inputs.name == name);
+
+            if (foundInput != null && foundInput.type== InputType.Key)
+            {
+                foundInput.key = newKeyCode;
+            }
+        }
+
+        /// <summary>
+        /// Remap an Input if is using a Input type.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="newInput"></param>
+        public virtual void RemapInput(string name, string newInput)
+        {
+            var foundInput = ActiveMap.inputs.Find(inputs => inputs.name == name);
+
+            if (foundInput != null && foundInput.type == InputType.Input)
+            {
+                foundInput.input = newInput;
+            }
+        }
+
 
         public virtual void SetMap(string map)
         {
@@ -164,7 +195,7 @@ namespace MalbersAnimations
             }
         }
 
-        void Update() { SetInput(); }
+        private void Update() => SetInput();
 
         /// <summary>Send all the Inputs to the Animal</summary>
         protected virtual void SetInput()
@@ -175,10 +206,6 @@ namespace MalbersAnimations
 
             foreach (var item in ActiveMap.inputs)
                 _ = item.GetValue;  //This will set the Current Input value to the inputs and Invoke the Values
-
-
-            //foreach (var item in inputs)
-            //    _ = item.GetValue;  //This will set the Current Input value to the inputs and Invoke the Values
         }
 
 
@@ -195,7 +222,6 @@ namespace MalbersAnimations
                 {
                     if (AllInputs[i].name == inp) AllInputs[i].Active = value;
                 }
-
                 //if (DInputs.TryGetValue(inp, out InputRow input)) input.Active = value;
             }
         }
@@ -207,32 +233,10 @@ namespace MalbersAnimations
                 if (AllInputs[i].name == name)
                 {
                     AllInputs[i].InputValue = value;
-                   // AllInputs[i].ToggleValue = value;
                 }
             }
-
-            //if (DInputs.TryGetValue(name, out InputRow input))
-            //{
-            //    input.InputValue = value;
-            //    input.ToggleValue = value;
-            //}
         }
-
-        //public virtual void ResetToggle(string name)
-        //{
-        //    for (int i = 0; i < AllInputs.Count; i++)
-        //    {
-        //        if (AllInputs[i].name == name)
-        //        {
-        //            AllInputs[i].ToggleValue = false;
-        //        }
-        //    }
-
-        //    //if (DInputs.TryGetValue(name, out InputRow input))
-        //    //{
-        //    //    input.ToggleValue = false;
-        //    //}
-        //}
+ 
 
         /// <summary>  Resets the value and toggle of an Input to False </summary>
         public virtual void ResetInput(string name)
@@ -403,6 +407,19 @@ namespace MalbersAnimations
             MTools.SetDirty(this);
         }
 
+        [ContextMenu("Create/Activate Zone")]
+        private void CreateZone()
+        {
+            var sprint = new InputRow(true, "Zone", "Zone", KeyCode.E, InputButton.Down, InputType.Key);
+
+            TrueInput.Add(sprint);
+
+            var method = this.GetUnityAction("MAnimal", "Zone_Activate");
+            if (method != null) UnityEditor.Events.UnityEventTools.AddPersistentListener(sprint.OnInputDown, method);
+            MTools.SetDirty(this);
+        }
+
+
         [ContextMenu("Create/Main Attack")]
         private void CreateMainAttackInput()
         { 
@@ -507,7 +524,8 @@ namespace MalbersAnimations
     public class InputRow : IInputAction
     {
         public string name = "InputName";
-        public BoolReference active = new BoolReference(true);
+        public BoolReference active = new(true);
+        public BoolReference ignoreOnPause = new();
         public InputType type = InputType.Input;
         public string input = "Value";
         [SearcheableEnum]
@@ -533,30 +551,21 @@ namespace MalbersAnimations
         private bool m_Input = false;
 
         //  public bool ToggleValue = false;
-        [Tooltip("When the Input is Disabled the Button will a false value to all their connections")]
+        [Tooltip("When the Input is disabled the input value will set to false and it will send that value to all possible connections")]
         public bool ResetOnDisable = true;
 
 
-        public UnityEvent OnInputDown = new UnityEvent();
-        public UnityEvent OnInputUp = new UnityEvent();
-        public UnityEvent OnLongPress = new UnityEvent();
-        public UnityEvent OnLongPressReleased = new UnityEvent();
-        public UnityEvent OnDoubleTap = new UnityEvent();
-        public BoolEvent OnInputChanged = new BoolEvent();
+        public UnityEvent OnInputDown = new();
+        public UnityEvent OnInputUp = new();
+        public UnityEvent OnLongPress = new();
+        public UnityEvent OnLongPressReleased = new();
+        public UnityEvent OnDoubleTap = new();
+        public BoolEvent OnInputChanged = new();
         public BoolEvent OnInputToggle => OnInputChanged;
-        public UnityEvent OnInputEnable = new UnityEvent();
-        public UnityEvent OnInputDisable = new UnityEvent();
+        public UnityEvent OnInputEnable = new();
+        public UnityEvent OnInputDisable = new();
 
         protected IInputSystem inputSystem = new DefaultInput();
-
-        
-        //public IncludeExclude depend = IncludeExclude.Exclude;
-
-        //[Tooltip("If an Input on this list is active then Enable or Disable this Input")]
-        //public List<string> dependency = new List<string>();
-
-
-        // public bool ShowEvents = false;
 
         #region LONG PRESS and Double Tap
         public float DoubleTapTime = 0.3f;                          //Double Tap Time
@@ -579,6 +588,7 @@ namespace MalbersAnimations
             get
             {
                 if (!active) return false;
+                if (ignoreOnPause) return false;
                 if (inputSystem == null) return false;
 
                 var oldValue = InputValue;
@@ -802,7 +812,7 @@ namespace MalbersAnimations
                 if (value)
                     OnInputEnable.Invoke();
                 else
-                    OnInputEnable.Invoke();
+                    OnInputDisable.Invoke();
             }
         }
         public InputButton Button => GetPressed;
@@ -895,7 +905,7 @@ namespace MalbersAnimations
         public bool raw = true;
         public string input = "Value";
         IInputSystem inputSystem = new DefaultInput();
-        public FloatEvent OnAxisValueChanged = new FloatEvent();
+        public FloatEvent OnAxisValueChanged = new();
         float currentAxisValue = 0;
 
         /// <summary>Returns the Axis Value</summary>
@@ -953,16 +963,9 @@ namespace MalbersAnimations
     [System.Serializable]
     public class MInputMap 
     {
-        public StringReference name = new StringReference( "New Map");
+        public StringReference name = new("New Map");
         public List<InputRow> inputs;
+        public int selectedIndex;
     } 
-    #endregion
-
-
-    [System.Serializable]
-    public class InputProfile
-    {
-        public string name = "Default";
-        public List<InputRow> inputs = new List<InputRow>();
-    }
+    #endregion 
 }

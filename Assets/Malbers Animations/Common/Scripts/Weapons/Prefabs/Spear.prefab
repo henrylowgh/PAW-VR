@@ -26,6 +26,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308937815825933360}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -36,7 +37,6 @@ Transform:
   - {fileID: 6175143551878432081}
   - {fileID: 7729584323209353794}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &423090592741083258
 MonoBehaviour:
@@ -61,12 +61,18 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     Variable: {fileID: 0}
+  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 1091566395842728, guid: 400e06051701a8c4998087ae421728e3,
       type: 3}
+    Variable: {fileID: 0}
+  hitEffects: []
+  hitSound:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
     Variable: {fileID: 0}
   DestroyHitEffect: 0.2
   dontHitOwner:
@@ -229,6 +235,7 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
+  m_audio: {fileID: 0}
   m_UI: {fileID: 0}
   description:
     UseConstant: 1
@@ -269,8 +276,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   GroundArmPose: 0
   RidingArmPose: 1
-  GroundCombo: 3
-  RidingCombo: -1
+  GroundCombo: {fileID: 11400000, guid: 29bdac49b8510e74db1c074ba91fbe3f, type: 2}
+  RidingCombo: {fileID: 0}
   m_AimOrigin: {fileID: 0}
   m_AimSide: 0
   weaponType: {fileID: 11400000, guid: 29bdac49b8510e74db1c074ba91fbe3f, type: 2}
@@ -302,7 +309,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  UseStrafe:
+  strafeOnEquip:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
@@ -333,7 +340,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5d57cd60566a34d429591148beecc370, type: 3}
   - {fileID: 8300000, guid: 68c1c6ee9ddcd0341a672e9f7ecbbef0, type: 3}
   - {fileID: 0}
-  WeaponSound: {fileID: 1697447008370214634}
   OnEquiped:
     m_PersistentCalls:
       m_Calls:
@@ -369,6 +375,9 @@ MonoBehaviour:
   OnCharged:
     m_PersistentCalls:
       m_Calls: []
+  OnMaxCharged:
+    m_PersistentCalls:
+      m_Calls: []
   OnChargedFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -381,8 +390,8 @@ MonoBehaviour:
   OnReleaseFreeHand:
     m_PersistentCalls:
       m_Calls: []
-  Editor_Tabs1: 4
-  Editor_Tabs2: 2
+  Editor_Tabs1: 3
+  Editor_Tabs2: 4
   meleeTrigger: {fileID: 6614954751395445749}
   ignoreStaticObjects: 1
   OnCauseDamage:
@@ -498,13 +507,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308937817302167880}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: -0, z: -0.332}
   m_LocalScale: {x: 0.6, y: 0.6, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 307415971734037614}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &306000248542567616
 MeshFilter:
@@ -580,13 +589,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5657050683741709488}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1.427}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 307415971734037614}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &1697447008370214634
 AudioSource:
@@ -710,13 +719,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7070164267257725313}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1.412}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 307415971734037614}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &6614954751395445749
 BoxCollider:
@@ -726,9 +735,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7070164267257725313}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 0.5, y: 0.4, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!82 &3938082468691859063
@@ -873,6 +890,10 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
+  OneTimeUse:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   trigger: {fileID: 0}
   Editor_Tabs1: 0
 --- !u!1 &7765958805078189543
@@ -899,13 +920,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7765958805078189543}
+  serializedVersion: 2
   m_LocalRotation: {x: -0.24210173, y: 0.63122797, z: -0.2771757, w: -0.6827238}
   m_LocalPosition: {x: 0.075, y: 0.085, z: 0.622}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 307415971734037614}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 137.117, y: 96.73, z: 185.704}
 --- !u!114 &430309292174772115
 MonoBehaviour:

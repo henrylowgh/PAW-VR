@@ -18,7 +18,6 @@ namespace MalbersAnimations.Utilities
 
     public class LookAtBehaviour : StateMachineBehaviour
     {
-
         [Range(0, 1)]
         public float Time = 0;
 
@@ -32,7 +31,7 @@ namespace MalbersAnimations.Utilities
 
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
-            if (lookat == null) lookat = animator.FindInterface<ILookAtActivation>();
+            lookat ??= animator.FindInterface<ILookAtActivation>();
             sent = false;
             if (when == EnterExit.OnEnter) CheckLookAt(animator, layerIndex);
         }
@@ -73,7 +72,6 @@ namespace MalbersAnimations.Utilities
                 }
             }
         }
-         
     }
 
    

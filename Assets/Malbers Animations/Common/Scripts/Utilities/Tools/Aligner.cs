@@ -47,22 +47,12 @@ namespace MalbersAnimations.Utilities
         public Transform MainPoint => mainPoint.Value;
         public Transform SecondPoint => secondPoint.Value;
 
-        public virtual void Align(GameObject Target)
-        {
-            Align(Target.transform);
-        }
+        public virtual void Align(GameObject Target) => Align(Target.transform);
 
-        public virtual void Align(Collider Target)
-        {
-            Align(Target.transform.FindObjectCore());
-        }
-
-        public virtual void Align(Component Target)
-        {
-            Align(Target.transform.FindObjectCore());
-        }
-
-        public virtual void StopAling() { StopAllCoroutines(); }
+        public virtual void Align(Component Target) => Align(Target.transform.FindObjectCore());
+        
+        public virtual void StopAling() => StopAllCoroutines();
+        
         public virtual void Align_Self_To(GameObject Target) => Align_Self_To(Target.transform);
 
         public virtual void Align_Self_To(Collider Target) => Align_Self_To(Target.transform);
@@ -106,19 +96,17 @@ namespace MalbersAnimations.Utilities
                         else
                             StartCoroutine(MTools.AlignTransform_Rotation(MainPoint, Side1, AlignTime, AlignCurve));
                     }
-                }
-
-
-               // transform.root.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver); //Nasty but it works
+                } 
             }
         }
+
+        IDeltaRootMotion deltaRootMotion;
 
         public virtual void Align(Transform TargetToAlign)
         {
             if (Active && MainPoint && TargetToAlign != null)
             {
-
-                TargetToAlign.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver); //Nasty but it works
+                deltaRootMotion = TargetToAlign.TryDeltaRootMotion();
 
                 if (AlignLookAt)
                 {
@@ -211,30 +199,8 @@ namespace MalbersAnimations.Utilities
             }
             t1.rotation = FinalRot;
 
-            t1.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver); //Nasty but it works
-
+            deltaRootMotion?.ResetDeltaRootMotion();
         }
-
-
-
-        //IEnumerator AlignTransform_Position(Transform t1, Vector3 NewPosition, float time, AnimationCurve curve = null)
-        //{
-        //    float elapsedTime = 0;
-
-        //    Vector3 CurrentPos = t1.position;
-
-        //    t1.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver); //Nasty but it works
-
-        //    while ((time > 0) && (elapsedTime <= time))
-        //    {
-        //        float result = curve != null ? curve.Evaluate(elapsedTime / time) : elapsedTime / time;               //Evaluation of the Pos curve
-        //        t1.position = Vector3.LerpUnclamped(CurrentPos, NewPosition, result);
-        //        elapsedTime += Time.deltaTime;
-
-        //        yield return null;
-        //    }
-        //    t1.position = NewPosition;
-        //}
 
 
 
@@ -302,7 +268,8 @@ namespace MalbersAnimations.Utilities
     {
 
         SerializedProperty
-            AlignPos, AlignRot, AlignLookAt, AlingPoint1, AlingPoint2, AlignTime, AlignCurve, DoubleSided, LookAtRadius, DebugColor, LookAtRadiusTime, AngleOffset;
+            AlignPos, AlignRot, AlignLookAt, AlingPoint1, AlingPoint2, AlignTime, 
+            AlignCurve, DoubleSided, LookAtRadius, DebugColor, AngleOffset;
 
         // MonoScript script;
         private void OnEnable()
@@ -321,7 +288,7 @@ namespace MalbersAnimations.Utilities
             LookAtRadius = serializedObject.FindProperty("LookAtRadius");
             DebugColor = serializedObject.FindProperty("DebugColor");
             //PosOffset = serializedObject.FindProperty("PosOffset");
-            LookAtRadiusTime = serializedObject.FindProperty("LookAtRadiusTime");
+           // LookAtRadiusTime = serializedObject.FindProperty("LookAtRadiusTime");
         }
 
 

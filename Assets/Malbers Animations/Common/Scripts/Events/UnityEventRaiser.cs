@@ -1,11 +1,12 @@
 ﻿using MalbersAnimations.Scriptables;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MalbersAnimations.Events
 {
     /// <summary>Simple Event Raiser On Enable</summary>
-    [AddComponentMenu("Malbers/Events/Unity Event Raiser")]
+    [AddComponentMenu("Malbers/Events/Unity Event Raiser [On Enable]")]
     public class UnityEventRaiser : UnityUtils
     {
         [Tooltip("Delayed time for invoking the Events, or the Repeated time  when Repeat is enable")]
@@ -15,7 +16,7 @@ namespace MalbersAnimations.Events
 
 
         [FormerlySerializedAs("OnEnableEvent")]
-        public UnityEngine.Events.UnityEvent onEnable =  new();
+        public UnityEngine.Events.UnityEvent onEnable = new();
 
 
         public string Description = "";
@@ -39,7 +40,7 @@ namespace MalbersAnimations.Events
             }
         }
 
-        private void StartEvent() => onEnable.Invoke();
+        public void StartEvent() => onEnable.Invoke();
 
         private void OnDisable()
         {
@@ -53,29 +54,30 @@ namespace MalbersAnimations.Events
             OnEnable();
         }
 
-//#if UNITY_EDITOR 
-//        private void OnDrawGizmosSelected()
-//        {
-//            MalbersEditor.DrawEventConnection(transform, onEnable, true);
-//        }
+        //#if UNITY_EDITOR 
+        //        private void OnDrawGizmosSelected()
+        //        {
+        //            MalbersEditor.DrawEventConnection(transform, onEnable, true);
+        //        }
 
-//        private void OnDrawGizmos()
-//        {
-//            MalbersEditor.DrawEventConnection(transform, onEnable, false);
-//        }
-//#endif
+        //        private void OnDrawGizmos()
+        //        {
+        //            MalbersEditor.DrawEventConnection(transform, onEnable, false);
+        //        }
+        //#endif
     }
 
 
 #if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(UnityEventRaiser)),UnityEditor.CanEditMultipleObjects] 
+    [UnityEditor.CustomEditor(typeof(UnityEventRaiser)), UnityEditor.CanEditMultipleObjects]
     public class UnityEventRaiserInspector : UnityEditor.Editor
     {
         UnityEditor.SerializedProperty Delayed, Repeat, RepeatTime, OnEnableEvent, ShowDescription, Description;
         public static GUIStyle StyleBlue => Style(new Color(0, 0.5f, 1f, 0.3f));
         private GUIStyle style;
+        private GUIContent _ReactIcon;
 
-       
+
 
 
         private void OnEnable()
@@ -94,7 +96,7 @@ namespace MalbersAnimations.Events
 
             if (ShowDescription.boolValue)
             {
-                if (style == null)
+               // if (style == null)
                     style = new GUIStyle(MTools.StyleBlue)
                     {
                         fontSize = 12,
@@ -103,45 +105,58 @@ namespace MalbersAnimations.Events
                         stretchWidth = true
                     };
 
-                style.normal.textColor = UnityEditor.EditorStyles.boldLabel.normal.textColor;
+                style.normal.textColor =EditorStyles.boldLabel.normal.textColor;
 
-                //UnityEditor.EditorGUILayout.BeginVertical(MTools.StyleBlue);
-                Description.stringValue = UnityEditor.EditorGUILayout.TextArea(Description.stringValue, style);
-               // UnityEditor.EditorGUILayout.EndVertical();
+                Description.stringValue = EditorGUILayout.TextArea(Description.stringValue, style);
             }
 
 
-            UnityEditor.EditorGUILayout.BeginHorizontal();
-
-            UnityEditor.EditorGUILayout.PropertyField(Delayed, GUILayout.MinWidth(100));
-            if (Repeat.boolValue)
+            using (new GUILayout.HorizontalScope(/*UnityEditor.EditorStyles.helpBox*/))
             {
 
-                UnityEditor.EditorGUIUtility.labelWidth = 35;
-                UnityEditor.EditorGUILayout.PropertyField(RepeatTime, new GUIContent(" RT", "Repeat Time"), GUILayout.MinWidth(40));
-                UnityEditor.EditorGUIUtility.labelWidth = 0;
-            }
+                if (_ReactIcon == null)
+                {
+                    _ReactIcon = EditorGUIUtility.IconContent("d_PlayButton@2x");
+                    _ReactIcon.tooltip = "Invoke at Runtime";
+                }
 
-            Repeat.boolValue = GUILayout.Toggle(Repeat.boolValue, new GUIContent("R","Repeat"), UnityEditor.EditorStyles.miniButton, GUILayout.Width(25));
-            UnityEditor.EditorGUILayout.EndHorizontal();
+                if (Application.isPlaying && GUILayout.Button(_ReactIcon, EditorStyles.miniButtonMid, GUILayout.Width(18), GUILayout.Height(20)))
+                {
+                    (target as UnityEventRaiser).onEnable.Invoke();
+                }
+
+                UnityEditor.EditorGUILayout.PropertyField(Delayed, GUILayout.MinWidth(100));
+                if (Repeat.boolValue)
+                {
+                    EditorGUIUtility.labelWidth = 35;
+                    EditorGUILayout.PropertyField(RepeatTime, new GUIContent(" RT", "Repeat Time"), GUILayout.MinWidth(40));
+                    EditorGUIUtility.labelWidth = 0;
+                }
+
+                Repeat.boolValue = GUILayout.Toggle(Repeat.boolValue, new GUIContent("R", "Repeat"), UnityEditor.EditorStyles.miniButton, GUILayout.Width(25));
+            }
             UnityEditor.EditorGUILayout.PropertyField(OnEnableEvent);
             serializedObject.ApplyModifiedProperties();
         }
 
         public static GUIStyle Style(Color color)
         {
-            GUIStyle currentStyle = new GUIStyle(GUI.skin.box) { border = new RectOffset(-1, -1, -1, -1) };
-            Color[] pix = new Color[1];
+            GUIStyle currentStyle = new (GUI.skin.box) { border = new RectOffset(-1, -1, -1, -1) };
+            Color32[] pix = new Color32[1];
             pix[0] = color;
-            Texture2D bg = new Texture2D(1, 1);
-            bg.SetPixels(pix);
+            Texture2D bg = new (1, 1);
+            bg.SetPixels32(pix);
             bg.Apply();
 
             currentStyle.normal.background = bg;
             // MW 04-Jul-2020: Check if system supports newer graphics formats used by Unity GUI
             Texture2D bgActual = currentStyle.normal.scaledBackgrounds[0];
 
+#if UNITY_2023_2_OR_NEWER
+            if (SystemInfo.IsFormatSupported(bgActual.graphicsFormat, UnityEngine.Experimental.Rendering.GraphicsFormatUsage.Sample ) == false)
+#else
             if (SystemInfo.IsFormatSupported(bgActual.graphicsFormat, UnityEngine.Experimental.Rendering.FormatUsage.Sample) == false)
+#endif
             {
                 currentStyle.normal.scaledBackgrounds = new Texture2D[] { }; // This can't be null
             }

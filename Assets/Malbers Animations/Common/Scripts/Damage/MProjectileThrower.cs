@@ -1,5 +1,6 @@
 ﻿using MalbersAnimations.Scriptables;
 using MalbersAnimations.Utilities;
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -14,22 +15,25 @@ namespace MalbersAnimations.Weapons
 
         [Header("Projectile")]
         [SerializeField, Tooltip("What projectile will be instantiated")]
-        private GameObjectReference m_Projectile = new GameObjectReference();
+        private GameObjectReference m_Projectile = new();
         [Tooltip("The projectile will be fired on start")]
         public BoolReference FireOnStart;
+
+        //[Tooltip("When Set to ")]
+        //public FloatReference Rate = new(1.5f);
 
         [Header("Multipliers")]
 
         [Tooltip("Multiplier value to Apply to the Projectile Stat Modifier"),FormerlySerializedAs("Multiplier") ]
-        public FloatReference DamageMultiplier = new FloatReference(1);
+        public FloatReference DamageMultiplier = new(1);
         [Tooltip("Multiplier value to apply to the Projectile Scale")]
-        public FloatReference ScaleMultiplier = new FloatReference(1);
+        public FloatReference ScaleMultiplier = new(1);
         [Tooltip("Multiplier value to apply to the Projectile Launch Force")]
-        public FloatReference PowerMultiplier = new FloatReference(1);
+        public FloatReference ForceMultiplier = new(1);
 
 
         [Header("Layer Interaction")]
-        [SerializeField] private LayerReference hitLayer = new LayerReference(-1);
+        [SerializeField] private LayerReference hitLayer = new(-1);
         [SerializeField] private QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
 
         [Header("References")]
@@ -39,21 +43,30 @@ namespace MalbersAnimations.Weapons
         private Transform m_AimOrigin;
         [SerializeField, Tooltip("Owner of the Thrower Component. By default it should be the Root GameObject")] 
         private GameObjectReference m_Owner;
+
+        [Header("Aimer")]
         [Tooltip("Reference for the Aimer Component")]
         public Aim Aimer;
-
         [Tooltip("if its set to False. it will use this GameObject Forward Direction")]
-        public BoolReference useAimerDirection = new BoolReference( true);
+        public BoolReference useAimerDirection = new( true);
+        [Hide("Aimer")]
+        [Tooltip("Update the Thrower Target from the Aimer component")]
+        public bool UpdateTargetFromAimer = false;
 
         [Header("Physics Values")]
         [SerializeField, Tooltip("Launch force for the Projectile")]
-        private float m_power = 50f;
+        private float m_Force = 50f;
         
         [Range(0, 90)]
         [SerializeField, Tooltip("Angle of the Projectile when a Target is assigned")]
         private float m_angle = 45f;
         [SerializeField, Tooltip("Gravity to apply to the Projectile. By default is set to Physics.gravity")]
-        private Vector3Reference gravity = new Vector3Reference(Physics.gravity);
+        private Vector3Reference gravity = new(Physics.gravity);
+
+        [SerializeField, Tooltip("Apply Gravity after certain distance is reached")]
+        private FloatReference m_AfterDistance = new(0f);
+        public float AfterDistance { get => m_AfterDistance.Value; set => m_AfterDistance.Value = value; }
+
         public Vector3 Gravity { get => gravity.Value; set => gravity.Value = value; }
         public LayerMask Layer { get => hitLayer.Value; set => hitLayer.Value = value; }
         public QueryTriggerInteraction TriggerInteraction { get => triggerInteraction; set => triggerInteraction = value; }
@@ -68,12 +81,18 @@ namespace MalbersAnimations.Weapons
         public Vector3 Velocity { get; set; }
 
         /// <summary>Force to Apply to the Projectile</summary>
-        public float Power { get => m_power * PowerMultiplier; set => m_power = value; }
+        public float Power { get => m_Force * ForceMultiplier; set => m_Force = value; }
+
+        /// <summary>Angle to throw a projectile when it has a target</summary>
+        public float Angle { get => m_angle; set => m_angle = value; }
 
         /// <summary>Set if the Aimer Direction will be used or not</summary>
         public bool UseAimerDirection { get => useAimerDirection.Value; set => useAimerDirection.Value = value; }
 
         public Transform AimOrigin => m_AimOrigin;
+
+        [MButton(nameof(Fire),true)]
+        public bool FireTest;
 
         public bool CalculateTrajectory
         {
@@ -89,12 +108,29 @@ namespace MalbersAnimations.Weapons
         private void OnEnable()
         {
             if (Owner == null) Owner = transform.FindObjectCore().gameObject;
-            if (m_AimOrigin == null) m_AimOrigin = transform;
-            if (Aimer) m_AimOrigin = Aimer.AimOrigin; //Set the Aim origin from the Aimer
+
+            if (m_AimOrigin == null)
+            {
+                //Set the Aim origin from the Aimer
+                m_AimOrigin = Aimer ? Aimer.AimOrigin : transform;
+            }
 
             if (FireOnStart) Fire();
+
+            Aimer?.OnSetTarget.AddListener(AimerTarget);
         }
 
+        
+
+        private void OnDisable()
+        {
+            Aimer?.OnSetTarget.RemoveListener(AimerTarget);
+        }
+
+        private void AimerTarget(Transform target)
+        {
+          if (UpdateTargetFromAimer)  Target = target;
+        }
 
         public virtual void SetProjectile(GameObject newProjectile)
         {
@@ -118,7 +154,7 @@ namespace MalbersAnimations.Weapons
         }
 
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (CalculateTrajectory) CalculateVelocity();
         }
@@ -131,24 +167,27 @@ namespace MalbersAnimations.Weapons
 
         void Prepare_Projectile(GameObject p)
         {
-            var projectile = p.GetComponent<IProjectile>();
-
-            if (projectile != null) //Means its a Malbers Projectile ^^
+            //Means its a Malbers Projectile ^^
+            if (p.TryGetComponent<IProjectile>(out var projectile)) 
             {
-                projectile.Prepare(Owner, Gravity, Velocity,  Layer, TriggerInteraction);
+                projectile.Prepare(Owner, Gravity, Velocity, Layer, TriggerInteraction);
+                projectile.AfterDistance = AfterDistance;
                 projectile.SetDamageMultiplier(DamageMultiplier); //Apply Multiplier
                 projectile.Fire();
             }
             else //Fire without the Projectile Component
             {
-                var rb = p.GetComponent<Rigidbody>();
-                rb?.AddForce(Velocity, ForceMode.VelocityChange);
+                if (p.TryGetComponent(out Rigidbody rb))
+                {
+                    rb.AddForce(Velocity, ForceMode.VelocityChange);
+                }
             }
         }
 
         public virtual void SetDamageMultiplier(float m) => DamageMultiplier = m;
         public virtual void SetScaleMultiplier(float m) => ScaleMultiplier = m;
-        public virtual void SetPowerMultiplier(float m) => PowerMultiplier = m;
+        public virtual void SetPowerMultiplier(float m) => ForceMultiplier = m;
+        public virtual void SetForceMultiplier(float m) => SetPowerMultiplier(m);
 
         public virtual void CalculateVelocity()
         {
@@ -164,8 +203,7 @@ namespace MalbersAnimations.Weapons
                 Power = MTools.PowerFromAngle(AimOriginPos, Target.position, TargetAngle);
                 Velocity = MTools.VelocityFromPower(AimOriginPos, Power, TargetAngle, Target.position);
             }
-            else 
-            if (Aimer && useAimerDirection.Value)
+            else if (Aimer && useAimerDirection.Value)
             {
                 Velocity = Aimer.AimDirection.normalized * Power;
             }
@@ -184,7 +222,7 @@ namespace MalbersAnimations.Weapons
         }
 
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && MALBERS_DEBUG
 
         void OnDrawGizmos()
         {

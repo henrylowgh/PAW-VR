@@ -9,7 +9,7 @@ namespace MalbersAnimations
 {
     [DefaultExecutionOrder(1000)]
     /// <summary> Explosion Logic</summary>
-    [AddComponentMenu("Malbers/Damage/Explosion")]
+    [AddComponentMenu("Malbers/Damage/Explosion Force")]
 
     public class MExplosion : MDamager
     {
@@ -21,6 +21,9 @@ namespace MalbersAnimations
         public float radius = 10;
         [Tooltip("Life of the explosion, after this time has elapsed the Explosion gameobject will be destroyed ")]
         public float life = 10f;
+
+        public AnimationCurve DamageCurve = new(MTools.DefaultCurveLinearInverse);
+
         [HideInInspector] public int Editor_Tabs1;
 
         void Start() { if (ExplodeOnStart) Explode(); }
@@ -52,7 +55,8 @@ namespace MalbersAnimations
 
                     //Distance of the collider and the Explosion
                     var Distance = Vector3.Distance(transform.position, other.bounds.center);
-                    var ExplotionRange = 1 - (Distance / radius); //Calculate the explostion range 
+
+                    var ExplotionRange = DamageCurve.Evaluate(Distance / radius); //Calculate the explostion range 
 
                     if (rb != null && rb.useGravity)
                     {
@@ -102,7 +106,7 @@ namespace MalbersAnimations
     [CanEditMultipleObjects]
     public class MExposionEd : MDamagerEd
     {
-        SerializedProperty ExplodeOnStart, upwardsModifier, radius, life, Editor_Tabs1;
+        SerializedProperty ExplodeOnStart, upwardsModifier, radius, life, Editor_Tabs1, DamageCurve;
         protected string[] Tabs1 = new string[] { "General", "Damage", "Extras", "Events" };
 
         private void OnEnable()
@@ -113,6 +117,7 @@ namespace MalbersAnimations
 
             upwardsModifier = serializedObject.FindProperty("upwardsModifier");
             Editor_Tabs1 = serializedObject.FindProperty("Editor_Tabs1");
+            DamageCurve = serializedObject.FindProperty("DamageCurve");
 
             radius = serializedObject.FindProperty("radius");
             life = serializedObject.FindProperty("life");
@@ -144,6 +149,7 @@ namespace MalbersAnimations
             {
                 EditorGUILayout.LabelField("Explosion", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(ExplodeOnStart, new GUIContent("On Start"));
+                EditorGUILayout.PropertyField(DamageCurve);
                 EditorGUILayout.PropertyField(radius);
                 EditorGUILayout.PropertyField(life);
             }

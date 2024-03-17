@@ -191,21 +191,16 @@ namespace MalbersAnimations
     public class TransformAnimationEditor : Editor
     {
         TransformAnimation My;
-        private MonoScript script;
 
         void OnEnable()
         {
             My = (TransformAnimation)target;
-            script = MonoScript.FromScriptableObject(My);
         }
 
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
-            MalbersEditor.DrawDescription("Use to animate a transform to this values");
-
             using (var cc = new EditorGUI.ChangeCheckScope())
             {
                 using (new GUILayout.VerticalScope())

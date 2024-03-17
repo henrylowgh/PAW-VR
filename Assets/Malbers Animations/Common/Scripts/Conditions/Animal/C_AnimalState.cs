@@ -8,7 +8,7 @@ namespace MalbersAnimations.Conditions
         public override string DisplayName => "Animal/States";
 
 
-        public enum StateCondition { ActiveState, Enabled, HasState , Pending, SleepFromMode, SleepFromState, SleepFromStance }
+        public enum StateCondition { ActiveState,  Enabled, HasState , Pending, SleepFromMode, SleepFromState, SleepFromStance, LastState, }
         public StateCondition Condition = StateCondition.ActiveState;
         public StateID Value;
 
@@ -36,6 +36,7 @@ namespace MalbersAnimations.Conditions
                     case StateCondition.SleepFromMode: return st.IsSleepFromMode;
                     case StateCondition.SleepFromState: return st.IsSleepFromState;
                     case StateCondition.SleepFromStance: return st.IsSleepFromStance;
+                    case StateCondition.LastState: return Target.LastState.ID == Value;       //Check if the LastState is this ID
                 }
             }
             return false;

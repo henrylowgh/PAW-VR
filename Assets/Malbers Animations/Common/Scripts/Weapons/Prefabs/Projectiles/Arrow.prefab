@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4000011687228806}
   - component: {fileID: 33000010291608134}
   - component: {fileID: 23000014065217522}
-  m_Layer: 2
+  m_Layer: 30
   m_Name: Arrow Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25,13 +25,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000010290526256}
+  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.14, y: 1.14, z: 1.14}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010051801208}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &33000010291608134
 MeshFilter:
@@ -112,6 +112,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000013609580904}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -121,7 +122,6 @@ Transform:
   - {fileID: 4947155006907542}
   - {fileID: 8638286268342232380}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114000011308037870
 MonoBehaviour:
@@ -144,11 +144,17 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue:
       serializedVersion: 2
-      m_Bits: 3230662673
+      m_Bits: 2156920849
     Variable: {fileID: 0}
+  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  hitEffects: []
+  hitSound:
     UseConstant: 1
     ConstantValue: {fileID: 0}
     Variable: {fileID: 0}
@@ -201,13 +207,13 @@ MonoBehaviour:
     Variable: {fileID: 0}
   m_Force:
     UseConstant: 1
-    ConstantValue: 50
+    ConstantValue: 2000
     Variable: {fileID: 0}
   minForce:
     UseConstant: 1
-    ConstantValue: 20
+    ConstantValue: 500
     Variable: {fileID: 0}
-  forceMode: 0
+  forceMode: 1
   OnHit:
     m_PersistentCalls:
       m_Calls:
@@ -337,6 +343,7 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
+  m_audio: {fileID: 82342202747707584}
   impactBehaviour: 1
   rotation: 1
   TrajectoryRoll: 0
@@ -349,17 +356,21 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: {x: 0, y: -9.81, z: 0}
     Variable: {fileID: 0}
+  m_AfterDistance:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   Life:
     UseConstant: 1
     ConstantValue: 10
     Variable: {fileID: 0}
   LifeImpact:
     UseConstant: 1
-    ConstantValue: 5
+    ConstantValue: 10
     Variable: {fileID: 0}
   PushMultiplier:
     UseConstant: 1
-    ConstantValue: 1
+    ConstantValue: 3
     Variable: {fileID: 0}
   torque:
     UseConstant: 1
@@ -369,9 +380,10 @@ MonoBehaviour:
   m_PosOffset: {x: 0, y: 0, z: 0.8}
   m_RotOffset: {x: 0, y: 0, z: 0}
   m_ScaleOffset: {x: 0, y: 0, z: 0}
+  useRadius: 0
   Radius:
     UseConstant: 1
-    ConstantValue: 0.1
+    ConstantValue: 0.001
     Variable: {fileID: 0}
   OnFire:
     m_PersistentCalls:
@@ -402,6 +414,7 @@ MonoBehaviour:
         m_CallState: 0
   rb: {fileID: 0}
   m_collider: {fileID: 0}
+  DragOnImpact: 1
   Editor_Tabs1: 0
   references:
     version: 2
@@ -689,11 +702,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
-  SceneRoot:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  m_Value:
+  m_Amount:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
@@ -758,9 +767,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000013609580904}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.6
   m_Center: {x: 0, y: 0, z: -0.6}
 --- !u!1 &1257982144579250
@@ -773,7 +790,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4947155006907542}
   - component: {fileID: 96356462734098446}
-  m_Layer: 2
+  m_Layer: 30
   m_Name: Trail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -787,17 +804,17 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1257982144579250}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1.055}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010051801208}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!96 &96356462734098446
 TrailRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -838,6 +855,7 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Time: 0.5
+  m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.02
@@ -883,22 +901,27 @@ TrailRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
     textureMode: 0
+    textureScale: {x: 1, y: 1}
     shadowBias: 0
     generateLightingData: 0
   m_MinVertexDistance: 0.1
+  m_MaskInteraction: 0
   m_Autodestruct: 1
   m_Emitting: 1
+  m_ApplyActiveColorSpace: 0
 --- !u!1001 &7471751579841218696
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 4000010051801208}
     m_Modifications:
     - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
@@ -961,12 +984,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: OnFocused
       objectReference: {fileID: 0}
+    - target: {fileID: 7808745598944374104, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
+        type: 3}
+      propertyPath: m_Layer
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 9181817740155613070, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
         type: 3}
       propertyPath: onEnable.m_PersistentCalls.m_Calls.Array.data[2].m_Arguments.m_StringArgument
       value: Pick Arrow
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2, type: 3}
 --- !u!1 &859838736146310608 stripped
 GameObject:

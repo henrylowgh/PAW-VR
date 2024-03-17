@@ -8,15 +8,13 @@ using UnityEditor;
 
 namespace MalbersAnimations.Utilities
 {
-    /// <summary>
-    /// Quick Class to Change the values of a Animator Parameter
-    /// </summary>
+    /// <summary> Quick Class to Change the values of a Animator Parameter  </summary>
     [AddComponentMenu("Malbers/Utilities/Animator/Set Animator Parameter")]
 
     public class SetAnimatorParameter : MonoBehaviour
     {
         public Animator animator;
-        public List<MAnimatorParameter> parameters = new List<MAnimatorParameter>();
+        public List<MAnimatorParameter> parameters = new();
 
         /// <summary> Set all the Parameters in the Animator  </summary>
         public void Set()

@@ -27,6 +27,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000010043505574}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -37,7 +38,6 @@ Transform:
   - {fileID: 2357839356880757196}
   - {fileID: 4217263169292578848}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114000013856570684
 MonoBehaviour:
@@ -62,13 +62,49 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     Variable: {fileID: 0}
+  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 4218342981094748148}
     Variable: {fileID: 0}
-  DestroyHitEffect: 0
+  hitEffects:
+  - surface: {fileID: 11400000, guid: cf2f9bc1a5989eb4cbe0bb67bb7b6fa9, type: 2}
+    sound:
+      UseConstant: 1
+      ConstantValue: {fileID: 8300000, guid: 6fa6f8e3d0b17884588ddd02f9b6cd09, type: 3}
+      Variable: {fileID: 0}
+    effect:
+      UseConstant: 1
+      ConstantValue: {fileID: 1091566395842728, guid: 3dbde12724882e048a8dce4d52be4e63,
+        type: 3}
+      Variable: {fileID: 0}
+  - surface: {fileID: 11400000, guid: b9a234bf44c728046bdef6636bc8c05d, type: 2}
+    sound:
+      UseConstant: 1
+      ConstantValue: {fileID: 8300000, guid: b9e0576551c735c428fdd3988f8fc093, type: 3}
+      Variable: {fileID: 0}
+    effect:
+      UseConstant: 1
+      ConstantValue: {fileID: 1091566395842728, guid: 400e06051701a8c4998087ae421728e3,
+        type: 3}
+      Variable: {fileID: 0}
+  - surface: {fileID: 11400000, guid: 086d5b5b568527d418eb79345bf9ac15, type: 2}
+    sound:
+      UseConstant: 1
+      ConstantValue: {fileID: 8300000, guid: a8010093efff97f4dbadb67921c7f4b9, type: 3}
+      Variable: {fileID: 0}
+    effect:
+      UseConstant: 1
+      ConstantValue: {fileID: 1091566395842728, guid: c0759e78d23401e4d827cb5cfb8cfacb,
+        type: 3}
+      Variable: {fileID: 0}
+  hitSound:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  DestroyHitEffect: 0.2
   dontHitOwner:
     UseConstant: 1
     ConstantValue: 1
@@ -229,6 +265,7 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
+  m_audio: {fileID: 0}
   m_UI: {fileID: 0}
   description:
     UseConstant: 1
@@ -269,8 +306,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   GroundArmPose: 1
   RidingArmPose: 1
-  GroundCombo: 1
-  RidingCombo: -1
+  GroundCombo: {fileID: 11400000, guid: dc411047be38d924fbfc67128f6957f2, type: 2}
+  RidingCombo: {fileID: 0}
   m_AimOrigin: {fileID: 0}
   m_AimSide: 0
   weaponType: {fileID: 11400000, guid: dc411047be38d924fbfc67128f6957f2, type: 2}
@@ -302,7 +339,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  UseStrafe:
+  strafeOnEquip:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
@@ -333,7 +370,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5d57cd60566a34d429591148beecc370, type: 3}
   - {fileID: 8300000, guid: 68c1c6ee9ddcd0341a672e9f7ecbbef0, type: 3}
   - {fileID: 0}
-  WeaponSound: {fileID: 82825216281244628}
   OnEquiped:
     m_PersistentCalls:
       m_Calls:
@@ -369,6 +405,9 @@ MonoBehaviour:
   OnCharged:
     m_PersistentCalls:
       m_Calls: []
+  OnMaxCharged:
+    m_PersistentCalls:
+      m_Calls: []
   OnChargedFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -381,8 +420,8 @@ MonoBehaviour:
   OnReleaseFreeHand:
     m_PersistentCalls:
       m_Calls: []
-  Editor_Tabs1: 4
-  Editor_Tabs2: 2
+  Editor_Tabs1: 3
+  Editor_Tabs2: 4
   meleeTrigger: {fileID: 9207878466321987045}
   ignoreStaticObjects: 1
   OnCauseDamage:
@@ -594,13 +633,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000010177216588}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000011323151436}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &33000010474348014
 MeshFilter:
@@ -675,6 +714,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000011154356612}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0.007, y: 0, z: -0.025}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -682,7 +722,6 @@ Transform:
   m_Children:
   - {fileID: 4000011772398634}
   m_Father: {fileID: 4000010068590236}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 90}
 --- !u!1 &4236595600180845406
 GameObject:
@@ -708,13 +747,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4236595600180845406}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.011, y: 0.002, z: -0.11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010068590236}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1363596199452011896
 MonoBehaviour:
@@ -758,13 +797,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7877510679624815203}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.14, y: 0, z: 0.81}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010068590236}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &9207878466321987045
 BoxCollider:
@@ -774,9 +813,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7877510679624815203}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 0.46525186, y: 0.28, z: 0.57740194}
   m_Center: {x: -0.07616505, y: 0, z: -0.08372714}
 --- !u!1001 &4218026021010526044
@@ -784,6 +831,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 4000010068590236}
     m_Modifications:
     - target: {fileID: 1091566395842728, guid: 400e06051701a8c4998087ae421728e3, type: 3}
@@ -839,6 +887,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 400e06051701a8c4998087ae421728e3, type: 3}
 --- !u!4 &4217263169292578848 stripped
 Transform:

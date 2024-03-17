@@ -31,7 +31,7 @@ MonoBehaviour:
   resetInputOnFailed: 1
   ResetLastState: 0
   General:
-    modify: -1
+    modify: 7423
     RootMotion: 1
     Sprint: 0
     Gravity: 0
@@ -137,6 +137,10 @@ MonoBehaviour:
       UseConstant: 1
       ConstantValue: 10
       Variable: {fileID: 0}
+    UpDownMult:
+      UseConstant: 1
+      ConstantValue: 1
+      Variable: {fileID: 0}
     states:
     - {fileID: 11400000, guid: e540d0fa5cbb6d148aaf89c2cf966b6a, type: 2}
     stances: []
@@ -162,10 +166,6 @@ MonoBehaviour:
         UseConstant: 1
         ConstantValue: 6
         Variable: {fileID: 0}
-      lerpRotation:
-        UseConstant: 1
-        ConstantValue: 4
-        Variable: {fileID: 0}
       lerpRotAnim:
         UseConstant: 1
         ConstantValue: 2
@@ -189,7 +189,7 @@ MonoBehaviour:
   ID: {fileID: 11400000, guid: e540d0fa5cbb6d148aaf89c2cf966b6a, type: 2}
   GravityDrag:
     UseConstant: 1
-    ConstantValue: 3
+    ConstantValue: 5
     Variable: {fileID: 0}
   StartHeight:
     UseConstant: 1

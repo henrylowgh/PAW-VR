@@ -27,6 +27,8 @@ MonoBehaviour:
   GizmoStateColor: {r: 1, g: 0, b: 0.31770992, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
+  TasksIndex: -1
+  DecisionIndex: 0
 --- !u!114 &2702987139831710436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93,4 +95,6 @@ MonoBehaviour:
   direction: 0
   arcsCount: 12
   LookAtTarget: 1
+  FleeForever: 1
+  StopOnArrive: 1
   debugColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.25}

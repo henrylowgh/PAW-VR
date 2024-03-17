@@ -37,6 +37,7 @@ namespace MalbersAnimations
                 Found = allAdd.Exists(x => (x.ID == newID && x != this));
             }
             ID = newID;
+            DisplayName = name;
             MTools.SetDirty(this);
         }
 

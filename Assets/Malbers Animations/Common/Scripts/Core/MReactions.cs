@@ -12,9 +12,17 @@ namespace MalbersAnimations.Reactions
     public class MReactions : MonoBehaviour
     {
         [Tooltip("Try to find a target on Enable. (Search first in the hierarchy then in the parents)")]
+        [ContextMenuItem("Find Target", "GetTarget on Enable")]
         public bool FindTarget = false;
 
         [SerializeField] private Component Target;
+
+        [Tooltip("React when the Component is Enabled")]
+        public bool ReactOnEnable = false;
+        [Tooltip("React when the Component is Disabled")]
+        public bool ReactOnDisable = false;
+
+
 
         [SerializeReference, SubclassSelector]
         public Reaction reaction;
@@ -23,10 +31,17 @@ namespace MalbersAnimations.Reactions
         {
             if (FindTarget)
                 Target = GetComponent(reaction.ReactionType) ?? GetComponentInParent(reaction.ReactionType);
+
+            if (ReactOnEnable) React();
+        }
+
+        private void OnDisable()
+        {
+            if (ReactOnDisable) React();
         }
 
         [ContextMenu("Find Target")]
-        private void GetTarget()
+        public void GetTarget()
         {
             Target = GetComponent(reaction.ReactionType) ?? GetComponentInParent(reaction.ReactionType);
             MTools.SetDirty(this);
@@ -46,7 +61,6 @@ namespace MalbersAnimations.Reactions
 
         public void React(Component newAnimal)
         {
-
             if (reaction != null)
             {
                 Target = reaction.VerifyComponent(newAnimal);
@@ -59,7 +73,6 @@ namespace MalbersAnimations.Reactions
         }
 
         public void React(GameObject newAnimal) => React(newAnimal.transform);
-
     }
 
 #if UNITY_EDITOR
@@ -67,34 +80,98 @@ namespace MalbersAnimations.Reactions
     [CustomEditor(typeof(MReactions))]
     public class MReactionEditor : Editor
     {
-        SerializedProperty FindTarget, Target, reaction;
+        SerializedProperty FindTarget, Target, reaction, ReactOnEnable, ReactOnDisable;
 
         private GUIContent _SearchIcon;
+        private GUIContent _OnEnable, _OnDisable, _FindTarget;
+        private GUIContent _ReactIcon;
+        MReactions M;
+
 
         private void OnEnable()
         {
+            M = (MReactions)target;
             FindTarget = serializedObject.FindProperty("FindTarget");
             Target = serializedObject.FindProperty("Target");
-            reaction = serializedObject.FindProperty("reaction"); 
+            reaction = serializedObject.FindProperty("reaction");
+            ReactOnDisable = serializedObject.FindProperty("ReactOnDisable");
+            ReactOnEnable = serializedObject.FindProperty("ReactOnEnable");
         }
- 
+
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
-
-            using (new GUILayout.HorizontalScope(EditorStyles.helpBox))
+            if (M.reaction != null)
             {
-                EditorGUILayout.PropertyField(Target);
-
-                if (_SearchIcon == null)
+                using (new GUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
-                    _SearchIcon = EditorGUIUtility.IconContent("Search Icon");
-                    _SearchIcon.tooltip = "Find Target On Enable";
-                }
+                    var width = 28f;
 
-                FindTarget.boolValue =  GUILayout.Toggle(FindTarget.boolValue, _SearchIcon, EditorStyles.miniButton, GUILayout.Width(28),GUILayout.Height(20));
+                    if (Application.isPlaying)
+                    {
+                        if (_ReactIcon == null)
+                        {
+                            _ReactIcon = EditorGUIUtility.IconContent("d_PlayButton@2x");
+                            _ReactIcon.tooltip = "React at Runtime";
+                        }
+
+                        if (GUILayout.Button(_ReactIcon, EditorStyles.miniButton, GUILayout.Width(width), GUILayout.Height(20)))
+                        {
+                            (target as MReactions).React();
+                        }
+                    }
+
+                    if (_SearchIcon == null)
+                    {
+                        _SearchIcon = EditorGUIUtility.IconContent("Search Icon");
+                        _SearchIcon.tooltip = "Find Target in hierarchy";
+                    }
+
+                    if (GUILayout.Button(_SearchIcon, EditorStyles.miniButton, GUILayout.Width(width), GUILayout.Height(20)))
+                    {
+                        (target as MReactions).GetTarget();
+                    }
+
+                    EditorGUIUtility.labelWidth = 60;
+                    EditorGUILayout.PropertyField(Target);
+                    EditorGUIUtility.labelWidth = 0;
+
+                    #region ICONS
+
+                    if (_FindTarget == null)
+                    {
+                        _FindTarget = EditorGUIUtility.IconContent("d_ol_plus");
+                        _FindTarget.tooltip = "GetTarget on Enable";
+                    }
+
+                    if (_OnEnable == null)
+                    {
+                        _OnEnable = EditorGUIUtility.IconContent("d_toggle_on_focus");
+                        _OnEnable.tooltip = "React On Enable";
+                    }
+
+                    if (_OnDisable == null)
+                    {
+                        _OnDisable = EditorGUIUtility.IconContent("d_toggle_bg_focus");
+                        _OnDisable.tooltip = "React On Disable";
+                    }
+                    #endregion
+
+                    FindTarget.boolValue = GUILayout.Toggle(FindTarget.boolValue, _FindTarget,
+                        EditorStyles.miniButton, GUILayout.Width(width), GUILayout.Height(20));
+
+                    var dC = GUI.color;
+                    if (ReactOnEnable.boolValue) GUI.color = Color.green;
+                    ReactOnEnable.boolValue = GUILayout.Toggle(ReactOnEnable.boolValue, _OnEnable,
+                    EditorStyles.miniButton, GUILayout.Width(width), GUILayout.Height(20));
+                    GUI.color = dC;
+
+                    if (ReactOnDisable.boolValue) GUI.color = Color.green;
+                    ReactOnDisable.boolValue = GUILayout.Toggle(ReactOnDisable.boolValue, _OnDisable,
+                    EditorStyles.miniButton, GUILayout.Width(width), GUILayout.Height(20));
+                    GUI.color = dC;
+                }
             }
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
@@ -105,9 +182,6 @@ namespace MalbersAnimations.Reactions
             }
             serializedObject.ApplyModifiedProperties();
         }
-
-
     }
 #endif
 }
-

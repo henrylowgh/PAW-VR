@@ -53,7 +53,7 @@ namespace MalbersAnimations
 
         bool HAS_AS => m_AnimatorStates.Length > 0;
         bool HAS_ASM => m_StateMachines.Length > 0;
-        bool HAS_T => m_Transitions.Length > 0;
+      //  bool HAS_T => m_Transitions.Length > 0;
 
         public Vector2 Scroll;
 
@@ -75,7 +75,7 @@ namespace MalbersAnimations
         /// <summary> Cached style to use to draw the popup button. </summary>
         private GUIStyle popupStyle;
 
-        [MenuItem("Tools/Malbers Animations/Animator Tools", false, 300)]
+        [MenuItem("Tools/Malbers Animations/Tools/Animator Tools", false, 300)]
         public static void ShowWindow()
         {
             var window = (MalbersAnimatorTools)GetWindow(typeof(MalbersAnimatorTools), false, "Animator Tools");
@@ -474,6 +474,7 @@ namespace MalbersAnimations
             Any_ToState.duration = 0.2f;
             Any_ToState.offset = 0;
             Any_ToState.hasExitTime = false;
+            Any_ToState.interruptionSource = TransitionInterruptionSource.Destination; //IMPORTANT!
 
             Any_ToState.AddCondition(AnimatorConditionMode.If, 0, "ModeOn");
 
@@ -495,6 +496,7 @@ namespace MalbersAnimations
             Any_ToState.duration = 0.2f;
             Any_ToState.offset = 0;
             Any_ToState.hasExitTime = false;
+            Any_ToState.interruptionSource = TransitionInterruptionSource.Destination; //IMPORTANT!
 
             Any_ToState.AddCondition(AnimatorConditionMode.If, 0, "StateOn");
 
@@ -990,9 +992,11 @@ namespace MalbersAnimations
 
                 if (m_Transitions.Length > 0)
                 {
-                    if (controller)
+                    if (controller && controller.parameters.Length > 0)
                     {
                         string[] Params = new string[controller.parameters.Length];
+
+                         
 
                         for (int i = 0; i < Params.Length; i++)
                         {

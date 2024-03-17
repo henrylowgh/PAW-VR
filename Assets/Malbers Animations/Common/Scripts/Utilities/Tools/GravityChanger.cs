@@ -30,8 +30,7 @@ namespace MalbersAnimations
 
         public virtual void ResetAnimal()
         {
-            if (animal != null)    animal.Gravity = Vector3.down;
-
+            animal?.ResetGravityDirection();
             animal = null;
             Other = null;
         }

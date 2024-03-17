@@ -29,10 +29,10 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.26377872, y: 0.26377872, z: 0.26377872}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8232365246749536210}
   m_Father: {fileID: 8232579332588991460}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -62,6 +62,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -102,7 +103,6 @@ GameObject:
   - component: {fileID: 8231752026801094330}
   - component: {fileID: 8151603084088236132}
   - component: {fileID: 8151603084088236135}
-  - component: {fileID: 6076039288408663432}
   m_Layer: 5
   m_Name: Interact UI
   m_TagString: Untagged
@@ -120,10 +120,10 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8232579332588991460}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -143,10 +143,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainCamera: {fileID: 0}
-  WorldTransform: {fileID: 0}
-  TextUI: {fileID: 8121271398479191648}
+  WorldTransform:
+    UseConstant: 1
+    ConstantValue: {fileID: 0}
+    Variable: {fileID: 0}
+  UseChild:
+    UseConstant: 1
+    ConstantValue: 
+    Variable: {fileID: 0}
+  HideOffScreen: {fileID: 0}
   ResetOnDisable: 0
-  ClearText: 0
+  HideOnNull: 0
+  Offset:
+    UseConstant: 1
+    ConstantValue: {x: 0, y: 0, z: 0}
+    Variable: {fileID: 0}
+  Scale:
+    UseConstant: 1
+    ConstantValue: {x: 1, y: 1, z: 1}
+    Variable: {fileID: 0}
 --- !u!114 &8151603084088236135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,22 +198,12 @@ MonoBehaviour:
         m_Calls: []
     ResponseInt:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 6076039288408663432}
-          m_MethodName: set_Value
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
+        m_Calls: []
     ResponseBool:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 8153473199832746170}
+          m_TargetAssemblyTypeName: 
           m_MethodName: SetActive
           m_Mode: 0
           m_Arguments:
@@ -210,6 +215,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
         - m_Target: {fileID: 8151603084088236132}
+          m_TargetAssemblyTypeName: 
           m_MethodName: set_enabled
           m_Mode: 0
           m_Arguments:
@@ -230,6 +236,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 8121271398479191648}
+          m_TargetAssemblyTypeName: 
           m_MethodName: set_text
           m_Mode: 0
           m_Arguments:
@@ -247,6 +254,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 8151603084088236132}
+          m_TargetAssemblyTypeName: 
           m_MethodName: SetTransform
           m_Mode: 0
           m_Arguments:
@@ -267,6 +275,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 8151603084088236132}
+          m_TargetAssemblyTypeName: 
           m_MethodName: SetScreenCenter
           m_Mode: 0
           m_Arguments:
@@ -280,79 +289,59 @@ MonoBehaviour:
     ResponseVector2:
       m_PersistentCalls:
         m_Calls: []
-    IntEventList: []
-    AdvancedInteger: 0
+    IntEventList:
+    - active: 1
+      name: None
+      description: Do not Show the Interact Key when the value is Zero
+      comparer: 0
+      Value:
+        UseConstant: 1
+        ConstantValue: 0
+        Variable: {fileID: 0}
+      Response:
+        m_PersistentCalls:
+          m_Calls:
+          - m_Target: {fileID: 5292059259424572239}
+            m_TargetAssemblyTypeName: 
+            m_MethodName: SetActive
+            m_Mode: 6
+            m_Arguments:
+              m_ObjectArgument: {fileID: 0}
+              m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+              m_IntArgument: 0
+              m_FloatArgument: 0
+              m_StringArgument: 
+              m_BoolArgument: 0
+            m_CallState: 2
+    - active: 1
+      name: Any
+      description: ' Show the Interact Key when the value is not Zero'
+      comparer: 3
+      Value:
+        UseConstant: 1
+        ConstantValue: 0
+        Variable: {fileID: 0}
+      Response:
+        m_PersistentCalls:
+          m_Calls:
+          - m_Target: {fileID: 5292059259424572239}
+            m_TargetAssemblyTypeName: 
+            m_MethodName: SetActive
+            m_Mode: 6
+            m_Arguments:
+              m_ObjectArgument: {fileID: 0}
+              m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+              m_IntArgument: 0
+              m_FloatArgument: 0
+              m_StringArgument: 
+              m_BoolArgument: 1
+            m_CallState: 2
+    AdvancedInteger: 1
     AdvancedBool: 0
     InvertBool: 0
---- !u!114 &6076039288408663432
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8151603084088236134}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3438e97d3cf74cf4b8684df9fad6757b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+    multiplier: 1
   ShowEvents: 1
-  ID:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  Auto: 1
-  Description: Swap the Categories
-  ShowDescription: 1
-  debug: 0
-  value:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  Raise:
-    m_PersistentCalls:
-      m_Calls: []
-  compare:
-  - name: None
-    comparer: 0
-    Value:
-      UseConstant: 1
-      ConstantValue: 0
-      Variable: {fileID: 0}
-    Response:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 5292059259424572239}
-          m_MethodName: SetActive
-          m_Mode: 6
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - name: Any
-    comparer: 3
-    Value:
-      UseConstant: 1
-      ConstantValue: 0
-      Variable: {fileID: 0}
-    Response:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 5292059259424572239}
-          m_MethodName: SetActive
-          m_Mode: 6
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 1
-          m_CallState: 2
+  SelectedEvent: 0
 --- !u!1 &8153401642232077296
 GameObject:
   m_ObjectHideFlags: 0
@@ -382,9 +371,9 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3.791056, y: 3.791056, z: 3.791056}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1927143486405054320}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -414,6 +403,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -474,11 +464,11 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.26377872, y: 0.26377872, z: 0.26377872}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8232211229129752504}
   - {fileID: 1927143486405054320}
   m_Father: {fileID: 8231752026801094330}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -526,9 +516,9 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8232579332588991460}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
@@ -558,6 +548,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:

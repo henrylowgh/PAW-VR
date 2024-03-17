@@ -80,8 +80,8 @@ namespace MalbersAnimations.Weapons
 
             var gradient = new Gradient();
             gradient.SetKeys(
-                new GradientColorKey[] { new GradientColorKey(startColor, 0.0f), new GradientColorKey(endColor, 1.0f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(startColor.a, 0.0f), new GradientAlphaKey(endColor.a, 1.0f) }
+                new GradientColorKey[] { new(startColor, 0.0f), new(endColor, 1.0f) },
+                new GradientAlphaKey[] { new(startColor.a, 0.0f), new(endColor.a, 1.0f) }
             );
             line.colorGradient = gradient;
             line.useWorldSpace = true;
@@ -133,20 +133,35 @@ namespace MalbersAnimations.Weapons
 
             var hit = new RaycastHit() { normal = Vector3.up };
 
+            int NoGravityStep = 0;
+            float TraveledDistance = 0;
+
             for (int i = 1; i < MaxSteps; i++)
             {
                 float time = Step * i;
-                Vector3 pos = start + velocity * time + Thrower.Gravity * time * time / 2;
+                float gravityTime = Step * (i - NoGravityStep);
+
+                Vector3 pos = (start + velocity * time) + (gravityTime * gravityTime * Thrower.Gravity / 2);
 
                 if (Physics.Linecast(prev, pos, out hit, Thrower.Layer, Thrower.TriggerInteraction))
                 {
-                    if (!hit.collider.transform.IsChildOf(Thrower.Owner.transform))
+                    if (!hit.collider.transform.SameHierarchy(Thrower.Owner.transform))
                     {
                         points.Add(hit.point);
                         break;
                     }
                 }
                 points.Add(pos);
+
+               var Direction = (pos - prev);
+
+                //Check if the gravity can be applied after distance
+                if (TraveledDistance < Thrower.AfterDistance)
+                {
+                    TraveledDistance += Direction.magnitude;
+                    NoGravityStep++;
+                }
+
                 prev = pos;
             }
 

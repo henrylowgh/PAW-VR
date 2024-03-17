@@ -56,8 +56,11 @@ namespace MalbersAnimations
 
         private void OnEnable() { }
 
+#if UNITY_EDITOR && MALBERS_DEBUG
         void OnDrawGizmos()
         {
+
+
             if (!enabled) return;
 
             var DebugColorWire = new Color(DebugColor.r, DebugColor.g, DebugColor.b, 1);
@@ -80,7 +83,7 @@ namespace MalbersAnimations
             {
                 case GizmoType.Cube:
                     Gizmos.color = DebugColorWire;
-                    Gizmos.DrawWireCube(Vector3.zero, new Vector3(debugSize, debugSize, debugSize));
+                    Gizmos.DrawWireCube(Vector3.zero, Vector3.one * debugSize);
                     Gizmos.color = DebugColor;
                     Gizmos.DrawCube(Vector3.zero, Vector3.one * debugSize);
                     break;
@@ -118,6 +121,8 @@ namespace MalbersAnimations
                     break;
             }
         }
+#endif
+
 
         void UsesColliders(bool sel)
         {
@@ -144,6 +149,8 @@ namespace MalbersAnimations
                     Gizmos.DrawCube(pos, sca);
                 }
 
+               
+
             }
             else if (_Collider is SphereCollider)
             {
@@ -164,12 +171,12 @@ namespace MalbersAnimations
             }
         }
 #endif
-    }
+        }
 
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(GizmoVisualizer)), CanEditMultipleObjects]
-    public class MAnimalEditor : Editor
+    public class GizmoVisualizerEditor : Editor
     {
 
         SerializedProperty UseColliders, gizmoType, debugSize, DebugColor, DrawAxis, AxisSize;
@@ -188,30 +195,33 @@ namespace MalbersAnimations
         {
             serializedObject.Update();
 
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(UseColliders);
-            EditorGUILayout.PropertyField(DebugColor, GUIContent.none, GUILayout.MaxWidth(100));
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(DrawAxis);
-            if (DrawAxis.boolValue)
+            using (new GUILayout.HorizontalScope())
             {
-                EditorGUIUtility.labelWidth = 30;
-                EditorGUILayout.PropertyField(AxisSize, new GUIContent("Size"), GUILayout.MaxWidth(100), GUILayout.MinWidth(70));
-                EditorGUIUtility.labelWidth = 0;
+                EditorGUILayout.PropertyField(UseColliders);
+                EditorGUILayout.PropertyField(DebugColor, GUIContent.none, GUILayout.MaxWidth(100));
             }
-            EditorGUILayout.EndHorizontal();
+
+            using (new GUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PropertyField(DrawAxis);
+                if (DrawAxis.boolValue)
+                {
+                    EditorGUIUtility.labelWidth = 30;
+                    EditorGUILayout.PropertyField(AxisSize, new GUIContent("Size"), GUILayout.MaxWidth(100), GUILayout.MinWidth(70));
+                    EditorGUIUtility.labelWidth = 0;
+                }
+            }
+
             if (!UseColliders.boolValue)
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(gizmoType);
-                EditorGUIUtility.labelWidth = 30;
-                EditorGUILayout.PropertyField(debugSize, new GUIContent("Size"), GUILayout.MaxWidth(100), GUILayout.MinWidth(70));
-                EditorGUIUtility.labelWidth = 0;
-                EditorGUILayout.EndHorizontal();
+                using (new GUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PropertyField(gizmoType);
+                    EditorGUIUtility.labelWidth = 30;
+                    EditorGUILayout.PropertyField(debugSize, new GUIContent("Size"), GUILayout.MaxWidth(100), GUILayout.MinWidth(70));
+                    EditorGUIUtility.labelWidth = 0;
+                }
             }
-
             serializedObject.ApplyModifiedProperties();
         }
     }

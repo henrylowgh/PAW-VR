@@ -6,15 +6,17 @@ namespace MalbersAnimations.Controller
     public class Slide : State
     {
         public override string StateName => "Slide";
+        public override string StateIDName => "Slide";
 
 
         [Tooltip("Lerp value for the Aligment to the surface")]
         public FloatReference OrientLerp = new(10f);
 
 
-        //[Tooltip("Keep the Animal aligned with the terrain slope")]
-        //public bool IgnoreRotation = true;
+      
+        [Tooltip("When Sliding the Animal will be able to orient towards the direction of this given angle")]
         public FloatReference RotationAngle = new(30f);
+        [Tooltip("When Sliding the Animal will be able to Move horizontally with this value")]
         public FloatReference SideMovement = new(5f);
 
         [Tooltip("Exit Speed when there's no Slope")]
@@ -27,32 +29,20 @@ namespace MalbersAnimations.Controller
         [Tooltip("The Exit Status will be set to 2 if the Exit Condition was that there's no longer a Ground Changer")]
         public IntReference NoChangerStatus = new(2);
 
-
-      
-
-        //Enter From Fall if the Slope is greater than Maximum
-        //Check the Ground if Fall touched it with maximum slope
-        //Align to the Ground
-
-        //Exit on Normal Slope??
-        //Do not exit if the Current Plataform is a Slider <Component>
-
-        //Aceleration depending the slope and the Input (Speed Modifiers)
-        //Orient to the Slide Direction
-
         public override bool TryActivate()
         {
             return TrySlideGround();
         }
 
-
         public override void OnPlataformChanged(Transform newPlatform)
         {
-            if (CanBeActivated && TrySlideGround())
+            //Debug.Log($"OnPlataformChanged {(newPlatform ? newPlatform.name : "null")}");
+
+            if (!IsActiveState && TrySlideGround() && CanBeActivated)
             {
                 Activate();
             }
-            else if (IsActiveState && !animal.InGroundChanger)
+            else if (IsActiveState && !animal.InGroundChanger && CanExit)
             {
                 Debugging("[Allow Exit] No Ground Changer");
                 SetExitStatus(NoChangerStatus);
@@ -72,14 +62,28 @@ namespace MalbersAnimations.Controller
 
         private bool TrySlideGround()
         {
+            //Debug.Log($"InGroundChanger {animal.InGroundChanger}");
+
+            //if (animal.InGroundChanger)
+            //{
+            //    Debug.Log($" Slide {animal.GroundChanger.SlideData.Slide}, slideAngle {animal.SlopeDirectionAngle > animal.GroundChanger.SlideData.MinAngle}");
+            //}
+
+
+
+
             if (animal.InGroundChanger
-                && animal.GroundChanger.SlideData.Slide
-                && animal.SlopeDirectionAngle > animal.GroundChanger.SlideData.MinAngle
-                && animal.HorizontalSpeed > ExitSpeed
+                && animal.GroundChanger.SlideData.Slide                                     //Meaning the terrain is set to slide
+                && animal.SlopeDirectionAngle > animal.GroundChanger.SlideData.MinAngle     //The character is looking at the Direction of the slope
+               // && animal.HorizontalSpeed > ExitSpeed
                 //&& !animal.DeepSlope
                 )
-            {
-                return true;
+            { 
+                //CHECK THE DIRECTION OF THE SLIDE
+                if (Vector3.Angle(animal.Forward, animal.SlopeDirection) < animal.GroundChanger.ActivationAngle)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -114,7 +118,7 @@ namespace MalbersAnimations.Controller
 
             moveSmooth = Vector3.Lerp(moveSmooth,Vector3.Project( move,animal.Right), animal.DeltaTime * CurrentSpeed.lerpPosition);
 
-
+            if(GizmoDebug)
             MDebug.Draw_Arrow(transform.position, moveSmooth, Color.white);
 
         }
@@ -141,12 +145,13 @@ namespace MalbersAnimations.Controller
         {
             if (InCoreAnimation)
             {
-
                 var Right = Vector3.Cross(animal.Up, animal.SlopeDirection);
 
                 Right = Vector3.Project(animal.MovementAxisSmoothed, Right);
 
-              if (animal.debugGizmos)  MDebug.Draw_Arrow(transform.position, Right, Color.red );
+                if (GizmoDebug)
+                    MDebug.Draw_Arrow(transform.position, Right, Color.red );
+
 
                 
 
@@ -172,7 +177,7 @@ namespace MalbersAnimations.Controller
 
         public override void TryExitState(float DeltaTime)
         {
-            if (animal.HorizontalSpeed <= ExitSpeed)
+            if (animal.HorizontalSpeed <= ExitSpeed && animal.GroundChanger == null)
             {
                 Debugging("[Allow Exit] Speed is Slow");
                 SetExitStatus(ExitSpeedStatus);
@@ -198,9 +203,9 @@ namespace MalbersAnimations.Controller
         }
 
 
-        private void Reset()
+        internal override void Reset()
         {
-            ID = MTools.GetInstance<StateID>("Slide");
+            base.Reset();
 
             General = new AnimalModifier()
             {

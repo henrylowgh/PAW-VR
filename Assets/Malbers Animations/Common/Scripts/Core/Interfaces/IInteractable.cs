@@ -66,8 +66,8 @@ namespace MalbersAnimations
     [System.Serializable]
     public class InteractionEvents
     {
-        public GameObjectEvent OnInteractWithGO = new GameObjectEvent();
-        public IntEvent OnInteractWith = new IntEvent();
+        public GameObjectEvent OnInteractWithGO = new();
+        public IntEvent OnInteractWith = new();
     }
 
     /// <summary>Used for Play Animations on a Character, in case of the Animal Controller are the Modes</summary>
@@ -81,5 +81,8 @@ namespace MalbersAnimations
 
         /// <summary>Is the Character playing an Action Animation (ICharacterAction Interface) </summary>
         bool IsPlayingAction { get; }
+
+        /// <summary>Listen when the Character has changed the state</summary>
+        public IntEvent OnStateChanged { get; }
     } 
 }

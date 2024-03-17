@@ -25,13 +25,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000010290526256}
+  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010051801208}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &33000010291608134
 MeshFilter:
@@ -93,8 +93,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4000010051801208}
   - component: {fileID: 114000011308037870}
-  - component: {fileID: 114271608979469062}
-  - component: {fileID: 82342202747707584}
   m_Layer: 2
   m_Name: Bullet
   m_TagString: Untagged
@@ -109,6 +107,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000013609580904}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -117,7 +116,6 @@ Transform:
   - {fileID: 4000011687228806}
   - {fileID: 4947155006907542}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114000011308037870
 MonoBehaviour:
@@ -142,11 +140,17 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     Variable: {fileID: 0}
+  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 190716, guid: 58b3b7a5c5273e24aa8931f09e57c303, type: 3}
+    Variable: {fileID: 0}
+  hitEffects: []
+  hitSound:
+    UseConstant: 1
+    ConstantValue: {fileID: 8300000, guid: 6fa6f8e3d0b17884588ddd02f9b6cd09, type: 3}
     Variable: {fileID: 0}
   DestroyHitEffect: 10
   dontHitOwner:
@@ -206,19 +210,7 @@ MonoBehaviour:
   forceMode: 0
   OnHit:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 114271608979469062}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: PlayMaterialSound
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   OnHitPosition:
     m_PersistentCalls:
       m_Calls: []
@@ -297,6 +289,7 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
+  m_audio: {fileID: 0}
   impactBehaviour: 2
   rotation: 1
   TrajectoryRoll: 0
@@ -308,6 +301,10 @@ MonoBehaviour:
   gravity:
     UseConstant: 1
     ConstantValue: {x: 0, y: -9.81, z: 0}
+    Variable: {fileID: 0}
+  m_AfterDistance:
+    UseConstant: 1
+    ConstantValue: 0
     Variable: {fileID: 0}
   Life:
     UseConstant: 1
@@ -329,9 +326,10 @@ MonoBehaviour:
   m_PosOffset: {x: 0, y: 0, z: 0}
   m_RotOffset: {x: 0, y: 0, z: 0}
   m_ScaleOffset: {x: 0, y: 0, z: 0}
+  useRadius: 0
   Radius:
     UseConstant: 1
-    ConstantValue: 0.1
+    ConstantValue: 0.001
     Variable: {fileID: 0}
   OnFire:
     m_PersistentCalls:
@@ -350,130 +348,13 @@ MonoBehaviour:
         m_CallState: 2
   rb: {fileID: 0}
   m_collider: {fileID: 0}
-  Editor_Tabs1: 1
+  DragOnImpact: 1
+  Editor_Tabs1: 0
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
---- !u!114 &114271608979469062
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013609580904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8cf937292b3486349be03b213ec1bb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DefaultSound:
-    UseConstant: 1
-    ConstantValue: {fileID: 0}
-    Variable: {fileID: 0}
-  materialSounds:
-  - Sounds:
-    - {fileID: 8300000, guid: 74123cd0d58cf434ba3a5be785d5505a, type: 3}
-    - {fileID: 8300000, guid: 74123cd0d58cf434ba3a5be785d5505a, type: 3}
-    material: {fileID: 13400000, guid: 54174b87a6301064ea8788686f85bda8, type: 2}
-  audioSource: {fileID: 82342202747707584}
---- !u!82 &82342202747707584
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013609580904}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 0
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 0
 --- !u!1 &1257982144579250
 GameObject:
   m_ObjectHideFlags: 0
@@ -498,17 +379,17 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1257982144579250}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000010051801208}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!96 &96356462734098446
 TrailRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -548,7 +429,8 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.1
+  m_Time: 0.2
+  m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1.0146425
@@ -557,7 +439,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.02
+        value: 0.05
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -578,7 +460,7 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.9056604, g: 0.66483456, b: 0.40583837, a: 1}
+      key0: {r: 0.9056604, g: 0.66483456, b: 0.40583837, a: 0.27450982}
       key1: {r: 1, g: 1, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
@@ -603,14 +485,18 @@ TrailRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
     textureMode: 1
+    textureScale: {x: 1, y: 1}
     shadowBias: 0
     generateLightingData: 0
   m_MinVertexDistance: 0.02
+  m_MaskInteraction: 0
   m_Autodestruct: 1
   m_Emitting: 1
+  m_ApplyActiveColorSpace: 0

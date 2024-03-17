@@ -23,11 +23,15 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
+  AlwaysForward:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   Priority: 4
   resetInputOnFailed: 0
   ResetLastState: 0
   General:
-    modify: -1
+    modify: 7423
     RootMotion: 1
     Sprint: 1
     Gravity: 0
@@ -50,6 +54,11 @@ MonoBehaviour:
   IncludeSleepState: 1
   SleepFromState: []
   SleepFromMode: []
+  DisableModes: []
+  noModes:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   QueueFrom: []
   ResetFrom: []
   SleepFromStance: []
@@ -84,7 +93,7 @@ MonoBehaviour:
   MovementStrafe: 1
   IdleStrafe: 1
   m_debug: 1
-  Editor_Tabs1: 0
+  Editor_Tabs1: 1
   SpeedSets:
   - name: Slide
     StartVerticalIndex:
@@ -131,6 +140,10 @@ MonoBehaviour:
       UseConstant: 1
       ConstantValue: 10
       Variable: {fileID: 0}
+    UpDownMult:
+      UseConstant: 1
+      ConstantValue: 1
+      Variable: {fileID: 0}
     states: []
     stances: []
     Speeds:
@@ -152,10 +165,6 @@ MonoBehaviour:
         ConstantValue: 4
         Variable: {fileID: 0}
       rotation:
-        UseConstant: 1
-        ConstantValue: 4
-        Variable: {fileID: 0}
-      lerpRotation:
         UseConstant: 1
         ConstantValue: 4
         Variable: {fileID: 0}

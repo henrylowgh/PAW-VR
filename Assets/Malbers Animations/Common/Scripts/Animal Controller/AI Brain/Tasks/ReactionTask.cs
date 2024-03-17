@@ -12,9 +12,19 @@ namespace MalbersAnimations.Controller.AI
         public Affected affect = Affected.Self;
 
         [SerializeReference,SubclassSelector]
+        [Tooltip("Reaction when the AI Task begin")]
         public Reaction reaction;
 
+        [SerializeReference, SubclassSelector]
+        [Tooltip("Reaction when the AI State ends")]
+        public Reaction reactionOnExit;
+
         public override void StartTask(MAnimalBrain brain, int index)
+        {
+            React(brain, index, reaction);
+        }
+
+        private void React(MAnimalBrain brain, int index, Reaction reaction)
         {
             if (affect == Affected.Self)
             {
@@ -25,7 +35,12 @@ namespace MalbersAnimations.Controller.AI
                 if (brain.Target)
                     reaction?.React(brain.Target);
             }
-             brain.TaskDone(index);
+            brain.TaskDone(index);
+        }
+
+        public override void ExitAIState(MAnimalBrain brain, int index)
+        {
+            React(brain, index, reactionOnExit);
         }
 
         private void Reset()

@@ -9,12 +9,12 @@ namespace MalbersAnimations
     [HelpURL("https://malbersanimations.gitbook.io/animal-controller/secondary-components/variable-listeners-and-comparers")]
     public class IntComparer : IntVarListener
     {
-        public List<AdvancedIntegerEvent> compare = new List<AdvancedIntegerEvent>();
+        public List<AdvancedIntegerEvent> compare = new();
 
         /// <summary>Set the first value on the comparer </summary>
         public int SetCompareFirstValue { get => compare[0].Value.Value; set => compare[0].Value.Value = value; }
 
-        public IntEvent OnValueChanged = new IntEvent();
+        public IntEvent OnValueChanged = new();
 
         /// <summary>Pin a Comparer</summary>
         private AdvancedIntegerEvent Pin;

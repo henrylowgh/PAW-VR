@@ -1,5 +1,8 @@
 ﻿using MalbersAnimations.Events;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
+using static UnityEngine.CullingGroup;
 
 namespace MalbersAnimations
 {
@@ -14,7 +17,9 @@ namespace MalbersAnimations
     public class AITarget : MonoBehaviour, IAITarget
     {
         public WayPointType pointType = WayPointType.Ground;
-       
+
+        public ICharacterAction character;
+
         [Tooltip("Distance for AI driven animals to stop when arriving to this gameobject. When is set as the AI Target.")]
         [Min(0)] public float stoppingDistance = 1f;
         
@@ -33,10 +38,28 @@ namespace MalbersAnimations
         public bool ArriveLookAt => m_arriveLookAt;
         public float Height => m_height * transform.localScale.y;
 
-        public WayPointType TargetType => pointType;
+        //Event to listen when the 
+        public System.Action<WayPointType> TargetTypeChanged { get; set; } = delegate { };
+
+
+        public WayPointType TargetType
+        {
+            set
+            {
+                if (pointType != value)
+                {
+                    pointType = value;
+                    TargetTypeChanged.Invoke(value);
+                }
+            }
+            get
+            {
+                return pointType;
+            }
+        }
 
         [Space]
-        public GameObjectEvent OnTargetArrived = new GameObjectEvent();
+        public GameObjectEvent OnTargetArrived = new ();
 
         /// <summary>Center of the Animal to be used for AI and Targeting  </summary>
         public Vector3 Center
@@ -45,35 +68,72 @@ namespace MalbersAnimations
             get => transform.TransformPoint(center);
         }
 
+        private void OnEnable()
+        {
+            character = this.FindInterface<ICharacterAction>();
+
+            character?.OnStateChanged.AddListener(OnStateChanged);
+        }
+
+       
+
+        private void OnDisable()
+        {
+            character?.OnStateChanged.RemoveListener(OnStateChanged);
+        }
+
+
+        /// <summary> Listen if the character is swimming, flying, or underwater  </summary>
+        private void OnStateChanged(int state)
+        {
+            if (state == StateEnum.UnderWater) TargetType = WayPointType.Underwater;
+            else if (state == StateEnum.Fly) TargetType = WayPointType.Air;
+            else if (state == StateEnum.Swim) TargetType = WayPointType.Water;
+            else
+            {
+                TargetType = WayPointType.Ground;
+            }
+        }
+
+
         public void TargetArrived(GameObject target) => OnTargetArrived.Invoke(target);
 
 
         public void SetLocalCenter(Vector3 localCenter) => center = localCenter;
 
-        public virtual Vector3 GetPosition() => Center;
-        public virtual Vector3 GetCenter() => Center + transform.up * Height;
+        /// <summary>Get the center of the AI Target</summary>
+        public virtual Vector3 GetCenterPosition() => Center;
+
+        /// <summary>Get the center of the AI Target plus the Height value</summary>
+        public virtual Vector3 GetCenterY() => Center + (transform.up * Height);
 
         public float StopDistance() => stoppingDistance * transform.localScale.y; //IMPORTANT For Scaled objects like the ball
         public float SlowDistance() => slowingDistance * transform.localScale.y; //IMPORTANT For Scaled objects like the ball
 
-        public void SetGrounded() => pointType = WayPointType.Ground;
-        public void SetAir() => pointType = WayPointType.Air;
-        public void SetWater() => pointType = WayPointType.Water;
+        public void SetGrounded() => TargetType = WayPointType.Ground;
+        public void SetAir() => TargetType = WayPointType.Air;
+        public void SetWater() => TargetType = WayPointType.Water;
 
-#if UNITY_EDITOR
+
+#if UNITY_EDITOR && MALBERS_DEBUG
         private void OnDrawGizmosSelected()
         {
-            UnityEditor.Handles.color = Gizmos.color = Color.red;
-            UnityEditor.Handles.DrawWireDisc(Center, transform.up, stoppingDistance * transform.localScale.y);
-            UnityEditor.Handles.DrawWireDisc(Center, transform.up, stoppingDistance * transform.localScale.y * 0.1f);
-            Gizmos.DrawRay(Center, transform.up * Height);
-            Gizmos.DrawWireSphere(Center+ transform.up * Height, stoppingDistance * 0.1f);
+            StopDistanceGizmo(Color.red);
 
             if (stoppingDistance < slowingDistance)
             {
                 UnityEditor.Handles.color = Color.cyan;
                 UnityEditor.Handles.DrawWireDisc(Center, transform.up, slowingDistance * transform.localScale.y);
             }
+        }
+
+        private void StopDistanceGizmo(Color color)
+        {
+            UnityEditor.Handles.color = Gizmos.color = color;
+            UnityEditor.Handles.DrawWireDisc(Center, transform.up, stoppingDistance * transform.localScale.y);
+            UnityEditor.Handles.DrawWireDisc(Center, transform.up, stoppingDistance * transform.localScale.y * 0.1f);
+            Gizmos.DrawRay(Center, transform.up * Height);
+            Gizmos.DrawWireSphere(Center + transform.up * Height, stoppingDistance * 0.1f);
         }
 #endif
     }

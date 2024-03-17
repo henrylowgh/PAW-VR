@@ -26,8 +26,7 @@ MonoBehaviour:
     - Cinemachine.LookAt
 
 
-    *Int*
-
+    *Bool*
 
     Set
     Strafe State'

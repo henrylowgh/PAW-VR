@@ -9,7 +9,8 @@ namespace MalbersAnimations.Controller
     public class Fly : State
     {
         public override string StateName => "Fly";
-        public enum FlyInput { Toggle, Press, None}
+        public override string StateIDName => "Fly";
+        public enum FlyInput { Toggle, Press, None }
 
         [Header("Fly Parameters")]
         [Tooltip("Bank amount used when turning")]
@@ -17,54 +18,44 @@ namespace MalbersAnimations.Controller
         [Tooltip("Pitch Limit to Rotate the Rotator Up and Down")]
         [FormerlySerializedAs("Ylimit")]
         public float PitchLimit = 80;
-        
-
-
 
         [Tooltip("Bank amount used when turning while straffing")]
-        public float BankStrafe = 0; 
+        public float BankStrafe = 0;
         [Tooltip("Limit to go Up and Down while straffing")]
         public float PitchStrafe = 0;
-
 
         [Space]
         [Tooltip("Max Y Height the Animal Can Fly. If this value is Zero this value will be ignored")]
         public float MaxFlyHeight = 0;
 
         [Tooltip("When Entering the Fly State... The animal will keep the Velocity from the last State if this value is greater than zero")]
-        [FormerlySerializedAs("InertiaTime")]
         public FloatReference InertiaLerp = new(1);
-         
-
-        [Tooltip("The animal will move forward while flying, without the need to push the W Key, or Move forward Input")]
-        public BoolReference KeepForward = new(false);
-       // private bool LastAlwaysForward;
 
         [Header("TakeOff")]
-        [Tooltip("Impulse to push the animal Upwards for a time to help him take off.\nIf set to zero this logic will be ignored")]
-        public FloatReference Impulse = new FloatReference();
+        [Tooltip("Impulse to push the animal Upwards for a time to help him take off.\nIf set to zero this logic will be ignored, the Animation needs to be tagged with the Enter animation tag")]
+        public FloatReference Impulse = new();
         [Tooltip("Time the Impulse will be applied")]
         public FloatReference ImpulseTime = new(0.5f);
         [Tooltip("Curve to apply to the Impulse Logic")]
-        public AnimationCurve ImpulseCurve = new AnimationCurve(new Keyframe(0, 1), new Keyframe(1, 0));
+        public AnimationCurve ImpulseCurve = new(new Keyframe(0, 1), new Keyframe(1, 0));
 
         private float elapsedImpulseTime;
 
         [Header("Landing")]
         [Tooltip("When the Animal is close to the Ground it will automatically Land")]
-        public BoolReference canLand = new BoolReference( true);
+        public BoolReference canLand = new(true);
         [Tooltip("Layers to Land on")]
         public LayerMask LandOn = (1);
         [Tooltip("Ray Length multiplier to check for ground and automatically land (increases or decreases the MainPivot Lenght for the Fall Ray")]
-        public FloatReference LandMultiplier = new FloatReference(1f);
-       
-        
-        
-        [Space,Tooltip("Avoids a surface to land when Flying. E.g. if the animal does not have a swim state, set this to void landing/entering the water")]
+        public FloatReference LandMultiplier = new(1f);
+
+
+
+        [Space, Tooltip("Avoids a surface to land when Flying. E.g. if the animal does not have a swim state, set this to void landing/entering the water")]
         public bool AvoidSurface = false;
-        [Tooltip("RayCast distance to find the Surface to avoid"), Hide("AvoidSurface",  false)]
+        [Tooltip("RayCast distance to find the Surface to avoid"), Hide("AvoidSurface", false)]
         public float SurfaceDistance = 0.5f;
-        [Tooltip("Which layers to search to avoid that surface. Triggers are not inlcuded"), Hide("AvoidSurface",  false)]
+        [Tooltip("Which layers to search to avoid that surface. Triggers are not inlcuded"), Hide("AvoidSurface", false)]
         public LayerMask SurfaceLayer = 16;
 
         [Header("Gliding")]
@@ -75,45 +66,47 @@ namespace MalbersAnimations.Controller
         public float GlideSpeed = 2;
 
         [Space]
-
-        public BoolReference GlideOnly = new BoolReference(false);
+        [Tooltip("The character will activate only the glide animations and it cannot go upwards")]
+        public BoolReference GlideOnly = new(false);
 
         [Tooltip("When the Forward Input is Released,this will be the movement speed the gliding will have")]
-        public FloatReference GlideOnlyIdleS = new FloatReference(0.5f);
-        public FloatReference GlideOnlyIdleV = new FloatReference(1);
+        public FloatReference GlideOnlyIdleS = new(0.5f);
+        [Tooltip("When the Forward Input is Pressed ,this will be the movement speed the gliding will have")]
+        public FloatReference GlideOnlyIdleV = new(1);
 
         [Header("Auto Glide")]
         [Tooltip("It will do Auto gliding while flying")]
-        public BoolReference AutoGlide = new BoolReference(true);
+        public BoolReference AutoGlide = new(true);
         [MinMaxRange(0, 10)]
-        public RangedFloat GlideChance = new RangedFloat(0.8f, 4);
+        public RangedFloat GlideChance = new(0.8f, 4);
         [MinMaxRange(0, 10)]
-        public RangedFloat FlapChange = new RangedFloat(0.5f, 4);
+        public RangedFloat FlapChange = new(0.5f, 4);
 
-      
+
         [Tooltip("Variation to make Random Flap and Glide Animation")]
         public float Variation = 0.3f;
         protected bool isGliding = false;
         protected float FlyStyleTime = 1;
-       
+
 
         protected float AutoGlide_CurrentTime = 1;
-       
+
         [Header("Down Acceleration")]
-        public FloatReference GravityDrag = new FloatReference(0);
-        public FloatReference DownAcceleration = new FloatReference(0.5f);
+        public FloatReference GravityDrag = new(0);
+        public FloatReference DownAcceleration = new(0.5f);
+
         private float acceleration = 0;
 
         protected Vector3 verticalInertia;
 
-        [Header("Bone Blocking Landing"),Tooltip("Somethimes the Head blocks the Landing Ray.. this will solve the landing by raycasting a ray from the Bone that is blocking the Logic")]
+        [Tooltip("Somethimes the Head blocks the Landing Ray.. this will solve the landing by raycasting a ray from the Bone that is blocking the Logic")]
         /// <summary>If the Animal is a larger one sometimes </summary>
         public bool BoneBlockingLanding = false;
-        [Hide("BoneBlockingLanding", true),Tooltip("Name of the blocker bone")]
+        [Hide("BoneBlockingLanding", true), Tooltip("Name of the blocker bone")]
         public string BoneName = "Head";
-        [Hide("BoneBlockingLanding", true),Tooltip("Local Offset from the Blocker Bone")]
+        [Hide("BoneBlockingLanding", true), Tooltip("Local Offset from the Blocker Bone")]
         public Vector3 BoneOffsetPos = Vector3.zero;
-        [Hide("BoneBlockingLanding", true),Tooltip("Distance of the Landing Ray from the blocking Bone")]
+        [Hide("BoneBlockingLanding", true), Tooltip("Distance of the Landing Ray from the blocking Bone")]
         public float BlockLandDist = 0.4f;
         private Transform BlockingBone;
 
@@ -121,7 +114,7 @@ namespace MalbersAnimations.Controller
         public override void InitializeState()
         {
             AutoGlide_CurrentTime = Time.time;
-            FlyStyleTime = GlideChance.RandomValue; 
+            FlyStyleTime = GlideChance.RandomValue;
             SearchForContactBone();
         }
 
@@ -130,43 +123,26 @@ namespace MalbersAnimations.Controller
         {
             BlockingBone = null;
 
-            if (BoneBlockingLanding) 
+            if (BoneBlockingLanding)
                 BlockingBone = animal.transform.FindGrandChild(BoneName);
         }
 
-        MSpeed LastSpeedModifier;
-        MSpeed NewSpeedModifier;
-
         public override void Activate()
         {
-            LastSpeedModifier = animal.CurrentSpeedModifier; //Store the current speed modifier
-            base.Activate(); 
+            base.Activate();
             InputValue = true; //Make sure the Input is set to True when the flying is not being activated by an input player
-
-            NewSpeedModifier = animal.CurrentSpeedModifier; //Store the current speed modifier
         }
 
-        public override bool KeepForwardMovement => KeepForward.Value;
-
-        public override void EnterTagAnimation()
-        {
-            if (CurrentAnimTag == EnterTagHash)                     //Meaning its on Take Off Animation
-            {
-                animal.CurrentSpeedModifier = LastSpeedModifier;   //BUG THAT DOES NOT USE THE VerticalSpeed
-            }
-        }
+        public override bool KeepForwardMovement => AlwaysForward.Value;
 
         public override void EnterCoreAnimation()
         {
-            animal.CurrentSpeedModifier = NewSpeedModifier; //Restore the Fly Speed Modifier
-
             verticalInertia = Vector3.Project(animal.DeltaPos, animal.UpVector); //Find the Up Inertia to keep it while entering the Core Anim
             animal.PitchDirection = animal.Forward;
-
+            animal.DeltaPos = Vector3.zero;
             acceleration = 0;
 
             animal.InertiaPositionSpeed = animal.HorizontalVelocity * animal.DeltaTime;
-            if (animal.LastState.ID.ID <=1)  animal.InertiaPositionSpeed = Vector3.zero; //*TIny Hack... Remove the Intertia if the last state was IDle or Locomotion.
 
             if (GlideOnly.Value)
             {
@@ -179,8 +155,6 @@ namespace MalbersAnimations.Controller
                 isGliding = true;
             }
         }
-
-        // public override bool TryActivate() => InputValue && CanBeActivated;
 
         public override Vector3 Speed_Direction()
         {
@@ -232,29 +206,31 @@ namespace MalbersAnimations.Controller
                 if (TryAvoidSurface())
                 {
                     animal.FreeMovementRotator(0, 0);
+                    acceleration = 0; //Remove Down Acceleration
                     return;
                 }
                 else
                 {
                     animal.FreeMovementRotator(limit, bank);
                 }
+
+                //Inertia acumulate from last state
                 if (InertiaLerp.Value > 0)
                     animal.AddInertia(ref verticalInertia, InertiaLerp);
             }
 
 
-
-            if (Impulse > 0 && ImpulseTime > 0)
             //Takeoff Impulse Logic
+            if (InEnterAnimation)
             {
-                if (animal.LastState.ID <= 1) //Do it only if the last states were Idle or Locomotion
+                if (Impulse > 0 && ImpulseTime > 0 &&
+                   (animal.LastState.ID.ID <= 1) &&         //Do it only if the last states were Idle or Locomotion
+                   (elapsedImpulseTime <= ImpulseTime)
+                   )
                 {
-                    if (elapsedImpulseTime <= ImpulseTime)
-                    {
-                        var takeOffImp = Impulse * ImpulseCurve.Evaluate(elapsedImpulseTime / ImpulseTime);
-                        animal.AdditivePosition += animal.UpVector * takeOffImp * deltatime;
-                        elapsedImpulseTime += deltatime;
-                    }
+                    var takeOffImp = Impulse * ImpulseCurve.Evaluate(elapsedImpulseTime / ImpulseTime);
+                    animal.AdditivePosition += deltatime * takeOffImp * animal.UpVector;
+                    elapsedImpulseTime += deltatime;
                 }
             }
         }
@@ -294,29 +270,61 @@ namespace MalbersAnimations.Controller
             if (!InputValue) AllowExit();
 
             if (canLand.Value)
-            {
-
+            { 
                 var Point = BlockingBone ? BlockingBone.TransformPoint(BoneOffsetPos) : animal.Main_Pivot_Point;
                 var Dist = (BlockingBone ? BlockLandDist : LandMultiplier.Value) * animal.ScaleFactor;
 
                 if (Physics.Raycast(Point, Gravity, out RaycastHit landHit, Dist, LandOn, IgnoreTrigger))
                 {
+                    FlyAllowExit(landHit);
                     Debugging($"[AllowExit] Can Land on <{landHit.collider.name}> [Using Blocking Bone]");
-                    FlyAllowExit();
                     return;
                 }
 
                 if (Physics.Raycast(animal.Main_Pivot_Point, Gravity, out RaycastHit landHitMain, LandMultiplier.Value * animal.ScaleFactor, LandOn, IgnoreTrigger))
                 {
+                    FlyAllowExit(landHitMain);
                     Debugging($"[AllowExit] Can Land on <{landHitMain.collider.name}> ");
-                    FlyAllowExit();
                     return;
                 }
             }
         }
 
-        private void FlyAllowExit()
+        private void FlyAllowExit(RaycastHit hit)
         {
+            var DistanceToGround = hit.distance;
+
+            if (Height >= DistanceToGround)
+            {
+                var FallRayAngle = Vector3.SignedAngle(hit.normal, animal.UpVector, animal.Right);
+                var DeepSlope = Mathf.Abs(FallRayAngle) >= animal.SlopeLimit;
+                if (!DeepSlope) //Check if we are not on a deep slope
+                {
+                    AllowExit();
+                    animal.CheckIfGrounded();
+
+                    //Meaning we still are in the Fall state (Check if Grounded can change to a new state)
+                    if (IsActiveState)
+                    {
+                        animal.Grounded = true;   //Force Grounded to activate locomotion
+                        animal.UseGravity = false;
+
+                        animal.AlignPosLerpDelta = animal.AlignPosLerp * 5;
+
+                        //SUPER IMPORTANT!!! this is when the Animal is falling from a great height
+                        animal.Teleport_Internal(hit.point);
+                        //var GroundedPos = Vector3.Project(hit.point - animal.transform.position, Gravity);
+                        //animal.Teleport_Internal(animal.transform.position + GroundedPos);
+
+                        animal.ResetUPVector(); //IMPORTANT!
+                        animal.hit_Hip.distance = Height;
+                        animal.InertiaPositionSpeed = Vector3.ProjectOnPlane(animal.RB.velocity * animal.DeltaTime, animal.UpVector); //This is for Helping on Slopes
+                        Debugging($"[Try Exit] (Grounded) + [Terrain Angle = {FallRayAngle:F2}]. [Align to Ground]");
+                        return;
+                    }
+                }
+            }
+
             animal.FreeMovement = false; //Disable the Free Movement
             animal.UseGravity = true;
             AllowExit();
@@ -329,21 +337,21 @@ namespace MalbersAnimations.Controller
 
             if (animal.MovementAxisRaw.y < 0f)
             {
-                 acceleration += DownAcceleration * Mathf.Abs(animal.MovementAxis.y) * deltaTime;
+                acceleration += Mathf.Abs(animal.MovementAxis.y) * deltaTime * DownAcceleration;
             }
             else
             {
                 //Deacelerate slowly all the acceleration you earned..
-                acceleration = Mathf.MoveTowards(acceleration, 0, deltaTime * DownAcceleration);           
+                acceleration = Mathf.MoveTowards(acceleration, 0, deltaTime * DownAcceleration);
             }
 
             //USE INERTIA SPEED INSTEAD OF TARGET POSITION
-            if (acceleration != 0) 
-                animal.AdditivePosition += animal.InertiaPositionSpeed.normalized * acceleration * deltaTime; 
+            if (acceleration != 0)
+                animal.AdditivePosition += acceleration * deltaTime * animal.InertiaPositionSpeed.normalized;
 
             if (GravityDrag > 0)
             {
-                animal.AdditivePosition += Gravity * (GravityDrag * animal.ScaleFactor) * deltaTime;
+                animal.AdditivePosition += (GravityDrag * animal.ScaleFactor) * deltaTime * Gravity;
             }
         }
 
@@ -362,7 +370,7 @@ namespace MalbersAnimations.Controller
                 animal.currentSpeedModifier.Vertical = (isGliding && !animal.Strafe) ? newGlideSpeed : newFlapSpeed;
             }
         }
-      
+
         public override void ResetStateValues()
         {
             verticalInertia = Vector3.zero;
@@ -370,14 +378,13 @@ namespace MalbersAnimations.Controller
             isGliding = false;
             InputValue = false;
             elapsedImpulseTime = 0;
-            LastSpeedModifier = new MSpeed();
         }
 
         public override void RestoreAnimalOnExit()
         {
             animal.FreeMovement = false;
-          //  animal.AlwaysForward = LastAlwaysForward;
-          //  animal.Speed_Lock(false);
+            //  animal.AlwaysForward = LastAlwaysForward;
+            //  animal.Speed_Lock(false);
             animal.InputSource?.SetInput(Input, false); //Hack to reset the toggle when it exit on Grounded
             animal.LockUpDownMovement = false;
         }
@@ -388,21 +395,19 @@ namespace MalbersAnimations.Controller
             base.ExitInputValue = false;    //release the base Input value
         }
 
-        public override bool InputValue //lets override to Allow exit when the Input Changes
-        {
-            get => base.InputValue;
-            set
-            {
-                base.InputValue = value;
+        //public override bool InputValue //lets override to Allow exit when the Input Changes
+        //{
+        //    get => base.InputValue;
+        //    set
+        //    {
+        //        base.InputValue = value;
 
-               
-
-                if (InCoreAnimation && IsActiveState && !value && CanExit) //When the Fly Input is false then allow exit
-                {
-                    AllowExit();
-                }
-            }
-        }
+        //        if (InCoreAnimation && IsActiveState && !value && CanExit) //When the Fly Input is false then allow exit
+        //        {
+        //            AllowExit();
+        //        }
+        //    }
+        //}
 
 #if UNITY_EDITOR
 
@@ -416,21 +421,21 @@ namespace MalbersAnimations.Controller
                     new MSpeedSet()
                     {
                         name = setName,
-                        StartVerticalIndex = new IntReference(1), 
-                        PitchLerpOn = new FloatReference(3), 
+                        StartVerticalIndex = new IntReference(1),
+                        PitchLerpOn = new FloatReference(3),
                         PitchLerpOff = new FloatReference(3),
                         TopIndex = new IntReference(2),
                         states = new List<StateID>(1) { ID },
-                        Speeds = new List<MSpeed>() { new MSpeed(setName), new MSpeed(setName + " Fast", 2, 4, 4) { animator = new FloatReference(1.33f) } }
+                        Speeds = new List<MSpeed>() { new(setName), new(setName + " Fast", 2, 4, 4) { animator = new FloatReference(1.33f) } }
                     }
                     );
             }
         }
 
 
-        void Reset()
+        internal override void Reset()
         {
-            ID = MTools.GetInstance<StateID>("Fly");
+            base.Reset();
             Input = "Fly";
 
             EnterTag.Value = "TakeOff";
@@ -445,9 +450,9 @@ namespace MalbersAnimations.Controller
                 IgnoreLowerStates = true,
                 Gravity = false,
                 modify = (modifier)(-1),
-                AdditivePosition = true, 
-                AdditiveRotation = true, 
-                FreeMovement = true, 
+                AdditivePosition = true,
+                AdditiveRotation = true,
+                FreeMovement = true,
             };
         }
 
@@ -475,9 +480,9 @@ namespace MalbersAnimations.Controller
                 {
                     Gizmos.color = Color.cyan;
                     var Dist = SurfaceDistance * animal.ScaleFactor;
-                  
+
                     Gizmos.DrawRay(animal.Center, Gravity.normalized * Dist);
-                } 
+                }
             }
         }
 #endif

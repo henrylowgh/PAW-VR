@@ -66,5 +66,5 @@ MonoBehaviour:
   ColorHDRValue: {r: 0, g: 2, b: 0.12072945, a: 1}
   StartMultiplier:
     UseConstant: 1
-    ConstantValue: 0
+    ConstantValue: 6
     Variable: {fileID: 0}

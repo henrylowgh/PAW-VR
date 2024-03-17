@@ -22,6 +22,14 @@ namespace MalbersAnimations.Utilities
         public Color ColorHDRValue = Color.white;
         public FloatReference StartMultiplier = new FloatReference(1f);
 
+        [Tooltip("Clear the Emission Map while Lerp")]
+        public bool clearEmissionMap = false;
+
+        [Tooltip("Revert the Emission Map Color after Lerp")]
+        public bool revertColorAfterLerp = false;
+
+        private Texture cachedEmissionMap;
+
 
         public void LerpMaterial(Component go) => LerpMaterial(go.gameObject);
         public void LerpMaterial(GameObject go)
@@ -111,8 +119,13 @@ namespace MalbersAnimations.Utilities
 
             var mat = mesh.materials[materialIndex];
 
-            Color StartingColor = mat.GetColor(propertyName) * StartMultiplier;
+            Color OriginalColor = mat.GetColor(propertyName);
+            Color StartingColor = OriginalColor * StartMultiplier;
             Color ElapsedColor;// = Color.LerpUnclamped(StartingColor, FinalColor, curve.Evaluate(curve.keys[curve.keys.Length - 1].time));
+
+
+            if (clearEmissionMap)
+                cachedEmissionMap = mat.GetTexture("_EmissionMap");
 
             if (time > 0)
             {
@@ -122,6 +135,9 @@ namespace MalbersAnimations.Utilities
 
                     ElapsedColor = Color.LerpUnclamped(StartingColor, FinalColor, value);
 
+                    if (clearEmissionMap)
+                        mat.SetTexture("_EmissionMap", null);
+
                     mat.SetColor(propertyName, ElapsedColor);
 
                     elapsedTime += Time.deltaTime;
@@ -130,9 +146,16 @@ namespace MalbersAnimations.Utilities
                 }
             }
 
-            ElapsedColor = Color.LerpUnclamped(StartingColor, FinalColor, curve.Evaluate(1));
+            if (revertColorAfterLerp)
+                ElapsedColor = OriginalColor;
+            else
+                ElapsedColor = Color.LerpUnclamped(StartingColor, FinalColor, curve.Evaluate(1));
 
             mat.SetColor(propertyName, ElapsedColor);
+
+            if (clearEmissionMap)
+                mat.SetTexture("_EmissionMap", cachedEmissionMap);
+
 
             yield return null;
 
@@ -170,7 +193,7 @@ namespace MalbersAnimations.Utilities
     [UnityEditor.CustomEditor(typeof(MaterialPropertyLerpSO)), UnityEditor.CanEditMultipleObjects]
     public class MaterialPropertyLerpSOEditor : UnityEditor.Editor
     {
-        UnityEditor.SerializedProperty propertyName, materialIndex, propertyType, time, FloatValue, ColorValue, ColorHDRValue, ColorMultiplier, curve;//, UseMaterialPropertyBlock, shared;
+        UnityEditor.SerializedProperty propertyName, materialIndex, propertyType, time, FloatValue, ColorValue, ColorHDRValue, ColorMultiplier, curve, clearEmissionMap, revertColorAfterLerp;//, UseMaterialPropertyBlock, shared;
 
         private void OnEnable()
         {
@@ -183,6 +206,8 @@ namespace MalbersAnimations.Utilities
             ColorHDRValue = serializedObject.FindProperty("ColorHDRValue");
             ColorMultiplier = serializedObject.FindProperty("StartMultiplier");
             curve = serializedObject.FindProperty("curve");
+            clearEmissionMap = serializedObject.FindProperty("clearEmissionMap");
+            revertColorAfterLerp = serializedObject.FindProperty("revertColorAfterLerp");
         }
 
         public override void OnInspectorGUI()
@@ -215,6 +240,9 @@ namespace MalbersAnimations.Utilities
 
 
             UnityEditor.EditorGUILayout.PropertyField(curve);
+            UnityEditor.EditorGUILayout.PropertyField(clearEmissionMap);
+            UnityEditor.EditorGUILayout.PropertyField(revertColorAfterLerp);
+
             serializedObject.ApplyModifiedProperties();
         }
     }

@@ -8,7 +8,7 @@ namespace MalbersAnimations.Utilities
 
     public class SetAnimatorParameterVar : ScriptableObject
     {
-        public List<MAnimatorParameter> parameters = new List<MAnimatorParameter>();
+        public List<MAnimatorParameter> parameters = new();
 
         public void Set(Animator anim)
         {

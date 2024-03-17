@@ -10,6 +10,12 @@ namespace MalbersAnimations
         /// <summary>Initial Velocity (Direction * Power) </summary>
         Vector3 Velocity { get; set; }
 
+        /// <summary>Gravity Direction Vector</summary>
+        Vector3 Gravity { get; set; }
+
+        /// <summary>Apply Gravity after certain distance is reached</summary>
+        float AfterDistance { get; set; }
+
         /// <summary>Offset to position the projectile</summary>
         Vector3 PosOffset { get; set; }
 
@@ -44,6 +50,9 @@ namespace MalbersAnimations
         /// <summary>Gravity Direction Vector</summary>
         Vector3 Gravity { get; }
 
+        /// <summary>Apply Gravity after certain distance is reached</summary>
+        float AfterDistance { get; set; }
+
         /// <summary>Starting Position for the  Projectile Launch</summary>
         Vector3 AimOriginPos { get; } 
 
@@ -61,5 +70,11 @@ namespace MalbersAnimations
         QueryTriggerInteraction TriggerInteraction { get; set; }
 
         GameObject Owner { get; }
+
+        /// <summary>Shoot the projectile </summary>
+        void Fire();
+
+        /// <summary>Set a projectile to shoot</summary>
+        void SetProjectile(GameObject newProjectile);
     }
 }

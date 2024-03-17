@@ -58,33 +58,35 @@ namespace MalbersAnimations
 
 
         [Tooltip("Ignore the Left and Right hand Offsets")]
-        public BoolReference IgnoreHandOffset = new BoolReference();
+        public BoolReference IgnoreHandOffset = new ();
 
         [Tooltip("Ignore all Draw|Unsheathe animations for all weapons")]
-        [SerializeField] protected BoolReference m_IgnoreDraw = new BoolReference(false);   //Ignore Draw/Store Aniamtions
+        [SerializeField] protected BoolReference m_IgnoreDraw = new (false);   //Ignore Draw/Store Aniamtions
 
         [Tooltip("Ignore all Store|sheathe animations for all weapons")]
-        [SerializeField] protected BoolReference m_IgnoreStore = new BoolReference(false);
+        [SerializeField] protected BoolReference m_IgnoreStore = new (false);
 
 
         //public List<StateID> LockStates;
         [Tooltip("Disable these modes when a weapon is equipped")]
-        public List<ModeID> DisableModes = new List<ModeID>();
+        public List<ModeID> DisableModes = new();
 
         [Tooltip("Unequip Weapons If any of these modes are Activated")]
-        public List<ModeID> ExitOnModes = new List<ModeID>();
+        public List<ModeID> ExitOnModes = new();
 
 
         [Tooltip("Disable these States when a weapon is equipped")]
-        public List<StateID> DisableStates = new List<StateID>();
+        public List<StateID> DisableStates = new();
 
         [Tooltip("Unequip Weapons If any of these modes are Activated")]
-        public List<StateID> ExitOnState = new List<StateID>();
+        public List<StateID> ExitOnState = new();
 
         [Tooltip("Unequip Weapons If any of these modes are Activated.Ignore Store|Sheathe animations")]
         public bool ExitFast = false;
 
 
+        [Tooltip("Store current active weapon to its own holster. (Disable for Assasing Creed Mode)")]
+        public bool StoreSelfHolster = false;
 
         /// <summary>Ignore Draw|Unsheathe and Store|Sheathe Animations for the weapon</summary>
         public bool IgnoreDraw { get => m_IgnoreDraw.Value; set => m_IgnoreDraw.Value = value; }
@@ -125,11 +127,14 @@ namespace MalbersAnimations
         [Tooltip("Destroy the Weapon when is unequipped")]
         public bool DestroyOnUnequip = false;                         //If the weapons comes from an inventory check if they are already intantiate
 
+        [Tooltip("Override the Weapon Layer Mask when equipped. This will be ignored when is set to none")]
+        public LayerReference OverrideWeaponLayer = new(0);
+
 
         #region Holsters
         public bool UseHolsters = false;                                 //Use this if the weapons are on the Holsters
         //   public HolsterID DefaultHolster;
-        public List<Holster> holsters = new List<Holster>();
+        public List<Holster> holsters = new();
         public float HolsterTime = 0.2f;
         /// <summary> Used to change to the Next/Previus Holster</summary>
         public int ActiveHolsterIndex { get; set; }
@@ -238,6 +243,10 @@ namespace MalbersAnimations
         public StringReference m_SpecialAttack = new StringReference("SpecialAttack");
         #endregion
 
+
+        [Tooltip("An previous weapon will be destroyed if a new weapon is going to use the same holster. Enable this when using Malbers Inventory")]
+        public bool DestroyOnDrop;
+
         #region Properties
 
         /// <summary>Is the weapon Manager Enabled If is false everything will be ignored </summary>
@@ -263,7 +272,7 @@ namespace MalbersAnimations
         public void SetActive(bool value) => Active = value;
 
         /// <summary>is there an Ability Active and the Active Weapon is Active too</summary>
-        public bool WeaponIsActive => (Weapon && Weapon.Enabled) && Active && !Paused;
+        public bool WeaponIsActive => (Weapon && Weapon.Enabled && Weapon.IsEquiped) && Active && !Paused;
 
         //   public bool CheckRidingOnly => !UseWeaponsOnlyWhileRiding || (Rider != null && Rider.IsRiding);
 
@@ -306,6 +315,9 @@ namespace MalbersAnimations
         private WaitForSeconds StoreAfterTime;
         Coroutine IStoreAfter;
 
+
+        public bool DrawWeapon { get; set; }
+        public bool StoreWeapon { get; set; }
 
         #region IK Values
         /// <summary> Actual weight pass to the Animator IK</summary>
@@ -379,17 +391,15 @@ namespace MalbersAnimations
         //#endregion
 
         [Tooltip("Set the Aiming to true on the Weapon Manager")]
-        public BoolReference aim = new BoolReference();
+        public BoolReference aim = new();
         /// <summary>Direction the Rider is Aiming</summary>
         public Vector3 AimDirection => Aimer.AimDirection;
 
         public LayerMask Layer { get => Aimer.Layer; set => Aimer.Layer = value; }
         public QueryTriggerInteraction TriggerInteraction { get => Aimer.TriggerInteraction; set => Aimer.TriggerInteraction = value; }
 
-
         public bool Weapon_is_RightHand => Weapon.IsRightHanded;
         public bool Weapon_is_LeftHand => !Weapon.IsRightHanded;
-
 
         private int weaponType;             //Which Type of weapon is in the active weapon
         /// <summary>Which Type of Weapon is in the Active Weapon, this value is sent to the animator</summary>
