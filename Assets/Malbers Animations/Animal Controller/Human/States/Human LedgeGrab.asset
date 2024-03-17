@@ -27,11 +27,11 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  Priority: 9
+  Priority: 11
   resetInputOnFailed: 0
   ResetLastState: 0
   General:
-    modify: 7423
+    modify: -1
     RootMotion: 1
     Sprint: 0
     Gravity: 0
@@ -55,11 +55,6 @@ MonoBehaviour:
   SleepFromState:
   - {fileID: 11400000, guid: 4dba83308a0851f4897d08125b3b9420, type: 2}
   SleepFromMode: []
-  DisableModes: []
-  noModes:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
   QueueFrom: []
   ResetFrom: []
   SleepFromStance: []
@@ -94,7 +89,7 @@ MonoBehaviour:
   MovementStrafe: 1
   IdleStrafe: 1
   m_debug: 1
-  Editor_Tabs1: 4
+  Editor_Tabs1: 0
   SpeedSets: []
   ID: {fileID: 11400000, guid: 3fbb696c31f7ed846b7ec9b2f76fd0e5, type: 2}
   LedgeLayer:
@@ -107,34 +102,25 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  automaticByState:
-  - {fileID: 11400000, guid: 975403cc10f8cec46a3caa6ed4e3d6c5, type: 2}
   Kinematic:
     UseConstant: 1
     ConstantValue: 0
-    Variable: {fileID: 0}
-  DisableMainCollider:
-    UseConstant: 1
-    ConstantValue: 1
     Variable: {fileID: 0}
   wallDistance: 0.3
   MinTerrainAngle: 45
   ForwardLength: 0.75
   WallChecker: 0
-  HitTransform: LedgeHit
+  AlignSmoothness: 10
   profiles:
   - name: Step 1 Meter
     EnterStatus: 1
     MaxVSpeed: 0
-    CheckUpwards: 0
-    OnlyGrounded: 0
     ForwardMultiplier: 1
     Height: 1.15
     LedgeExitDistance: 0.4
     ExitTime: 0.7
     AlingOffset: {x: 0, y: -1.05}
     Orient: 1
-    OrientSmoothness: 10
     AdditivePosition: 0
     HeightSpeed: 0.5
     ForwardSpeed: 0.5
@@ -225,114 +211,12 @@ MonoBehaviour:
   - name: Ledge Grab
     EnterStatus: 0
     MaxVSpeed: 0
-    CheckUpwards: 0
-    OnlyGrounded: 0
     ForwardMultiplier: 1
     Height: 1.8
     LedgeExitDistance: 0.35
     ExitTime: 0.9
     AlingOffset: {x: 0, y: -1.42}
     Orient: 1
-    OrientSmoothness: 10
-    AdditivePosition: 0
-    HeightSpeed: 0.5
-    ForwardSpeed: 0.5
-    HeightCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.45
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.55
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    ForwardCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.45
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.55
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  - name: 3M Grab
-    EnterStatus: 2
-    MaxVSpeed: 2
-    CheckUpwards: 1
-    OnlyGrounded: 1
-    ForwardMultiplier: 1
-    Height: 3.5
-    LedgeExitDistance: 0.72
-    ExitTime: 0.9
-    AlingOffset: {x: 0.5, y: -2.85}
-    Orient: 1
-    OrientSmoothness: 10
     AdditivePosition: 0
     HeightSpeed: 0.5
     ForwardSpeed: 0.5

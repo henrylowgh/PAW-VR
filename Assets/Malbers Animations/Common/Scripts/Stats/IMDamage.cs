@@ -1,5 +1,4 @@
 ﻿using MalbersAnimations.Reactions;
-using MalbersAnimations.Scriptables;
 using UnityEngine;
 
 namespace MalbersAnimations
@@ -7,30 +6,17 @@ namespace MalbersAnimations
     /// <summary>Damagee interface for components that can be damaged</summary>
     public interface IMDamage
     { 
-        /// <summary>Last Direction the Damage came from</summary>
+        /// <summary>Which direction the Damage came from</summary>
         Vector3 HitDirection { get; set; }
-        /// <summary>Position of the Interaction </summary>
-        Vector3 HitPosition { get; }
 
-        Transform Transform { get; }
-
-        ///// <summary>Last Position of the actual hit</summary>
+        ///// <summary>Which direction the Damage came from</summary>
         //Vector3 HitPosition { get; set; }
-
-        /// <summary>Surface of the Damageable</summary>
-        SurfaceID Surface { get; }
 
         /// <summary>Who is doing the Damage?</summary>
         GameObject Damager { get; set; }
 
         /// <summary>Who is Receiving the Damage?</summary>
         GameObject Damagee { get; }
-
-        /// <summary>What Collider got the interaction? </summary>
-        Collider HitCollider { get; set; }
-
-        /// <summary>Last Force Applied to the Damager</summary>
-        ForceMode LastForceMode { get; set; }
 
         /// <summary>  Method to receive damage from an Atacker  </summary>
         /// <param name="Direction">Direction where the damage comes from</param>
@@ -42,7 +28,6 @@ namespace MalbersAnimations
         /// <param name="element">Element sent by the </param>
         void ReceiveDamage(
             Vector3 Direction,
-            Vector3 Position,
             GameObject Damager, 
             StatModifier stat, 
             bool IsCritical, 
@@ -89,14 +74,5 @@ namespace MalbersAnimations
         void DamagerAnimationStart(int hash);
 
         void DamagerAnimationEnd(int hash);
-    }
-
-
-    [System.Serializable]
-    public class EffectType
-    {
-        public SurfaceID surface;
-        public AudioClipReference sound;
-        public GameObjectReference effect;
     }
 }

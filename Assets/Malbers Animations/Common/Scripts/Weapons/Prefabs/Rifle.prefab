@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 784502807936281734}
-  m_Layer: 30
+  m_Layer: 0
   m_Name: Rifle AK
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -23,7 +23,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 119571379005093436}
-  serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: -0.5, z: -0.5, w: 0.5}
   m_LocalPosition: {x: -0.025, y: 0, z: -0.036}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -33,6 +32,7 @@ Transform:
   - {fileID: 5201667803378299429}
   - {fileID: 1664795837725507585}
   m_Father: {fileID: 4570553829634517058}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: -90}
 --- !u!1 &2352912772056173077
 GameObject:
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 5201667803378299429}
   - component: {fileID: 1187921563453814436}
   - component: {fileID: 5041677239822457898}
-  m_Layer: 30
+  m_Layer: 0
   m_Name: Magazine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -59,13 +59,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2352912772056173077}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0.000000061817246, z: -0.000000061817246, w: 0.7071068}
   m_LocalPosition: {x: 0.0010717312, y: 0.024171567, z: 0.06839657}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 784502807936281734}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1187921563453814436
 MeshFilter:
@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 9138203191294076316}
   - component: {fileID: 6773200777543597468}
   - component: {fileID: 8402952542275710405}
-  m_Layer: 30
+  m_Layer: 0
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -142,13 +142,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2477833545958989455}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0.000000061817246, z: -0.000000061817246, w: 0.7071068}
   m_LocalPosition: {x: -0.090084456, y: 0.014620731, z: -0.014686394}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 784502807936281734}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6773200777543597468
 MeshFilter:
@@ -226,7 +226,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4566762183731045176}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -238,6 +237,7 @@ Transform:
   - {fileID: 4943072555028419164}
   - {fileID: 7603342776771270759}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4537070842646239082
 MonoBehaviour:
@@ -262,19 +262,13 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     Variable: {fileID: 11400000, guid: f489db1856e43dc47b175dd125135bdc, type: 2}
-  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 0}
     Variable: {fileID: 0}
-  hitEffects: []
-  hitSound:
-    UseConstant: 1
-    ConstantValue: {fileID: 0}
-    Variable: {fileID: 0}
-  DestroyHitEffect: 0.2
+  DestroyHitEffect: 0
   dontHitOwner:
     UseConstant: 1
     ConstantValue: 1
@@ -411,7 +405,6 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
-  m_audio: {fileID: 0}
   m_UI: {fileID: 0}
   description:
     UseConstant: 1
@@ -452,8 +445,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   GroundArmPose: 1
   RidingArmPose: 1
-  GroundCombo: {fileID: 0}
-  RidingCombo: {fileID: 0}
+  GroundCombo: -1
+  RidingCombo: -1
   m_AimOrigin: {fileID: 4047236169696847419}
   m_AimSide: 2
   weaponType: {fileID: 11400000, guid: e359152068b217a4faa2410144e91b19, type: 2}
@@ -485,7 +478,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
-  strafeOnEquip:
+  UseStrafe:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
@@ -517,6 +510,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 80601341be591a84da83da64ecf51265, type: 3}
   - {fileID: 8300000, guid: b2318f3feaaa94241acd327f94bd3ec2, type: 3}
   - {fileID: 8300000, guid: eb1493d1ce356ec45b1e4f44ea5314ca, type: 3}
+  WeaponSound: {fileID: 4487265232576239360}
   OnEquiped:
     m_PersistentCalls:
       m_Calls:
@@ -600,9 +594,6 @@ MonoBehaviour:
   OnCharged:
     m_PersistentCalls:
       m_Calls: []
-  OnMaxCharged:
-    m_PersistentCalls:
-      m_Calls: []
   OnChargedFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -615,19 +606,10 @@ MonoBehaviour:
   OnReleaseFreeHand:
     m_PersistentCalls:
       m_Calls: []
-  Editor_Tabs1: 3
-  Editor_Tabs2: 4
+  Editor_Tabs1: 1
+  Editor_Tabs2: 3
   releaseProjectile: 1
-  equipProjectile: 4
-  aimAction: 1
-  releaseDelay:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  releaseByAnimation:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
+  CancelAim: 1
   m_Projectile:
     UseConstant: 1
     ConstantValue: {fileID: 1000013609580904, guid: d19bacbbd5f35344798e508b93e90e27,
@@ -642,9 +624,13 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  HasFireAnim:
+  HasReloadAnim:
     UseConstant: 1
     ConstantValue: 1
+    Variable: {fileID: 0}
+  HasFireAnim:
+    UseConstant: 1
+    ConstantValue: 0
     Variable: {fileID: 0}
   m_AimAngle:
     UseConstant: 1
@@ -653,10 +639,6 @@ MonoBehaviour:
   AimLimit:
     minValue: -180
     maxValue: 90
-  noReload:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
   m_Ammo:
     UseConstant: 0
     ConstantValue: 60
@@ -669,21 +651,9 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 30
     Variable: {fileID: 0}
-  m_ReloadTime:
-    UseConstant: 1
-    ConstantValue: 2
-    Variable: {fileID: 0}
   m_AutoReload:
     UseConstant: 1
     ConstantValue: 0
-    Variable: {fileID: 0}
-  m_AutoReloadTime:
-    UseConstant: 1
-    ConstantValue: 0.25
-    Variable: {fileID: 0}
-  HasReloadAnim:
-    UseConstant: 1
-    ConstantValue: 1
     Variable: {fileID: 0}
   OnLoadProjectile:
     m_PersistentCalls:
@@ -706,10 +676,7 @@ MonoBehaviour:
   OnReload:
     m_PersistentCalls:
       m_Calls: []
-  m_UnequipOnAim:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
+  InstantiateProjectileOfFire: 1
   references:
     version: 2
     RefIds:
@@ -868,9 +835,9 @@ MonoBehaviour:
       m_PreInfinity: 3
       m_PostInfinity: 3
       m_RotationOrder: 4
-    m_ImpulseDuration: 0.1
-    m_ImpulseType: 0
-    m_DissipationRate: 0.51
+    m_ImpulseDuration: 0.2
+    m_ImpulseType: 2
+    m_DissipationRate: 0.081
     m_RawSignal: {fileID: 0}
     m_AmplitudeGain: 1
     m_FrequencyGain: 1
@@ -899,7 +866,7 @@ MonoBehaviour:
     m_DissipationMode: 2
     m_DissipationDistance: 100
     m_PropagationSpeed: 343
-  m_DefaultVelocity: {x: 0.01, y: 0.01, z: 0.01}
+  m_DefaultVelocity: {x: 0.05, y: 0.1, z: 0.05}
 --- !u!1 &4943072555028419163
 GameObject:
   m_ObjectHideFlags: 0
@@ -923,13 +890,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4943072555028419163}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.076240644, y: -0.62187433, z: 0.71780145, w: 0.30367875}
   m_LocalPosition: {x: -0.161, y: 0.08, z: -0.061}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4570553829634517058}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 57.829, y: -66.194, z: 94.535}
 --- !u!1 &6917408788975922422
 GameObject:
@@ -955,13 +922,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6917408788975922422}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -0.5623, y: 0, z: 0.0187}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4570553829634517058}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!114 &4657771403657613185
 MonoBehaviour:
@@ -1008,13 +975,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7234163559320235575}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -0.5623, y: 0, z: 0.0187}
   m_LocalScale: {x: 0.46164003, y: 0.46164003, z: 0.46164003}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4570553829634517058}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &1994594653943843529
 MonoBehaviour:
@@ -1151,13 +1118,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9112144607614128793}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.7288118, y: -0.11392367, z: 0.32792893, w: 0.5901843}
   m_LocalPosition: {x: -0.173, y: -0.083, z: -0.021}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4570553829634517058}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: -51.771, y: -98.203, z: 116.635}
 --- !u!1 &9196577568686271287
 GameObject:
@@ -1170,7 +1137,7 @@ GameObject:
   - component: {fileID: 1664795837725507585}
   - component: {fileID: 7149037257366183817}
   - component: {fileID: 6329251043031185960}
-  m_Layer: 30
+  m_Layer: 0
   m_Name: Rifle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1184,13 +1151,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9196577568686271287}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 8.659561e-17, z: 8.659561e-17, w: 0.7071068}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 784502807936281734}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7149037257366183817
 MeshFilter:

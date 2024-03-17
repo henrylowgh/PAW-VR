@@ -128,9 +128,6 @@ namespace MalbersAnimations.PathCreation {
 
         /// Get world space position of point
         public Vector3 GetPoint (int i) {
-            
-            if (i< 0 || i >= points.Count) return Vector3.zero;
-
             return points[i];
         }
 

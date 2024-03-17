@@ -43,11 +43,14 @@ namespace MalbersAnimations.Conditions
             return false;
         }
 
-        protected override void _SetTarget(Object target)
+        public override void SetTarget(Object target)
         {
-            var Tar = Target.Value;
-            VerifyTarget(target, ref Tar);
-            Target.Value = Tar;
+            if (target is GameObject) this.Target.Value = target as GameObject;
+        }
+
+        public void SetValue(Object target)
+        {
+            if (target is GameObject) this.Value.Value = target as GameObject;
         }
 
         private void Reset() => Name = "New GameObject Condition";

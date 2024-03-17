@@ -5,10 +5,4 @@
     {
         bool Sleep { get; set; }
     }
-
-    /// <summary>  Locks the character with no movement and no action inputs. Lock Input, Lock Movement</summary>
-    public interface ILockCharacter
-    {
-        void Lock(bool value);
-    }
 }

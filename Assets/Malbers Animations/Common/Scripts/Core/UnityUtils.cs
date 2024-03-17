@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
-using MalbersAnimations.Scriptables;
 
 namespace MalbersAnimations
 {
-    [AddComponentMenu("Malbers/Utilities/Tools/Unity [Tools] Utilities")]
+    [AddComponentMenu("Malbers/Utilities/Tools/Unity Utilities")]
     [HelpURL("https://malbersanimations.gitbook.io/animal-controller/global-components/ui/unity-utils")]
     public class UnityUtils : MonoBehaviour 
     {
@@ -30,23 +29,6 @@ namespace MalbersAnimations
                 foreach (var audio in audios) audio.UnPause();
             }
         }
-
-        public void Forward_Direction(Transform target)
-        {
-            transform.forward = (target.position - transform.position).normalized;
-        }
-        public void Forward_Direction(TransformVar target) => Forward_Direction(target.Value);
-
-
-        public void Forward_Direction_NoY(Transform target)
-        {
-            var forward = (target.position - transform.position);
-            forward.y = 0;
-            transform.forward = forward.normalized;
-        }
-        public void Forward_Direction_NoY(TransformVar target) => Forward_Direction_NoY(target.Value);
-         
-
 
         public virtual void Toggle_Enable(Behaviour component) => component.enabled = !component.enabled;
 
@@ -100,17 +82,8 @@ namespace MalbersAnimations
 
         public void DebugLog(string value) => Debug.Log($"[{name}]-[{value}]",this);
         public void DebugLog(object value) => Debug.Log($"[{name}]-[{value}]",this);
-
-
-        public void QuitGame()
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
-
+         
+      
 
         /// <summary>Reset the Local Rotation of this gameObject</summary>
         public void Rotation_Reset() => transform.localRotation = Quaternion.identity;

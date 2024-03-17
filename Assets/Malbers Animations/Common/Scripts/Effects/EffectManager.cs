@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using MalbersAnimations.Reactions;
 
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -86,34 +85,26 @@ namespace MalbersAnimations.Utilities
             {
                 foreach (var e in effects)
                 {
-                    StopEffect(e);
+                    e.Modifier?.StopEffect(e);              //Play Modifier when the effect play
+                    e.OnStop.Invoke();
+
+                    if (e.effect != null)
+                    {
+                        if (!e.effect.IsPrefab())
+                        {
+                            if (e.disableOnStop) e.Instance?.SetActive(false);
+                        }
+                        else
+                            Destroy(e.Instance);
+
+                    }
+
+                    if (debug)
+                        Debug.Log($"{Owner}. Stop Effect [{e.Name}]", this);
                 }
             }
         }
-
-        public virtual void StopEffect(Effect e)
-        {
-            //Stop the Reaction
-            e.OnStopReaction?.React(Owner);
-            e.OnStop.Invoke();
-
-            e.IsPlaying = false;
-
-            if (e.effect != null)
-            {
-                if (!e.effect.IsPrefab())
-                {
-                    if (e.disableOnStop) e.Instance?.SetActive(false);
-                }
-                else
-                    Destroy(e.Instance);
-
-            }
-
-            if (debug)
-                Debug.Log($"<B>{Owner.name}</B> Effect Stop: <B>[{e.Name}]</B>", this);
-        }
-
+      
 
         /// <summary>Stops an Effect using its ID value</summary>
         public virtual void Effect_Stop(string name)
@@ -121,20 +112,37 @@ namespace MalbersAnimations.Utilities
             var effects = Effects.FindAll(effect => effect.Name == name && effect.active == true);
             Stop_Effects(effects);
         }
- 
+
+        private IEnumerator Life(Effect e)
+        {
+            if (e.life > 0)
+            {
+                yield return new WaitForSeconds(e.life);
+
+                e.Modifier?.StopEffect(e);              //Play Modifier when the effect play
+                e.OnStop.Invoke();
+
+                if (e.effect.IsPrefab())
+                {
+                    Destroy(e.Instance);       //Means the effect is a Prefab destroy the Instance
+                }
+                else
+                {
+                  if (e.disableOnStop)  e.effect.SetActive(false);
+                }
+            }
+
+            yield return null;
+        }
 
         protected virtual void Play(Effect e)
         {
-            //e.Modifier?.PreStart(e);        //Execute the Method PreStart Effect if it has a modifier
-
-            if (e.IsPlaying) return; //Do not play a effect that is already playing
+            e.Modifier?.PreStart(e);        //Execute the Method PreStart Effect if it has a modifier
 
             //Delay an action
             this.Delay_Action(e.delay,
                 () =>
                 { 
-                    e.IsPlaying = true;
-
                     //Play Audio
                     if (!e.Clip.NullOrEmpty() && e.audioSource != null)
                     {
@@ -163,6 +171,8 @@ namespace MalbersAnimations.Utilities
 
                         if (e.Instance)
                         {
+                         
+
                             //Apply Offsets
                             if (e.root)
                             {
@@ -182,11 +192,10 @@ namespace MalbersAnimations.Utilities
 
                                 if (e.useRootRotation)
                                 {
-                                    e.Instance.transform.rotation = e.root.rotation * Quaternion.Euler(e.Offset.Rotation);     //Orient to the root rotation
+                                    e.Instance.transform.rotation = e.root.rotation* Quaternion.Euler(e.Offset.Rotation);     //Orient to the root rotation
                                 }
                             }
-
-                            e.Instance.SetActive(true);
+                            e.Instance.gameObject.SetActive(true);
 
 
                             if (e.effect.IsPrefab()) //get the trailrenderer and particle system from the Instance instead of the prefab
@@ -197,20 +206,17 @@ namespace MalbersAnimations.Utilities
 
                             if (e.IsTrailRenderer) e.IsTrailRenderer.Clear();
                             if (e.IsParticleSystem) e.IsParticleSystem.Play();
-                        }
-                      
 
-                        if (e.life > 0)
-                        {
-                            this.Delay_Action(e.life, () => StopEffect(e));
+                            if (e.Modifier) e.Modifier.StartEffect(e);              //Apply  Modifier when the effect play
+
+                            StartCoroutine(Life(e));
                         }
                     }
 
                     if (debug)
-                        Debug.Log($"<B>{Owner.name}</B> Effect Play: <B>[{e.Name}]</B>", this);
+                        Debug.Log($"<B>{Owner.name}.Play Effect [{e.Name}] </B>");
 
-                    e.OnPlay.Invoke();                 //Invoke the Play Event
-                    e.OnPlayReaction?.React(Owner);    //Play the Reaction
+                    e.OnPlay.Invoke();                                      //Invoke the Play Event
                 }
             ); 
         }
@@ -363,23 +369,15 @@ namespace MalbersAnimations.Utilities
         public float delay;
         public float scale = 1f;
 
-        ///// <summary>Scriptable Object to Modify anything you want before, during or after the effect is invoked</summary>
-        //public EffectModifier Modifier;
+        /// <summary>Scriptable Object to Modify anything you want before, during or after the effect is invoked</summary>
+        public EffectModifier Modifier;
 
-
-        [SerializeReference, SubclassSelector]
-        public Reaction OnPlayReaction;
-        [SerializeReference, SubclassSelector]
-        public Reaction OnStopReaction;
 
         public UnityEvent OnPlay;
         public UnityEvent OnStop;
 
         /// <summary>Returns the Owner of the Effect </summary>
         public Transform Owner { get; set; }
-
-        /// <summary>  The Effect is playing. Use this to skip double playing the same effect /summary>
-        public bool IsPlaying { get; set; }
 
         /// <summary>Returns the Instance of the Effect Prefab </summary>
         public GameObject Instance { get => instance; set => instance = value; }
@@ -416,6 +414,8 @@ namespace MalbersAnimations.Utilities
         private void OnEnable()
         {
             M = ((EffectManager)target);
+            //script = MonoScript.FromMonoBehaviour(target as MonoBehaviour);
+
             Owner = serializedObject.FindProperty("Owner");
             debug = serializedObject.FindProperty("debug");
             EffectList = serializedObject.FindProperty("Effects");
@@ -499,6 +499,7 @@ namespace MalbersAnimations.Utilities
                                 EditorGUILayout.HelpBox("Life = 0  the effect will not be destroyed by this Script", MessageType.Info);
                             }
                         }
+
                     }
 
 
@@ -515,7 +516,8 @@ namespace MalbersAnimations.Utilities
                                new GUIContent("Clip", "What audio will be played"));
                         }
                     }
-                    
+
+
                     using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                     {
                         var root = Element.FindPropertyRelative("root");
@@ -543,31 +545,41 @@ namespace MalbersAnimations.Utilities
                                 EditorGUILayout.PropertyField(useRootRotation, new GUIContent("Use Root Rotation", "Orient the Effect using the root rotation."));
                             }
                         }
-                    } 
+                    }
+
+
+                 
+
 
                     using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                     {
-                        var OnPlayReaction = Element.FindPropertyRelative("OnPlayReaction");
-                        var OnStopReaction = Element.FindPropertyRelative("OnStopReaction");
-                        OnPlayReaction.isExpanded = MalbersEditor.Foldout(OnPlayReaction.isExpanded, "Reactions");
+                        var mod = Element.FindPropertyRelative("Modifier");
+                        mod.isExpanded = MalbersEditor.Foldout(mod.isExpanded, "Modifier");
 
-                        if (OnPlayReaction.isExpanded)
+                        if (mod.isExpanded)
                         {
 
-                            EditorGUILayout.PropertyField(OnPlayReaction);
-                            EditorGUILayout.PropertyField(OnStopReaction);
+                            EditorGUILayout.PropertyField(mod, new GUIContent("Modifier", ""));
+
+                            if (effect.Modifier != null)
+                            {
+                                if (effect.Modifier.Description != string.Empty)
+                                    EditorGUILayout.HelpBox(effect.Modifier.Description, MessageType.None);
+
+                                MTools.DrawScriptableObject(effect.Modifier, false, 1);
+                            }
                         }
                     }
 
 
                     using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                     {
-                        Owner.isExpanded = MalbersEditor.Foldout(Owner.isExpanded, "Events");
+                        var OnPlay = Element.FindPropertyRelative("OnPlay");
+                        OnPlay.isExpanded = MalbersEditor.Foldout(OnPlay.isExpanded, "Events");
 
-                        if (Owner.isExpanded)
+                        if (OnPlay.isExpanded)
                         {
                             var OnStop = Element.FindPropertyRelative("OnStop");
-                            var OnPlay = Element.FindPropertyRelative("OnPlay");
 
                             EditorGUILayout.PropertyField(OnPlay);
                             EditorGUILayout.PropertyField(OnStop);

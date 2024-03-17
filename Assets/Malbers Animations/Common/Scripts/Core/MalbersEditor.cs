@@ -474,7 +474,6 @@ namespace MalbersAnimations
             };
 
             styleDesc.normal.textColor = EditorStyles.label.normal.textColor;
-
             UnityEditor.EditorGUILayout.LabelField(v, styleDesc);
         }
 
@@ -494,7 +493,7 @@ namespace MalbersAnimations
         {
             var currentGUIColor = GUI.color;
             GUI.color = property.boolValue ? Color.red : currentGUIColor;
-            property.boolValue = GUILayout.Toggle(property.boolValue, DebugCont, EditorStyles.miniButtonMid, GUILayout.Width(28), GUILayout.Height(20));
+            property.boolValue = GUILayout.Toggle(property.boolValue, DebugCont, EditorStyles.miniButton, GUILayout.Width(29));
             GUI.color = currentGUIColor;
         }
 
@@ -539,20 +538,9 @@ namespace MalbersAnimations
         }
 
         public static bool Foldout(bool prop, string name)
-        { 
+        {
             EditorGUI.indentLevel++;
             prop = GUILayout.Toggle(prop, name, EditorStyles.foldoutHeader);
-            EditorGUI.indentLevel--;
-            return prop;
-        }
-
-        public static bool Foldout_Bold(bool prop, string name)
-        {
-            var boldFoldout = new GUIStyle(EditorStyles.foldoutHeader);
-            boldFoldout.fontStyle = FontStyle.Bold;
-
-            EditorGUI.indentLevel++;
-            prop = GUILayout.Toggle(prop, name, boldFoldout);
             EditorGUI.indentLevel--;
             return prop;
         }

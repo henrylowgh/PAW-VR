@@ -9,11 +9,8 @@ namespace MalbersAnimations.Controller.AI
         public override string DisplayName => "General/Wait";
 
         [Space] 
-        public FloatReference WaitMinTime = new(5);
-        public FloatReference WaitMaxTime = new(5);
-
-        [Tooltip("After the wait is over if this MAI State is not null. Execute it!")]
-        public MAIState NextState;
+        public FloatReference WaitMinTime = new FloatReference(5);
+        public FloatReference WaitMaxTime = new FloatReference(5);
 
         public override void StartTask(MAnimalBrain brain, int index)
         {
@@ -23,10 +20,7 @@ namespace MalbersAnimations.Controller.AI
         public override void UpdateTask(MAnimalBrain brain, int index)
         {
             if (MTools.ElapsedTime(brain.TasksStartTime[index], brain.TasksVars[index].floatValue))
-            {
-                brain.TaskDone(index);
-                if (NextState) brain.StartNewState(NextState); //Go to the next state if it has any
-            }
+                brain.TaskDone(index); 
         }
     }
 }

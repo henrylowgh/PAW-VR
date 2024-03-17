@@ -4,7 +4,7 @@ using MalbersAnimations.Controller;
 namespace MalbersAnimations.Reactions
 {
     [System.Serializable]
-    [AddTypeMenu("Malbers/Animal/Stance")]
+    [AddTypeMenu("Malbers/Animal Controller/Animal Stances")]
     public class StanceReaction : MReaction
     {
         public Stance_Reaction action = Stance_Reaction.Set;
@@ -22,19 +22,12 @@ namespace MalbersAnimations.Reactions
                     animal.Stance_Set(ID);
                     break;
                 case Stance_Reaction.SetPersistent:
-
-                    var Stance = animal.Stance_Get(ID);
-
-                    if (Stance != null)
-                    {
-                        animal.Stance_Set(ID);
-                        if (animal.Stance == ID || Stance.Queued)
-                        {
-                            Stance.SetPersistent(true);
-                        }
-                        else return false;
-                    }
-                   
+                    animal.Stance_Set(ID);
+                    if (animal.Stance.ID == ID)
+                    { 
+                        animal.ActiveStance.SetPersistent(true);
+                    } 
+                    else return false;
                     break;
                 case Stance_Reaction.Reset:
                     var ispersistent = animal.ActiveStance.Persistent;
@@ -61,6 +54,15 @@ namespace MalbersAnimations.Reactions
             return true;
         }
 
-       
+        public enum Stance_Reaction
+        {
+            Set,
+            SetPersistent,
+            Toggle,
+            SetDefault,
+            Reset,
+            ResetPersistent,
+            RestoreDefault,
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿#if UNITY_EDITOR
+﻿
+
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
@@ -42,15 +44,14 @@ namespace MalbersAnimations
 
                 if (Application.isPlaying)
                 {
-
-                    using (new EditorGUI.DisabledGroupScope(true))
+                    EditorGUI.BeginDisabledGroup(true);
                     {
                         if (M.PinnedStat != null)
                             EditorGUILayout.ObjectField("Pin Stat: ", (StatID)M.PinnedStat.ID, typeof(StatID), false);
                         else
                             EditorGUILayout.LabelField("Pin Stat: NULL ");
                     }
-                  
+                    EditorGUI.EndDisabledGroup();
                 }
 
                 list.DoLayoutList();
@@ -109,7 +110,6 @@ namespace MalbersAnimations
             var DegenRate = element.FindPropertyRelative("DegenRate");
             var DegenWaitTime = element.FindPropertyRelative("DegenWaitTime");
             var multiplier = element.FindPropertyRelative("multiplier");
-            var Round = element.FindPropertyRelative("Round");
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -128,30 +128,30 @@ namespace MalbersAnimations
                     EditorGUILayout.PropertyField(MaxValue, new GUIContent("Max"));
                     EditorGUIUtility.labelWidth = 0;
                 }
-            }
 
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-            {   
+
                 EditorGUILayout.PropertyField(DisableOnEmpty);
-                EditorGUILayout.PropertyField(Round);
+
             }
 
 
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             {
                 EditorGUILayout.PropertyField(Regenerate, new GUIContent("Regenerate", "Can the Stat Regenerate over time?"));
                 EditorGUILayout.PropertyField(RegenRate, new GUIContent("Rate", "Regeneration Rate, how fast/Slow the Stat will regenerate"));
                 EditorGUILayout.PropertyField(RegenWaitTime, new GUIContent("Wait Time", "After the Stat is modified, the time to wait to start regenerating"));
             }
-
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             {
                 EditorGUILayout.PropertyField(Degenerate, new GUIContent("Degenerate", "Can the Stat Degenerate over time?"));
                 EditorGUILayout.PropertyField(DegenRate, new GUIContent("Rate", "Degeneration Rate, how fast/Slow the Stat will Degenerate"));
                 EditorGUILayout.PropertyField(DegenWaitTime, new GUIContent("Wait Time", "After the Stat is modified, the time to wait to start degenerating"));
             }
+            EditorGUILayout.EndVertical();
 
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             {
                 EditorGUILayout.PropertyField(resetTo, new GUIContent("Reset To", "When called the Funtion RESET()  it will reset to the Min Value or the Max Value"));
                 EditorGUILayout.PropertyField(InmuneTime, new GUIContent("Inmune Time", "If greater than zero, the Stat cannot be modify until the inmune time have passed"));
@@ -163,7 +163,7 @@ namespace MalbersAnimations
                     EditorGUI.EndDisabledGroup();
                 }
             }
-            
+            EditorGUILayout.EndVertical();
         }
 
         private void DrawEvents(SerializedProperty element)
@@ -239,8 +239,6 @@ namespace MalbersAnimations
             EditorGUI.LabelField(R_3, "ID", EditorStyles.miniLabel);
         }
 
-        private static readonly Color selected = new(2, 1f, 0);
-
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.x += 5;
@@ -254,13 +252,10 @@ namespace MalbersAnimations
 
             rect.y += 2;
 
-            Rect R_0 = new(rect.x, rect.y, 15, EditorGUIUtility.singleLineHeight);
-            Rect R_1 = new(rect.x + 40, rect.y, (rect.width) / 2 - 22, EditorGUIUtility.singleLineHeight);
-            Rect R_2 = new(rect.x + 40 + ((rect.width) / 2), rect.y, rect.width - ((rect.width) / 2) - 40, EditorGUIUtility.singleLineHeight);
-            Rect R_3 = new(rect.width + 45, rect.y, rect.width + 25, EditorGUIUtility.singleLineHeight);
-
-            var dC = GUI.contentColor;
-            if (isFocused) GUI.contentColor = selected;
+            Rect R_0 = new Rect(rect.x, rect.y, 15, EditorGUIUtility.singleLineHeight);
+            Rect R_1 = new Rect(rect.x + 40, rect.y, (rect.width) / 2 - 22, EditorGUIUtility.singleLineHeight);
+            Rect R_2 = new Rect(rect.x + 40 + ((rect.width) / 2), rect.y, rect.width - ((rect.width) / 2) - 40, EditorGUIUtility.singleLineHeight);
+            Rect R_3 = new Rect(rect.width + 45, rect.y, rect.width + 25, EditorGUIUtility.singleLineHeight);
 
             EditorGUI.PropertyField(R_0, active, new GUIContent("", "Is the Stat Enabled? when Disable no modification can be done"));
 
@@ -269,11 +264,16 @@ namespace MalbersAnimations
             EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(R_2, Value, GUIContent.none);
 
+
+
             if (ID.objectReferenceValue != null)
             {
                 var od = ID.objectReferenceValue as StatID;
                 EditorGUI.LabelField(R_3, od.ID.ToString(), EditorStyles.boldLabel);
             }
+
+
+
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -286,13 +286,16 @@ namespace MalbersAnimations
                 }
             }
 
-            GUI.contentColor = dC;
+            // serializedObject.ApplyModifiedProperties();
         }
 
 
         void OnAddCallBack(ReorderableList list)
         {
-            M.stats ??= new List<Stat>();
+            if (M.stats == null)
+            {
+                M.stats = new List<Stat>();
+            }
             M.stats.Add(new Stat());
         }
 

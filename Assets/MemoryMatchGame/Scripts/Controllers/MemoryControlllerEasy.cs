@@ -11,11 +11,8 @@ public class MemoryControlllerEasy : MemoryControllerBase
 {
 	[Header("Continue counting time during flip over?")]
 	public bool continueTime;
-	public GameObject ballObject; // Set your object to spawn
-	public GameObject spawnPosition; // Spawn Position
-	public GameObject holdingPosition; // Holding position
 
-    new void Start()
+	new void Start()
 	{
 		base.Start();
 	}
@@ -39,8 +36,7 @@ public class MemoryControlllerEasy : MemoryControllerBase
 
 		//restart game
 		if (GameController.GameControllerProperties.CurrentGameState == GameState.GAME_OVER)
-			//HandleRestartGame();
-			Placeholder();
+			HandleRestartGame();
 	}
 
 	#region EXTERNAL METHODS
@@ -134,9 +130,8 @@ public class MemoryControlllerEasy : MemoryControllerBase
 			//end game, do something
 			ShowPlayerScoreLevel((countMinutes * 60) + countSeconds);
 			GameController.GameControllerProperties.CurrentGameState = GameState.GAME_OVER;
-            SpawnCompletionObject(); // New method to spawn an object
-            countMatch = 0;
-        }
+			countMatch = 0;
+		}
 	}
 
 	///<summary>
@@ -152,16 +147,5 @@ public class MemoryControlllerEasy : MemoryControllerBase
 		canPlay = true;
 	}
 
-	void SpawnCompletionObject()
-    {
-		// Spawn logic
-		ballObject.transform.position = spawnPosition.transform.position;
-    }
-
-	void Placeholder()
-	{
-		// Empty function
-	}
-
-    #endregion
+	#endregion
 }

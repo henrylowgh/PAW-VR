@@ -105,29 +105,6 @@ namespace MalbersAnimations
 
         public void Index_Disable(int index) => compare[index].active = false;
         public void Index_Enable(int index) => compare[index].active = true;
-
-
-        public void Index_Enable_Only(int index)
-        {
-            compare[index].active = true;
-
-            for (int i = 0; i < compare.Count; i++)
-            {
-                if (i == index) continue; 
-                compare[i].active = false;
-            }
-        }
-
-        public void Index_Disable_Only(int index)
-        {
-            compare[index].active = false;
-
-            for (int i = 0; i < compare.Count; i++)
-            {
-                if (i == index) continue;
-                compare[i].active = true;
-            }
-        }
     }
 
 

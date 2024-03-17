@@ -13,7 +13,7 @@ namespace MalbersAnimations.Scriptables
         [TextArea(3, 20)]
         public string Description = "";
 #endif
-        public bool debug = false;
+        [HideInInspector] public bool debug = false;
     }
 
     /// <summary> Base for all Local Scritable Reference Variables </summary>
@@ -51,20 +51,9 @@ namespace MalbersAnimations.Scriptables
                     EditorGUILayout.PropertyField(value, new GUIContent("Value", "The current value"));
                     MalbersEditor.DrawDebugIcon(debug);
                 }
-
-                ExtraValues();
-
-                
                 EditorGUILayout.PropertyField(Description);
-
-
             }
             serializedObject.ApplyModifiedProperties();
-        }
-
-        public virtual void ExtraValues()
-        {
-            
         }
     }
 #endif

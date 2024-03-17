@@ -4,20 +4,19 @@ using UnityEngine;
 
 namespace MalbersAnimations.Controller
 {
-    [AddComponentMenu("Malbers/Animal Controller/Swap Character")]
+
     public class SwapCharacter : MonoBehaviour
     {
+        public List<MAnimal> Characters = new List<MAnimal>();
+
         [Tooltip("Force Fall State if the animal is not grounded")]
         public StateID Fall;
-
-        public List<MAnimal> Characters = new();
-
-        public GameObjectEvent OnSwap = new();
+        public GameObjectEvent OnSwap = new GameObjectEvent();
         private MAnimal currentChar;
         private int currentCharIndex;
 
 
-        private void OnEnable()
+        private void Start()
         {
             if (Characters.Count > 1)
             {
@@ -27,15 +26,16 @@ namespace MalbersAnimations.Controller
                     if (Characters[i].gameObject.IsPrefab())
                         Characters[i] = Instantiate(Characters[i]);
                 }
-                Characters[0].gameObject.SetActive(true); //Enable the First One!
+
+
+
+                    Characters[0].gameObject.SetActive(true); //Enable the First One!
                 currentChar = Characters[0];
 
                 for (int i = 1; i < Characters.Count; i++)
                 {
                     Characters[i].gameObject.SetActive(false); //all the other
                 }
-
-                OnSwap.Invoke(currentChar.gameObject);
             }
         }
 
@@ -66,14 +66,13 @@ namespace MalbersAnimations.Controller
         {
             var OldState = Old.ActiveStateID;
 
-            New.OverrideStartState = OldState;
 
-            if (OldState == StateEnum.Jump || !New.HasState(OldState))
+            if (Old.Grounded)
+                New.OverrideStartState = OldState;
+            else
             {
-                //Change Jump for Fall or if the new animal does not have the given Old State
                 New.OverrideStartState = Fall;
             }
-
 
             New.gameObject.SetActive(true);
 
@@ -96,8 +95,6 @@ namespace MalbersAnimations.Controller
             New.HorizontalSpeed = Old.HorizontalSpeed;
             New.HorizontalVelocity = Old.HorizontalVelocity;
             // Debug.Log($" MoveSmoth After: {New.MovementAxisRaw}");
-
-            //if (Old.Grounded)  New.State_Force(Old.ActiveStateID); //Force the new State
 
             Old.gameObject.SetActive(false);
         }

@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace MalbersAnimations.Scriptables
 {
-    [AddComponentMenu("Malbers/Utilities/Managers/Scritable Var to Player Pref (Save|Load)")]
+    [AddComponentMenu("Malbers/Utilities/Managers/Scritable Var to Player Pref")]
     public class ScriptableVarToPlayerPref : MonoBehaviour
     {
         [Tooltip("Set of Scriptable variables you want to save on Player Pref")]

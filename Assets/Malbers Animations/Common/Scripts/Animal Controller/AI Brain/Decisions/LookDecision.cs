@@ -87,7 +87,7 @@ namespace MalbersAnimations.Controller.AI
 
         public override void FinishDecision(MAnimalBrain brain, int index)
         {
-            Look_For(brain, AssignTarget, index); //This will assign the Target in case its true
+            Look_For(brain, true, index); //This will assign the Target in case its true
         }
 
         public override void PrepareDecision(MAnimalBrain brain, int index)
@@ -101,7 +101,7 @@ namespace MalbersAnimations.Controller.AI
 
                     if (Tags.TagsHolders == null || tags == null || tags.Length == 0) return;
 
-                    List<GameObject> gtags = new();
+                    List<GameObject> gtags = new List<GameObject>();
 
                     foreach (var t in Tags.TagsHolders)
                     {
@@ -153,20 +153,20 @@ namespace MalbersAnimations.Controller.AI
         /// <summary>  Looks for a gameobject acording to the Look For type.</summary>
         private bool Look_For(MAnimalBrain brain, bool assign, int index)
         {
-            return lookFor switch
+            switch (lookFor)
             {
-                LookFor.MainAnimalPlayer => LookForAnimalPlayer(brain, assign),
-                LookFor.MalbersTag =>       LookForMalbersTags(brain, assign, index),
-                LookFor.UnityTag =>         LookForUnityTags(brain, assign, index),
-                LookFor.Zones =>            LookForZones(brain, assign),
-                LookFor.GameObject =>       LookForGameObjectByName(brain, assign),
-                LookFor.ClosestWayPoint =>  LookForClosestWaypoint(brain, assign),
-                LookFor.CurrentTarget =>    LookForTarget(brain, assign),
-                LookFor.TransformVar =>     LookForTransformVar(brain, assign),
-                LookFor.GameObjectVar =>    LookForGoVar(brain, assign),
-                LookFor.RuntimeGameobjectSet => LookForGoSet(brain, assign, index),
-                _ => false,
-            };
+                case LookFor.MainAnimalPlayer: return LookForAnimalPlayer(brain, assign);
+                case LookFor.MalbersTag: return LookForMalbersTags(brain, assign, index);
+                case LookFor.UnityTag: return LookForUnityTags(brain, assign, index);
+                case LookFor.Zones: return LookForZones(brain, assign);
+                case LookFor.GameObject: return LookForGameObjectByName(brain, assign);
+                case LookFor.ClosestWayPoint: return LookForClosestWaypoint(brain, assign);
+                case LookFor.CurrentTarget: return LookForTarget(brain, assign);
+                case LookFor.TransformVar: return LookForTransformVar(brain, assign);
+                case LookFor.GameObjectVar: return LookForGoVar(brain, assign);
+                case LookFor.RuntimeGameobjectSet: return LookForGoSet(brain, assign, index);
+                default: return false;
+            }
         }
 
         public bool LookForTarget(MAnimalBrain brain, bool assign)
@@ -186,7 +186,7 @@ namespace MalbersAnimations.Controller.AI
 
             var Center =
                 transform.Value == brain.Target && brain.AIControl.IsAITarget != null ?
-                brain.AIControl.IsAITarget.GetCenterY() :
+                brain.AIControl.IsAITarget.GetCenter() :
                 transform.Value.position;
 
             return IsInFieldOfView(brain, Center, out _);
@@ -200,7 +200,7 @@ namespace MalbersAnimations.Controller.AI
 
             var Center =
                 gameObject.Value.transform == brain.Target && brain.AIControl.IsAITarget != null ?
-                brain.AIControl.IsAITarget.GetCenterY() :
+                brain.AIControl.IsAITarget.GetCenter() :
                 gameObject.Value.transform.position;
 
             return IsInFieldOfView(brain, Center, out _);
@@ -215,9 +215,15 @@ namespace MalbersAnimations.Controller.AI
 
             if (LookAngle == 0 || LookRange <= 0) return true; //Means the Field of view can be ignored
 
-            if (Distance < LookRange.Value * brain.Animal.ScaleFactor) //Check if whe are inside the Look Radius
+            if (Distance < LookRange.Value) //Check if whe are inside the Look Radius
             {
                 Vector3 EyesForward = Vector3.ProjectOnPlane(brain.Eyes.forward, brain.Animal.UpVector);
+
+                //if (brain.debug)
+                //{ 
+                //    Debug.Log($"Look Decision {lookFor.ToString()} - [{Distance:F3}]");
+                //    Debug.DrawRay(brain.Eyes.position, Direction_to_Target * LookMultiplier, Color.cyan, interval);
+                //}
 
                 var angle = Vector3.Angle(Direction_to_Target, EyesForward);
 
@@ -231,8 +237,10 @@ namespace MalbersAnimations.Controller.AI
                             Debug.DrawRay(brain.Eyes.position, Direction_to_Target * LookMultiplier, Color.green, interval);
                             Debug.DrawLine(hit.point, Center, Color.red, interval);
                             MDebug.DrawWireSphere(Center, Color.red, interval);
-                            MDebug.DrawCircle(hit.point, hit.normal,0.1f, Color.red,true, interval);
                         }
+
+                        //if (brain.debug) Debug.Log($"Look Decision {lookFor.ToString()}: Found Obstacle: [{hit.transform.name}]. " +
+                        //    $"Layer: [{LayerMask.LayerToName(hit.transform.gameObject.layer)}]",this);
 
                         return false; //Meaning there's something between the Eyes of the Animal and the Target
                     }
@@ -257,10 +265,8 @@ namespace MalbersAnimations.Controller.AI
         {
             if (assign)
             {
-                if (AssignTarget)
-                    brain.AIControl.SetTarget(target, MoveToTarget);
-                else if (RemoveTarget) 
-                    brain.AIControl.ClearTarget();
+                if (AssignTarget) brain.AIControl.SetTarget(target, MoveToTarget);
+                else if (RemoveTarget) brain.AIControl.ClearTarget();
             }
         }
 
@@ -318,7 +324,7 @@ namespace MalbersAnimations.Controller.AI
 
                     if(go != null)
                     {
-                        if (IsInFieldOfView(brain, go.position, out _))
+                        if (IsInFieldOfView(brain, go.position, out float Distance))
                         {
                             AssignMoveTarget(brain, go, assign);
                             return true;
@@ -487,7 +493,7 @@ namespace MalbersAnimations.Controller.AI
 
             foreach (var way in allWaypoints)
             {
-                var center = way.GetCenterY();
+                var center = way.GetCenter();
                 if (IsInFieldOfView(brain, center, out float Distance))
                 {
                     if (Distance < minDistance)

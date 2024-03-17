@@ -12,7 +12,7 @@ namespace MalbersAnimations.Controller.AI
         public Affected affect = Affected.Self;
 
         public string SpeedSet = "Ground";
-        public IntReference SpeedIndex = new(3);
+        public IntReference SpeedIndex = new IntReference(3);
 
         public override void StartTask(MAnimalBrain brain, int index)
         {
@@ -23,9 +23,6 @@ namespace MalbersAnimations.Controller.AI
             }
             brain.TaskDone(index); //Set Done to this task
         }
-
-
-
 
         public void ChangeSpeed(MAnimal animal) => animal?.SpeedSet_Set_Active(SpeedSet, SpeedIndex);
 

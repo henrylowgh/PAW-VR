@@ -62,8 +62,6 @@ MonoBehaviour:
   direction: 0
   arcsCount: 12
   LookAtTarget: 1
-  FleeForever: 1
-  StopOnArrive: 1
   debugColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.25}
 --- !u!114 &-6682966666410970486
 MonoBehaviour:
@@ -104,7 +102,6 @@ MonoBehaviour:
   ModeAngle: 360
   lookAtAlign: 1
   IgnoreFirstCoolDown: 1
-  StopModeOnExit: 1
   alignTime: 0.3
 --- !u!114 &-3742761694754523325
 MonoBehaviour:
@@ -153,6 +150,8 @@ MonoBehaviour:
   - {fileID: -6682966666410970486}
   - {fileID: -3742761694754523325}
   - {fileID: -8424466867942724737}
+  - {fileID: 11400000, guid: ff56f4762056add468aeb3b0679896b4, type: 2}
+  - {fileID: 11400000, guid: b59e3d9f479a7c946ab9d83ef0251dd8, type: 2}
   transitions:
   - decision: {fileID: 2943419024565079828}
     trueState: {fileID: 0}
@@ -163,8 +162,6 @@ MonoBehaviour:
   GizmoStateColor: {r: 0, g: 1, b: 0.1323154, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
-  TasksIndex: 1
-  DecisionIndex: -1
 --- !u!114 &2943419024565079828
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -46,9 +46,6 @@ namespace MalbersAnimations
         /// <summary>Set the next Target, and set if the Agent will move or not to that target</summary>  
         void SetTarget(Transform target, bool move);
 
-        /// <summary>Set the next Target</summary>  
-        void SetNextTarget(GameObject next);
-
         /// <summary>Remove the current Target and stop the Agent </summary>
         void ClearTarget();
 
@@ -73,9 +70,6 @@ namespace MalbersAnimations
         /// <summary>Has the Agent Arrived to the Target Position?</summary>
         bool HasArrived { get; set; }
 
-        /// <summary>The Animal is moving</summary>
-        bool IsMoving { get;  }
-
         /// <summary>Is the Agent in a OffMesh Link</summary>       
         bool InOffMeshLink { get; set; }
 
@@ -88,8 +82,6 @@ namespace MalbersAnimations
         /// <summary>The Character will assign and go to a new Target (Given by the current Target) when it arrives to the current target</summary>
         bool AutoNextTarget { get; set; } 
 
-        bool AIReady { get; } 
-
         /// <summary>is the AI Enabled/Active?</summary>
         bool Active { get;} 
         
@@ -100,10 +92,10 @@ namespace MalbersAnimations
         bool UpdateDestinationPosition { get; set; }
 
         /// <summary>Event to send when a new Target is assigned</summary>  
-        Events.TransformEvent TargetSet { get; }
+        MalbersAnimations.Events.TransformEvent TargetSet { get; }
 
         /// <summary>Event to send when  the AI has arrived to the target</summary>  
-        Events.TransformEvent OnArrived { get; }
+        MalbersAnimations.Events.TransformEvent OnArrived { get; }
     }
 
     /// <summary>Interface used to know if Target used on the AI Movement is and AI Target</summary>
@@ -125,10 +117,10 @@ namespace MalbersAnimations
         float SlowDistance();
 
         /// <summary>Returns the AI Destination on an AI Target</summary>
-        Vector3 GetCenterPosition();
+        Vector3 GetPosition();
 
         /// <summary>Returns the AI Destination + the Height</summary>
-        Vector3 GetCenterY();
+        Vector3 GetCenter();
 
         /// <summary>Where is the Target Located, Ground, Water, Air? </summary>
         WayPointType TargetType { get; }

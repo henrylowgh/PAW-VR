@@ -40,8 +40,6 @@ MonoBehaviour:
   direction: 0
   arcsCount: 12
   LookAtTarget: 1
-  FleeForever: 1
-  StopOnArrive: 1
   debugColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.25}
 --- !u!114 &-1420615141407408200
 MonoBehaviour:
@@ -105,8 +103,6 @@ MonoBehaviour:
   GizmoStateColor: {r: 0.5471698, g: 0.18779378, b: 0.1264685, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
-  TasksIndex: -1
-  DecisionIndex: 0
 --- !u!114 &8019364335122867081
 MonoBehaviour:
   m_ObjectHideFlags: 0

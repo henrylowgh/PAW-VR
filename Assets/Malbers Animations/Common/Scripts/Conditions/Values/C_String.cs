@@ -1,4 +1,6 @@
-﻿using MalbersAnimations.Scriptables;
+﻿using MalbersAnimations.Controller;
+using MalbersAnimations.Scriptables;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MalbersAnimations.Conditions
@@ -6,7 +8,7 @@ namespace MalbersAnimations.Conditions
     [System.Serializable]
     public class C_String : MCondition
     {
-        public enum stringCondition { Equal, Contains }
+        public enum stringCondition { Equal, Contains}
 
         public override string DisplayName => "Values/String";
 
@@ -17,20 +19,23 @@ namespace MalbersAnimations.Conditions
         public void SetTarget(string targ) => Target.Value = targ;
         public void SetValue(string targ) => Value.Value = targ;
 
+        public void SetTarget(StringVar targ) => Target.Value = targ.Value;
+        public void SetValue(StringVar targ) => Value.Value = targ.Value;
 
         public override bool _Evaluate()
         {
             switch (Condition)
             {
-                case stringCondition.Equal: return Target.Value == Value.Value;
+                case stringCondition.Equal:  return Target.Value == Value.Value;
                 case stringCondition.Contains: return Target.Value.Contains(Value.Value);
-                default:
-                    break;
             }
             return false;
         }
 
-        protected override void _SetTarget(Object target) => VerifyTarget(target, ref Target.Variable);
+        public override void SetTarget(Object target)
+        {
+            if (target is StringVar) this.Target.Value = target as StringVar;
+        }
 
         private void Reset() => Name = "New String Comparer";
     }

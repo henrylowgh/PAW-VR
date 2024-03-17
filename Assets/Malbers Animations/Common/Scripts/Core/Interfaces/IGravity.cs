@@ -6,7 +6,5 @@ namespace MalbersAnimations
     {
         Vector3 Gravity { get; set; }
         Vector3 UpVector { get; }
-
-        public void ResetGravityDirection();
     }
 }

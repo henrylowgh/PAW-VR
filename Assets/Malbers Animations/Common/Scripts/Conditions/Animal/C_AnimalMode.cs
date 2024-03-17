@@ -18,7 +18,10 @@ namespace MalbersAnimations.Conditions
         {
             if (Target) mode = Target.Mode_Get(Value);
         }
+
+
         public void SetValue(ModeID v) => Value = v;
+
 
         public override bool _Evaluate()
         {

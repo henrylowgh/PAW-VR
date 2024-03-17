@@ -6,7 +6,7 @@ using UnityEngine;
 namespace MalbersAnimations.Reactions
 {
     [System.Serializable]
-    [AddTypeMenu("Malbers/Animal/Add Force")]
+    [AddTypeMenu("Malbers/Animal Controller/Animal Force")]
 
     public class ForceReaction : MReaction
     {

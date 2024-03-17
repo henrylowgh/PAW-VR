@@ -19,11 +19,10 @@ namespace MalbersAnimations.Controller
         //[ContextMenuItem("Set Default", "SetDefaultRespawnPoint")]
         //public Vector3Reference RespawnPoint;
         public StateID RespawnState;
-        public FloatReference RespawnTime = new(4f);
+        public FloatReference RespawnTime = new FloatReference(4f);
         [Tooltip("If True: it will destroy the MainPlayer GameObject and Respawn a new One")]
-        public BoolReference DestroyAfterRespawn = new(true);
-        [Tooltip("The Respawner will be kept between scenes")]
-        public BoolReference m_DontDestroyOnLoad = new(true);
+        public BoolReference DestroyAfterRespawn = new BoolReference(true);
+
 
         /// <summary>Active Player Animal GameObject</summary>
         private GameObject InstantiatedPlayer;
@@ -34,9 +33,7 @@ namespace MalbersAnimations.Controller
         #endregion
 
         [FormerlySerializedAs("OnRestartGame")]
-        public GameObjectEvent OnRespawned = new();
-
-     
+        public GameObjectEvent OnRespawned = new GameObjectEvent();
 
         private bool Respawned;
 
@@ -47,6 +44,8 @@ namespace MalbersAnimations.Controller
 
         public virtual void SetPlayer(GameObject go) => player = go;
 
+
+
         void OnEnable()
         {
             if (!isActiveAndEnabled) return;
@@ -55,7 +54,7 @@ namespace MalbersAnimations.Controller
             {
                 instance = this;
                 transform.parent = null;
-                if (m_DontDestroyOnLoad)  DontDestroyOnLoad(gameObject);
+                DontDestroyOnLoad(gameObject);
                 gameObject.name = gameObject.name + " Instance";
                 SceneManager.sceneLoaded += OnLevelFinishedLoading;
                 FindMainAnimal();
@@ -85,44 +84,8 @@ namespace MalbersAnimations.Controller
             Respawned = false;
         }
 
-        public void ResetRespawner(GameObject newPlayer)
-        {
-            Respawned = false;
-
-            if (activeAnimal != null)
-                activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);  //Listen to the Animal changes of states
-
-            SetPlayer(newPlayer);
-
-            if (player == null)
-            {
-                activeAnimal = MAnimal.MainAnimal;
-                if (activeAnimal) player = activeAnimal.gameObject;
-            }
-
-            if (player != null)
-            {
-                if (player.IsPrefab())
-                {
-                    InstantiateNewPlayer();
-                }
-                else
-                {
-                    if (player.TryGetComponent(out activeAnimal))
-                    {
-                        //Debug.Log("activeAnimal = " + activeAnimal);
-
-                        activeAnimal.OnStateChange.AddListener(OnCharacterDead);        //Listen to the Animal changes of states
-                        activeAnimal.OverrideStartState = RespawnState;
-                        activeAnimal.SetMainPlayer();
-                        Respawned = true;
-                    }
-                }
-            }
-        }
-
         /// <summary>Finds the Main Animal used as Player on the Active Scene</summary>
-        public virtual void FindMainAnimal()
+        void FindMainAnimal()
         {
             if (Respawned) return; //meaning the animal was already respawned.
 
@@ -140,18 +103,19 @@ namespace MalbersAnimations.Controller
                 }
                 else
                 {
-                    if (player.TryGetComponent(out activeAnimal))
+                    activeAnimal = player.GetComponent<MAnimal>();
+
+                    if (activeAnimal)
                     {
                         SceneAnimal();
                     }
-
                 }
             }
-            //else
-            //{
-            //    Debug.LogWarning("[Respawner Removed]. There's no Character assigned", this);
-            //    Destroy(gameObject); //Destroy This GO since is already a Spawner in the scene
-            //}
+            else
+            {
+                Debug.LogWarning("[Respawner Removed]. There's no Character assigned", this);
+                Destroy(gameObject); //Destroy This GO since is already a Spawner in the scene
+            }
         }
 
         private void SceneAnimal()

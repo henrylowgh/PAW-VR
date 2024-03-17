@@ -27,7 +27,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000012395104798}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -36,6 +35,7 @@ Transform:
   - {fileID: 525021583795392285}
   - {fileID: 5367277907670813977}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114000010090856012
 MonoBehaviour:
@@ -60,19 +60,13 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 3499098417
     Variable: {fileID: 11400000, guid: f489db1856e43dc47b175dd125135bdc, type: 2}
-  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 0}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 0}
     Variable: {fileID: 0}
-  hitEffects: []
-  hitSound:
-    UseConstant: 1
-    ConstantValue: {fileID: 0}
-    Variable: {fileID: 0}
-  DestroyHitEffect: 0.2
+  DestroyHitEffect: 0
   dontHitOwner:
     UseConstant: 1
     ConstantValue: 1
@@ -209,7 +203,6 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
-  m_audio: {fileID: 0}
   m_UI: {fileID: 0}
   description:
     UseConstant: 1
@@ -250,8 +243,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   GroundArmPose: 1
   RidingArmPose: 1
-  GroundCombo: {fileID: 0}
-  RidingCombo: {fileID: 0}
+  GroundCombo: -1
+  RidingCombo: -1
   m_AimOrigin: {fileID: 4000011008835940}
   m_AimSide: 2
   weaponType: {fileID: 11400000, guid: e9eaa24ae7382eb4f97d3484ea3e6e57, type: 2}
@@ -283,7 +276,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  strafeOnEquip:
+  UseStrafe:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
@@ -316,6 +309,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 8300000, guid: ffd92ab4f3e30af49a072507a09bd4a3, type: 3}
   - {fileID: 0}
+  WeaponSound: {fileID: 82784942622768678}
   OnEquiped:
     m_PersistentCalls:
       m_Calls: []
@@ -323,9 +317,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnCharged:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMaxCharged:
     m_PersistentCalls:
       m_Calls: []
   OnChargedFinished:
@@ -340,19 +331,10 @@ MonoBehaviour:
   OnReleaseFreeHand:
     m_PersistentCalls:
       m_Calls: []
-  Editor_Tabs1: 3
-  Editor_Tabs2: 4
-  releaseProjectile: 2
-  equipProjectile: 67
-  aimAction: 0
-  releaseDelay:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  releaseByAnimation:
-    UseConstant: 1
-    ConstantValue: 1
-    Variable: {fileID: 0}
+  Editor_Tabs1: 4
+  Editor_Tabs2: 2
+  releaseProjectile: 3
+  CancelAim: 1
   m_Projectile:
     UseConstant: 1
     ConstantValue: {fileID: 2500509063572550999, guid: 036870d00a2a8084e93b15f161bc2064,
@@ -367,6 +349,10 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
+  HasReloadAnim:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   HasFireAnim:
     UseConstant: 1
     ConstantValue: 1
@@ -378,10 +364,6 @@ MonoBehaviour:
   AimLimit:
     minValue: -180
     maxValue: 180
-  noReload:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
   m_Ammo:
     UseConstant: 1
     ConstantValue: 30
@@ -394,21 +376,9 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
-  m_ReloadTime:
-    UseConstant: 1
-    ConstantValue: 1.5
-    Variable: {fileID: 0}
   m_AutoReload:
     UseConstant: 1
     ConstantValue: 1
-    Variable: {fileID: 0}
-  m_AutoReloadTime:
-    UseConstant: 1
-    ConstantValue: 0.25
-    Variable: {fileID: 0}
-  HasReloadAnim:
-    UseConstant: 1
-    ConstantValue: 0
     Variable: {fileID: 0}
   OnLoadProjectile:
     m_PersistentCalls:
@@ -419,10 +389,7 @@ MonoBehaviour:
   OnReload:
     m_PersistentCalls:
       m_Calls: []
-  m_UnequipOnAim:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
+  InstantiateProjectileOfFire: 0
   references:
     version: 2
     RefIds:
@@ -546,7 +513,6 @@ MonoBehaviour:
   MaxSteps: 50
 --- !u!120 &120185787254230292
 LineRenderer:
-  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -641,20 +607,16 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 3
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
     textureMode: 0
-    textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
-  m_MaskInteraction: 0
   m_UseWorldSpace: 0
   m_Loop: 0
-  m_ApplyActiveColorSpace: 0
 --- !u!1 &476690167859568676
 GameObject:
   m_ObjectHideFlags: 0
@@ -680,13 +642,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 476690167859568676}
-  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.01, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5367277907670813977}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &499346964204111822
 MeshFilter:
@@ -761,7 +723,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 740940906502422623}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -769,6 +730,7 @@ Transform:
   m_Children:
   - {fileID: 470823922101202544}
   m_Father: {fileID: 4000011008835940}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6961572336184985040
 GameObject:
@@ -794,13 +756,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6961572336184985040}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000011008835940}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!114 &9205447707140892327
 MonoBehaviour:

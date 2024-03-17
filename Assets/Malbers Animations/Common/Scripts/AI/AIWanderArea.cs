@@ -94,7 +94,7 @@ namespace MalbersAnimations
             return MainArea.Destination;
         }
 
-        public override Vector3 GetCenterPosition()
+        public override Vector3 GetPosition()
           => GetNextDestination();
           //  => MainArea.Destination;
 

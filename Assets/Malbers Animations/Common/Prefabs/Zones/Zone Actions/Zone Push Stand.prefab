@@ -27,7 +27,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -0.93}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4085882510917378}
   m_RootOrder: 2
@@ -78,7 +77,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -0.15}
   m_LocalScale: {x: 0.16736335, y: 0.16736335, z: 0.16736335}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 224508962589274818}
   m_Father: {fileID: 4085882510917378}
@@ -132,7 +130,6 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
 --- !u!1 &1237408549391376
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,7 +158,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.03, y: -0.01, z: -0.07}
   m_LocalScale: {x: 2.054319, y: 0.033306498, z: 2.054319}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4085882510917378}
   m_RootOrder: 1
@@ -185,12 +181,10 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -215,7 +209,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1308514641764850
 GameObject:
   m_ObjectHideFlags: 0
@@ -246,7 +239,6 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.24, y: 2.13, z: -1.17}
   m_LocalScale: {x: 3.769764, y: 4.223324, z: 1.1867305}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4620373688437852}
   m_RootOrder: 0
@@ -283,12 +275,10 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -313,7 +303,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!208 &208762255710878736
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -361,7 +350,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 224332744515574506}
   - {fileID: 4068540002352634}
@@ -414,31 +402,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5db483093dc6384a8e91aac44f175ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debug: 0
-  automatic:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  Limit:
-    UseConstant: 1
-    ConstantValue: -1
-    Variable: {fileID: 0}
-  DisableAfterUsed:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  BoneOnly: 0
-  Angle: 360
-  Weight: 1
-  DoubleSide: 0
-  Flip: 0
-  ShowActionID: 1
-  BoneName: Head
+  automatic: 0
+  HeadOnly: 0
+  HeadName: Head
   zoneType: 0
   stateAction: 0
-  stateActionExit: 6
-  stanceActionEnter: 0
-  stanceActionExit: 1
+  stanceAction: 0
   Layer:
     UseConstant: 1
     ConstantValue:
@@ -453,19 +422,16 @@ MonoBehaviour:
   modeID: {fileID: 11400000, guid: 4dc5ca673dc60d346a62529c8a9bd8ff, type: 2}
   stateID: {fileID: 0}
   stanceID: {fileID: 0}
-  ActionID: {fileID: 11400000, guid: 2b4be5b839b81d44b8eb783656c7db96, type: 2}
+  ActionID: {fileID: 11400000, guid: 90a05780a0b72634485c7f746d6cd6ed, type: 2}
   modeIndex:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  ZoneID: 0
-  m_abilityStatus: 0
-  AbilityTime: 3
   Force:
     UseConstant: 1
     ConstantValue: 10
     Variable: {fileID: 0}
-  EnterAceleration:
+  EnterDrag:
     UseConstant: 1
     ConstantValue: 2
     Variable: {fileID: 0}
@@ -473,28 +439,17 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 4
     Variable: {fileID: 0}
-  LimitForce:
+  Bounce:
     UseConstant: 1
     ConstantValue: 8
     Variable: {fileID: 0}
-  ForceGrounded:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  ForceAirControl:
-    UseConstant: 1
-    ConstantValue: 1
-    Variable: {fileID: 0}
-  ForceMode: 0
-  CheckConditions: {fileID: 0}
-  JustExitAnimal: {fileID: 0}
+  ActionDelay: 0
   ModeFloat: 0
   RemoveAnimalOnActive: 0
   OnEnter:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9004305872820729891}
-        m_TargetAssemblyTypeName: 
         m_MethodName: SetActive
         m_Mode: 6
         m_Arguments:
@@ -509,7 +464,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 9004305872820729891}
-        m_TargetAssemblyTypeName: 
         m_MethodName: SetActive
         m_Mode: 6
         m_Arguments:
@@ -524,7 +478,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 114688758599039664}
-        m_TargetAssemblyTypeName: 
         m_MethodName: set_enabled
         m_Mode: 6
         m_Arguments:
@@ -536,7 +489,6 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 6048246080347119800}
-        m_TargetAssemblyTypeName: 
         m_MethodName: Align
         m_Mode: 0
         m_Arguments:
@@ -548,7 +500,6 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 9004305872820729891}
-        m_TargetAssemblyTypeName: 
         m_MethodName: SetActive
         m_Mode: 6
         m_Arguments:
@@ -559,22 +510,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  OnZoneFailed:
-    m_PersistentCalls:
-      m_Calls: []
-  EnterReaction:
-    rid: -2
-  ExitReaction:
-    rid: -2
-  ActivationReaction:
-    rid: -2
-  ZoneCollider: {fileID: 65741771177404858}
-  Editor_Tabs1: 0
-  references:
-    version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+  EditorShowEvents: 1
+  ShowStatModifiers: 0
 --- !u!114 &6048246080347119800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -595,9 +532,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: {fileID: 0}
     Variable: {fileID: 0}
-  LookAtRadius: 0
   AlignTime: 0.25
-  AngleOffset: 0
   AlignCurve:
     serializedVersion: 2
     m_Curve:
@@ -626,6 +561,8 @@ MonoBehaviour:
   AlignRot: 1
   DoubleSided: 1
   AlignLookAt: 0
+  LookAtRadius: 0
+  LookAtRadiusTime: 0.25
   DebugColor: {r: 1, g: 0.23, b: 0, a: 1}
 --- !u!114 &114688758599039664
 MonoBehaviour:
@@ -639,20 +576,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c40057955ac3324f9b900fad19f1651, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Delayed:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
-  RepeatTime:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
+  Delayed: 3.35
+  RepeatTime: 0
   Repeat: 0
   onEnable:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 95308462637708190}
-        m_TargetAssemblyTypeName: 
         m_MethodName: Play
         m_Mode: 5
         m_Arguments:
@@ -692,7 +622,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 2.56}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4890580924945520}
   m_Father: {fileID: 4085882510917378}
@@ -700,7 +629,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &95308462637708190
 Animator:
-  serializedVersion: 5
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -713,12 +642,10 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1522827474794042
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,7 +674,6 @@ RectTransform:
   m_LocalRotation: {x: -0.000000115202326, y: 0.7071067, z: -0.7071068, w: -0.00000011520231}
   m_LocalPosition: {x: 0, y: 0, z: -2.2}
   m_LocalScale: {x: 0.04456928, y: 0.04456928, z: 0.04456928}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 224332744515574506}
   m_RootOrder: 0
@@ -780,7 +706,6 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -810,11 +735,6 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
         type: 3}
-      propertyPath: m_RootOrder
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
-        type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -830,11 +750,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
         type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
-        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -847,6 +762,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
         type: 3}
@@ -870,15 +795,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2, type: 3}
---- !u!4 &70405223662893263 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
-    type: 3}
-  m_PrefabInstance: {fileID: 1201199702570702203}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &9004305872820729891 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7808745598944374104, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
+    type: 3}
+  m_PrefabInstance: {fileID: 1201199702570702203}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &70405223662893263 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1175903420998626740, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
     type: 3}
   m_PrefabInstance: {fileID: 1201199702570702203}
   m_PrefabAsset: {fileID: 0}

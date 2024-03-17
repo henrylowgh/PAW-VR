@@ -60,19 +60,6 @@ namespace MalbersAnimations
     {
         #region Math
 
-
-        /// <summary>
-        /// Returns a non-normalized projection of the supplied vector onto a plane as described by its normal
-        /// </summary>
-        /// <param name="vector">Vector to project.</param>
-        /// <param name="planeNormal">The normal that defines the plane.  Must have a length of 1.</param>
-        /// <returns>The component of the vector that lies in the plane</returns>
-        public static Vector3 ProjectOntoPlane(Vector3 vector, Vector3 planeNormal)
-        {
-            return vector - Vector3.Dot(vector, planeNormal) * planeNormal;
-        }
-
-
         /// <summary> Takes a number and stores the digits on an array. E.g: 6542 = [6,5,4,2] </summary>
 
         public static bool DoSpheresIntersect(Vector3 center1, float radius1, Vector3 center2, float radius2)
@@ -148,9 +135,9 @@ namespace MalbersAnimations
         #endregion
 
         #region Types
+        
 
-
-        public static List<Type> GetAllTypes<T>()
+        public static List<Type> GetAllTypes<T>()  
         {
             // Store the States type.
             Type classtype = typeof(T);
@@ -172,7 +159,7 @@ namespace MalbersAnimations
             }
 
             // Convert the list to an array and store it.
-            return SubTypeList;
+           return SubTypeList;
         }
 
         public static List<Type> GetAllTypes(Type type)
@@ -208,6 +195,7 @@ namespace MalbersAnimations
         }
 
         #endregion
+
 
         #region Find References
         public static Camera FindMainCamera()
@@ -282,6 +270,7 @@ namespace MalbersAnimations
         public static bool Layer_in_LayerMask(int layer, LayerMask layerMask) => layerMask == (layerMask | (1 << layer));
         #endregion
 
+
         #region XmlSerializer
         /// <summary> Serialize a Class to XML</summary>
         public static string Serialize<T>(this T toSerialize)
@@ -332,10 +321,10 @@ namespace MalbersAnimations
             {
                 //Dont Hit anything in this hierarchy
                 if (item.transform.SameHierarchy(origin.transform)) continue; //Don't Find yourself
-
+                
                 //If I hit something behind me skip
-                if (Vector3.Distance(cam.transform.position, item.point) < Vector3.Distance(cam.transform.position, origin.position)) continue;
-
+                if (Vector3.Distance(cam.transform.position, item.point) < Vector3.Distance(cam.transform.position, origin.position)) continue; 
+                
                 if (hit.distance > item.distance) hit = item;
             }
 
@@ -353,7 +342,7 @@ namespace MalbersAnimations
         /// <param name="origin">The start point to calculate the direction</param>
         ///  <param name="hitmask">Just use this layers</param>
         public static Vector3 DirectionFromCamera
-            (Camera cam, Transform origin, Vector3 ScreenPoint, out RaycastHit hit, LayerMask hitmask, Transform Ignore = null)
+            (Camera cam,Transform origin, Vector3 ScreenPoint, out RaycastHit hit, LayerMask hitmask, Transform Ignore = null)
         {
             Ray ray = cam.ScreenPointToRay(ScreenPoint);
             Vector3 dir = ray.direction;
@@ -374,7 +363,7 @@ namespace MalbersAnimations
 
                 //If I hit something behind me skip
                 if (Vector3.Distance(cam.transform.position, item.point) < Vector3.Distance(cam.transform.position, origin.position)) continue;
-
+                
                 if (hit.distance > item.distance) hit = item;
             }
 
@@ -396,7 +385,7 @@ namespace MalbersAnimations
 
         /// <summary> Calculate the direction from the center of the Screen </summary>
         /// <param name="origin">The start point to calculate the direction</param>
-        public static Vector3 DirectionFromCamera(Transform origin, LayerMask layerMask) =>
+        public static Vector3 DirectionFromCamera(Transform origin, LayerMask layerMask) => 
             DirectionFromCamera(origin, 0.5f * Screen.width, 0.5f * Screen.height, out _, layerMask);
 
         #endregion
@@ -418,7 +407,7 @@ namespace MalbersAnimations
 
                 //If I hit something behind me skip
                 if (Vector3.Distance(cam.transform.position, rayhit.point) < Vector3.Distance(cam.transform.position, origin.position)) continue;
-
+                
                 if (hit.distance > rayhit.distance) hit = rayhit;
             }
 
@@ -588,7 +577,18 @@ namespace MalbersAnimations
         //}
 
         /// <summary>Calculate the closest point on a line relative to an external position</summary>
+        public static Vector3 ClosestPointOnLineSegment(Vector3 point, Vector3 a, Vector3 b)
+        {
+            Vector3 aB = b - a;
+            Vector3 aP = point - a;
+            float sqrLenAB = aB.sqrMagnitude;
 
+            if (sqrLenAB < 0.001f * 0.001f)
+                return a;
+
+            float t = Mathf.Clamp01(Vector3.Dot(aP, aB) / sqrLenAB);
+            return a + aB * t;
+        }
 
 
         public static Vector3 ClosestPointOnPlane(Vector3 planeOffset, Vector3 planeNormal, Vector3 point)
@@ -623,7 +623,7 @@ namespace MalbersAnimations
 
             Vector3 CurrentPos = t1.position;
 
-            t1.TryDeltaRootMotion(); //Reset DeltaRootMotion
+            t1.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver);
 
 
             while ((time > 0) && (elapsedTime <= time))
@@ -644,7 +644,7 @@ namespace MalbersAnimations
         }
 
 
-        public static IEnumerator AlignTransform(Transform t1, Vector3 t2Pos, Quaternion t2Rot, float time, AnimationCurve curve = null)
+        public static IEnumerator AlignTransform(Transform t1, Vector3 t2Pos, Quaternion t2Rot , float time, AnimationCurve curve = null)
         {
             float elapsedTime = 0;
 
@@ -653,108 +653,30 @@ namespace MalbersAnimations
 
             var Wait = new WaitForFixedUpdate();
 
-            t1.TryDeltaRootMotion();
+            t1.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver);
 
             while ((time > 0) && (elapsedTime <= time))
             {
                 float result = curve != null ? curve.Evaluate(elapsedTime / time) : elapsedTime / time;               //Evaluation of the Pos curve
-                t1.SetPositionAndRotation
-                    (Vector3.LerpUnclamped(CurrentPos, t2Pos, result),
-                    Quaternion.LerpUnclamped(CurrentRot, t2Rot, result));
+                t1.position = Vector3.LerpUnclamped(CurrentPos, t2Pos, result);
+                t1.rotation = Quaternion.LerpUnclamped(CurrentRot, t2Rot, result);
                 elapsedTime += Time.fixedDeltaTime;
 
                 yield return Wait;
             }
-            t1.SetPositionAndRotation(t2Pos, t2Rot);
+            t1.position = t2Pos;
+            t1.rotation = t2Rot;
         }
 
-        public static IEnumerator AlignLookAtTransform(Transform t1, Vector3 target, float AlignOffset, float time, float scale, AnimationCurve AlignCurve)
-        {
-            float elapsedTime = 0;
-            var wait = new WaitForFixedUpdate();
-
-            Quaternion CurrentRot = t1.rotation;
-            Vector3 direction = (target - t1.position);
-
-            direction = Vector3.ProjectOnPlane(direction, t1.up);
-            Quaternion FinalRot = Quaternion.LookRotation(direction);
-
-
-
-            Vector3 Offset = t1.position + AlignOffset * scale * t1.forward; //Use Offset
-
-            if (AlignOffset != 0)
-            {
-                //Calculate Real Direction at the End! 
-                Quaternion TargetInverse_Rot = Quaternion.Inverse(t1.rotation);
-                Quaternion TargetDelta = TargetInverse_Rot * FinalRot;
-
-                var TargetPosition = t1.position + t1.DeltaPositionFromRotate(Offset, TargetDelta);
-                direction = ((target) - TargetPosition);
-
-                var debTime = 3f;
-
-                MDebug.Draw_Arrow(TargetPosition, direction, Color.yellow, debTime);
-                MDebug.DrawWireSphere(TargetPosition, 0.1f, Color.green, debTime);
-                MDebug.DrawWireSphere(target, 0.1f, Color.yellow, debTime);
-                direction = Vector3.ProjectOnPlane(direction, t1.up); //Remove Y values
-            }
-
-            if (direction.CloseToZero())
-            {
-                Debug.LogWarning("Direction is Zero. Please set a correct rotation", t1);
-                yield return null;
-
-            }
-            else
-            {
-                direction = Vector3.ProjectOnPlane(direction, t1.up); //Remove Y values
-                FinalRot = Quaternion.LookRotation(direction);
-
-                Quaternion Last_Platform_Rot = t1.rotation;
-
-                while ((time > 0) && (elapsedTime <= time))
-                {
-                    float result = AlignCurve != null ? AlignCurve.Evaluate(elapsedTime / time) : elapsedTime / time;               //Evaluation of the Pos curve
-
-                    t1.rotation = Quaternion.SlerpUnclamped(CurrentRot, FinalRot, result);
-
-                    if (AlignOffset != 0)
-                    {
-                        Quaternion Inverse_Rot = Quaternion.Inverse(Last_Platform_Rot);
-                        Quaternion Delta = Inverse_Rot * t1.rotation;
-                        t1.position += t1.DeltaPositionFromRotate(Offset, Delta);
-                    }
-
-                    elapsedTime += Time.fixedDeltaTime;
-                    Last_Platform_Rot = t1.rotation;
-
-
-                    Debug.DrawRay(Offset, Vector3.up, Color.white);
-                    MDebug.DrawWireSphere(t1.position, t1.rotation, 0.05f * scale, Color.white, 0.2f);
-                    MDebug.DrawWireSphere(t1.position, t1.rotation, 0.05f * scale, Color.white, 0.2f);
-                    MDebug.DrawWireSphere(Offset, 0.05f * scale, Color.white, 0.2f);
-                    MDebug.Draw_Arrow(t1.position, t1.forward, Color.white, 0.2f);
-
-                    yield return wait;
-                }
-            }
-        }
-
-
-        public static IEnumerator AlignLookAtTransform(Transform t1, Transform t2, float time, float angleOffset = 0, AnimationCurve curve = null)
+        public static IEnumerator AlignLookAtTransform(Transform t1, Transform t2, float time, AnimationCurve curve = null)
         {
             float elapsedTime = 0;
             var wait = new WaitForFixedUpdate();
 
             Quaternion CurrentRot = t1.rotation;
             Vector3 direction = (t2.position - t1.position).normalized;
-            direction = Vector3.ProjectOnPlane(direction, Vector3.up);
-
-
-            Quaternion FinalRot = Quaternion.LookRotation(direction) * Quaternion.Euler(0, angleOffset, 0);
-
-
+            direction = Vector3.ProjectOnPlane(direction, t1.up);
+            Quaternion FinalRot = Quaternion.LookRotation(direction);
             while ((time > 0) && (elapsedTime <= time))
             {
                 float result = curve != null ? curve.Evaluate(elapsedTime / time) : elapsedTime / time;               //Evaluation of the Pos curve
@@ -774,7 +696,7 @@ namespace MalbersAnimations
             Quaternion CurrentRot = t1.rotation;
 
             direction = Vector3.ProjectOnPlane(direction, t1.up);
-
+ 
             Quaternion FinalRot = Quaternion.LookRotation(direction);
 
             while ((time > 0) && (elapsedTime <= time))
@@ -834,13 +756,13 @@ namespace MalbersAnimations
 
                 Vector3 CurrentPos = TargetToAlign.position;
 
-                Ray TargetRay = new(AlignOrigin, (TargetToAlign.position - AlignOrigin).normalized);
+                Ray TargetRay = new Ray(AlignOrigin, (TargetToAlign.position - AlignOrigin).normalized);
+             
+                Vector3 TargetPos = TargetRay.GetPoint(radius *  TargetToAlign.localScale.y);
 
-                Vector3 TargetPos = TargetRay.GetPoint(radius);
+                Debug.DrawRay(TargetRay.origin,TargetRay.direction, Color.white,1f);
 
-                Debug.DrawRay(TargetRay.origin, TargetRay.direction, Color.white, 1f);
-
-                TargetToAlign.TryDeltaRootMotion(); //Reset delta RootMotion
+                TargetToAlign.SendMessage("ResetDeltaRootMotion", SendMessageOptions.DontRequireReceiver); //Send this to the animal
 
                 MDebug.DrawWireSphere(TargetPos, Color.red, 0.05f, 3);
 
@@ -935,11 +857,10 @@ namespace MalbersAnimations
         #endregion
 
         #region Animator
-        public static Keyframe[] DefaultCurve = { new(0, 0), new(1, 1) };
+        public static Keyframe[] DefaultCurve = { new Keyframe(0, 0), new Keyframe(1, 1) };
 
-        public static Keyframe[] DefaultCurveLinear ={ new (0, 0, 0,0,0,0)  ,new(1, 1,0,0,0,0)  };
-
-        public static Keyframe[] DefaultCurveLinearInverse = { new(0, 1, 0,0,0,0)  ,new(1, 0,0,0,0,0)  };
+        public static Keyframe[] DefaultCurveLinear = 
+            { new Keyframe(0, 0, 0,0,0,0)  ,new Keyframe(1, 1,0,0,0,0)  };
 
         public static bool SearchParameter(AnimatorControllerParameter[] parameters, string name)
         {
@@ -1008,6 +929,7 @@ namespace MalbersAnimations
 
         #endregion
 
+        ///------------------------------------------------------------EDITOR ONLY ------------------------------------------------------------
 
         /// <summary>
         /// Starts the recursive function for the closest transform to the specified point
@@ -1040,13 +962,13 @@ namespace MalbersAnimations
         {
             // Limit what we'll connect to
             if (!rTransform.gameObject.activeInHierarchy) { return; }
-            if (!Layer_in_LayerMask(rTransform.gameObject.layer, mask)) { return; }
-
-
+            if (!Layer_in_LayerMask(rTransform.gameObject.layer,mask)) { return; }
+ 
+           // if (rTransform.name.Contains(" connector", StringComparison.OrdinalIgnoreCase)) { return; }
+           // if (rTransform.gameObject.GetComponent<IWeaponCore>() != null) { return; }
 
             // If this transform is closer to the hit position, use it
             float lDistance = Vector3.Distance(rPosition, rTransform.position);
-
             if (lDistance < rMinDistance)
             {
                 rMinDistance = lDistance;
@@ -1056,15 +978,12 @@ namespace MalbersAnimations
             // Check if any child transform is closer to the hit position
             for (int i = 0; i < rTransform.childCount; i++)
             {
-                var child = rTransform.GetChild(i);
-                //  if (child == ignore) continue;
-
-                GetClosestTransform(rPosition, child, ref rMinDistance, ref rMinTransform, mask);
+                GetClosestTransform(rPosition, rTransform.GetChild(i), ref rMinDistance, ref rMinTransform, mask);
             }
         }
-
-
-
+        
+        
+        
         #region Debug and Gizmos 
         /// <summary>  Draw an arrow Using Gizmos  </summary>
         public static void Gizmo_Arrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.2f, float arrowHeadAngle = 20.0f)
@@ -1235,7 +1154,7 @@ namespace MalbersAnimations
 #endif
         }
 
-
+        
 
         public static void DrawTriggers(Transform transform, Collider col, Color DebugColor, bool always = false)
         {
@@ -1410,10 +1329,9 @@ namespace MalbersAnimations
                 }
             }
 #endif
-        }
+        } 
         #endregion
 
-        ///------------------------------------------------------------EDITOR ONLY ------------------------------------------------------------
 
         #region Serialized Property and Serialized Objects
 #if UNITY_EDITOR
@@ -1421,33 +1339,30 @@ namespace MalbersAnimations
         #region Styles      
         public static GUIStyle StyleDarkGray => Style(new Color(0.35f, 0.5f, 0.7f, 0.2f));
         public static GUIStyle StyleGray => Style(new Color(0.35f, 0.5f, 0.7f, 0.2f));
-        public static GUIStyle StyleBlue => Style(MBlue);
-        public static GUIStyle StyleGreen => Style(MGreen);
-        public static GUIStyle StyleOrange => Style(MOrange);
-
-
-        public static Color MBlue = new(0.2f, 0.5f, 1f, 0.42f);
-        public static Color MGreen = new(0f, 1f, 0.4f, 0.3f);
-        public static Color MOrange = new (1f, 0.3f, 0.0f, 0.5f);
+        public static GUIStyle StyleBlue => Style(new Color(0.2f, 0.5f, 1f, 0.42f));
+        public static GUIStyle StyleGreen => Style(new Color(0f, 1f, 0.4f, 0.3f));
+        public static GUIStyle StyleOrange => Style(new Color(1f, 0.5f, 0.0f, 0.3f));
         #endregion
 
 
         public static GUIStyle Style(Color color)
         {
-            GUIStyle currentStyle = new(GUI.skin.box) { border = new RectOffset(-1, -1, -1, -1) };
-            Color32[] pix = new Color32[1];
+            GUIStyle currentStyle = new GUIStyle(GUI.skin.box) { border = new RectOffset(-1, -1, -1, -1) };
+
+
+            Color[] pix = new Color[1];
             pix[0] = color;
-            Texture2D bg = new(1, 1);
-            bg.SetPixels32(pix);
+            Texture2D bg = new Texture2D(1, 1);
+            bg.SetPixels(pix);
             bg.Apply();
 
             currentStyle.normal.background = bg;
             currentStyle.normal.scaledBackgrounds = new Texture2D[] { };
-
+ 
             return currentStyle;
         }
 
-
+        
 
         #region Serialized Property Extensions
 
@@ -1463,13 +1378,6 @@ namespace MalbersAnimations
         public static void SetValue(this SerializedProperty property, object value)
         {
             System.Type parentType = property.serializedObject.targetObject.GetType();
-            System.Reflection.FieldInfo fi = parentType.GetField(property.propertyPath);//this FieldInfo contains the type.
-            fi.SetValue(property.serializedObject.targetObject, value);
-        }
-
-        public static void SetValue(this SerializedProperty property, Type parentType, object value)
-        {
-            //System.Type parentType = property.serializedObject.targetObject.GetType();
             System.Reflection.FieldInfo fi = parentType.GetField(property.propertyPath);//this FieldInfo contains the type.
             fi.SetValue(property.serializedObject.targetObject, value);
         }
@@ -1525,8 +1433,8 @@ namespace MalbersAnimations
 
             return attributes.Length > 0 ? attributes[0] : null;
         }
-        #endregion
-
+         #endregion
+      
 
         public static FieldInfo GetFieldViaPath(this Type type, string path)
         {
@@ -1637,10 +1545,10 @@ namespace MalbersAnimations
             }
         }
 
-        public static void DrawScriptableObject(SerializedProperty property, bool internalInspector = true, bool internalAsset = false, string labelOverride = "")
+        public static void DrawScriptableObject(SerializedProperty property,  bool internalInspector = true, bool internalAsset = false, string labelOverride = "")
         {
             if (property == null || property.propertyType != SerializedPropertyType.ObjectReference ||
-                (property.objectReferenceValue != null && !(property.objectReferenceValue is ScriptableObject)))
+                (property.objectReferenceValue != null && !(property.objectReferenceValue is ScriptableObject))) 
             {
                 Debug.LogErrorFormat("Is not a ScriptableObject");
                 return;
@@ -1673,7 +1581,7 @@ namespace MalbersAnimations
                         }
 
                     }
-
+                    
 
                     if (GUI.changed) property.serializedObject.ApplyModifiedProperties();
 
@@ -1681,9 +1589,9 @@ namespace MalbersAnimations
 
                     if (property.isExpanded)
                     {
-                        if (internalAsset)
-                            property.objectReferenceValue.name = EditorGUILayout.TextField("Name", property.objectReferenceValue.name);
-
+                      if (internalAsset)
+                            property.objectReferenceValue.name =  EditorGUILayout.TextField("Name",property.objectReferenceValue.name);
+                       
                         DrawObjectReferenceInspector(property);
                     }
                 }
@@ -1721,24 +1629,24 @@ namespace MalbersAnimations
 
             StatesType.OrderBy(t => t.Name);
 
-            var addMenu = new GenericMenu();
+           var addMenu = new GenericMenu();
 
             for (int i = 0; i < StatesType.Count; i++)
             {
                 Type st = StatesType[i];
 
-                string name = Regex.Replace(st.Name, @"([a-z])([A-Z])", "$1 $2");
+                string name =  Regex.Replace(st.Name, @"([a-z])([A-Z])", "$1 $2");
 
-                addMenu.AddItem(new GUIContent(name), false, () => CreateScriptableAsset(property, st, path));
+                addMenu.AddItem(new GUIContent(name), false, () => CreateScriptableAsset(property, st, path ));
             }
             addMenu.ShowAsContext();
-        }
+        } 
 
-        public static void AddScriptableAssetContextMenuInternal(SerializedProperty property, Type type)
+       public static void AddScriptableAssetContextMenuInternal(SerializedProperty property, Type type)
         {
             var StatesType = MTools.GetAllTypes(type);
 
-            var addMenu = new GenericMenu();
+           var addMenu = new GenericMenu();
 
             for (int i = 0; i < StatesType.Count; i++)
             {
@@ -1748,7 +1656,7 @@ namespace MalbersAnimations
 
             addMenu.ShowAsContext();
         }
-
+         
         public static void AddScriptableAssetContextMenuInternal(SerializedProperty property, Type type, string path)
         {
             var StatesType = MTools.GetAllTypes(type);
@@ -1762,7 +1670,7 @@ namespace MalbersAnimations
 
             addMenu.ShowAsContext();
         }
-
+         
         public static string GetSelectedPathOrFallback()
         {
             string path = "Assets";
@@ -1777,7 +1685,7 @@ namespace MalbersAnimations
                 }
             }
             return path;
-        }
+        }  
 
         public static void CreateAssetWithPath(SerializedProperty property, string selectedAssetPath)
         {
@@ -1808,17 +1716,12 @@ namespace MalbersAnimations
                 type = type.GetGenericArguments()[0];
             }
             property.objectReferenceValue = CreateAssetWithSavePrompt(type, selectedAssetPath);
-        }
+        } 
 
         public static void DrawObjectReferenceInspector(SerializedProperty property)
         {
-            if (property != null)
-            {
-                var objectReference = property.objectReferenceValue;
-
-                if (objectReference != null)
-                    Editor.CreateEditor(objectReference).OnInspectorGUI();
-            }
+            if (property != null && property.objectReferenceValue != null)
+                Editor.CreateEditor(property.objectReferenceValue).OnInspectorGUI();
         }
 
         public static void CreateScriptableAsset(SerializedProperty property, Type type, string selectedAssetPath)
@@ -1827,11 +1730,11 @@ namespace MalbersAnimations
             {
                 var StatesType = MTools.GetAllTypes(type);
 
-                var addMenu = new GenericMenu();
+                var addMenu = new GenericMenu(); 
 
                 for (int i = 0; i < StatesType.Count; i++)
                 {
-                    Type st = StatesType[i];
+                    Type st = StatesType[i];  
                     addMenu.AddItem(new GUIContent(st.Name), false, () => CreateAsset_SavePrompt(property, st, selectedAssetPath));
                 }
                 addMenu.ShowAsContext();
@@ -1842,10 +1745,9 @@ namespace MalbersAnimations
             }
         }
 
-        public static void CreateAsset_SavePrompt(SerializedProperty property, Type type, string selectedAssetPath)
+        private static void CreateAsset_SavePrompt(SerializedProperty property, Type type, string selectedAssetPath)
         {
-            var newAsset = CreateAssetWithSavePrompt(type, selectedAssetPath);
-            property.objectReferenceValue = newAsset;
+            property.objectReferenceValue = CreateAssetWithSavePrompt(type, selectedAssetPath);
             property.serializedObject.ApplyModifiedProperties();
         }
 
@@ -1902,7 +1804,7 @@ namespace MalbersAnimations
         }
 
         // Creates a new ScriptableObject via the default Save File panel
-        public static ScriptableObject CreateAssetWithSavePrompt(Type type, string path)
+        static ScriptableObject CreateAssetWithSavePrompt(Type type, string path)
         {
             if (type == null) return null; //HACK
             if (type.IsAbstract) return null; //HACK
@@ -1912,7 +1814,7 @@ namespace MalbersAnimations
             path = EditorUtility.SaveFilePanelInProject("Save ScriptableObject", defaultName, "asset", message, path);
 
             if (string.IsNullOrEmpty(path)) return null;
-
+          
 
             ScriptableObject asset = ScriptableObject.CreateInstance(type);
             AssetDatabase.CreateAsset(asset, path);
@@ -1922,7 +1824,7 @@ namespace MalbersAnimations
             EditorGUIUtility.PingObject(asset);
             return asset;
         }
-
+         
 #endif
         #endregion
 
@@ -1950,7 +1852,7 @@ namespace MalbersAnimations
         }
 
 
-        public static void SetDirty(Object ob)
+        public static void SetDirty( Object ob)
         {
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(ob);
@@ -2028,4 +1930,169 @@ namespace MalbersAnimations
         //        .Select(type => type.Name);
         //}
     }
+
+
+    [System.Serializable]
+    public struct OverrideCapsuleCollider
+    {
+        public bool enabled;
+        public bool isTrigger;  
+        public Vector3 center;
+        public float height;
+        public int direction;
+        public float radius;
+        public PhysicMaterial material;
+
+        [Utilities.Flag]
+        public CapsuleModifier modify;
+
+        public OverrideCapsuleCollider(CapsuleCollider collider)
+        {
+            enabled = collider.enabled;
+            isTrigger = collider.isTrigger;
+            center = collider.center;
+            height = collider.height;
+            radius = collider.radius;
+            direction = collider.direction;
+            material = collider.material;
+            modify = 0;
+        }
+
+
+        public void Modify(CapsuleCollider collider)
+        {
+            if ((int)modify == 0 || collider == null) return; //Means that the animal have no modification
+
+            if (Modify(CapsuleModifier.enabled)) collider.enabled = enabled;
+            if (Modify(CapsuleModifier.isTrigger)) collider.isTrigger = isTrigger;
+            if (Modify(CapsuleModifier.center)) collider.center = center;
+            if (Modify(CapsuleModifier.height)) collider.height = height;
+            if (Modify(CapsuleModifier.radius)) collider.radius = radius;
+            if (Modify(CapsuleModifier.direction)) collider.direction = direction;
+            if (Modify(CapsuleModifier.material)) collider.material = material;
+        }
+
+
+        public bool Modify(CapsuleModifier modifier) => (modify & modifier) == modifier;
+    }
+
+    public enum CapsuleModifier
+    {
+        enabled   = 1 << 0,
+        isTrigger = 1 << 1,
+        center    = 1 << 2,
+        height    = 1 << 3,
+        radius    = 1 << 4,
+        direction = 1 << 5,
+        material  = 1 << 6,
+    }
+
+#if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(OverrideCapsuleCollider))]
+    public class OverrideCapsuleColliderDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+
+           // GUI.Box(position, GUIContent.none, EditorStyles.helpBox);
+
+            position.x += 2;
+            position.width -= 2;
+
+            position.y += 2;
+            position.height -= 2;
+
+
+            var indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            var height = EditorGUIUtility.singleLineHeight;
+
+            #region Serialized Properties
+            var modify = property.FindPropertyRelative("modify");
+            var enabled = property.FindPropertyRelative("enabled");
+            var isTrigger = property.FindPropertyRelative("isTrigger");
+            var radius = property.FindPropertyRelative("radius");
+            var center = property.FindPropertyRelative("center");
+            var height1 = property.FindPropertyRelative("height");
+            var direction = property.FindPropertyRelative("direction");
+            var material = property.FindPropertyRelative("material");
+            
+            #endregion
+
+            var line = position;
+            var lineLabel = line;
+            line.height = height;
+
+            var foldout = lineLabel;
+            foldout.width = 10;
+            foldout.x += 10;
+
+            EditorGUIUtility.labelWidth = 16;
+            EditorGUIUtility.labelWidth = 0;
+
+            modify.intValue = (int)(CapsuleModifier)EditorGUI.EnumFlagsField(line, label, (CapsuleModifier)(modify.intValue));
+
+            line.y += height + 2;
+         
+            int ModifyValue = modify.intValue;
+
+            if (Modify(ModifyValue, CapsuleModifier.enabled))
+                DrawProperty(ref line, enabled);
+
+            if (Modify(ModifyValue, CapsuleModifier.isTrigger))
+                DrawProperty(ref line, isTrigger);
+
+            if (Modify(ModifyValue, CapsuleModifier.material))
+                DrawProperty(ref line, material);
+
+            if (Modify(ModifyValue, CapsuleModifier.center))
+                DrawProperty(ref line, center);
+
+            if (Modify(ModifyValue, CapsuleModifier.radius))
+                DrawProperty(ref line, radius);
+
+            if (Modify(ModifyValue, CapsuleModifier.height))
+                DrawProperty(ref line, height1);
+
+            if (Modify(ModifyValue, CapsuleModifier.direction))
+                DrawProperty(ref line, direction);
+
+
+            EditorGUI.indentLevel = indent;
+            EditorGUI.EndProperty();
+        }
+
+        private void DrawProperty(ref Rect rect, SerializedProperty property)
+        {
+            EditorGUI.PropertyField(rect, property);
+            rect.y += EditorGUIUtility.singleLineHeight +2 ;
+        }
+
+
+        private bool Modify(int modify, CapsuleModifier modifier)
+        {
+            return ((modify & (int)modifier) == (int)modifier);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            int activeProperties = 0;
+
+            var modify = property.FindPropertyRelative("modify");
+            int ModifyValue = modify.intValue;
+
+            if (Modify(ModifyValue, CapsuleModifier.enabled)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.center)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.height)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.radius)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.direction)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.isTrigger)) activeProperties++;
+            if (Modify(ModifyValue, CapsuleModifier.material)) activeProperties++;
+            float lines = (int)(activeProperties + 2);
+            return base.GetPropertyHeight(property, label) * lines;// + (1 * lines);
+        }
+    }
+#endif
 }

@@ -155,8 +155,8 @@ namespace MalbersAnimations
             Vector3 aP = point - a;
             float sqrLenAB = aB.sqrMagnitude;
 
-            if (sqrLenAB < Epsilon) return a;
-
+            if (sqrLenAB < Epsilon)  return a;
+        
             float t = Mathf.Clamp01(Vector3.Dot(aP, aB) / sqrLenAB);
             return a + (aB * t);
         }
@@ -195,14 +195,14 @@ namespace MalbersAnimations
         }
 
         /// <summary>returns the delta position from a rotation.</summary>
-        public static Vector3 DeltaPositionFromRotate(this Transform transform, Vector3 platform, Quaternion deltaRotation)
+        public static Vector3 DeltaPositionFromRotate(this Transform transform, Transform platform, Quaternion deltaRotation)
         {
             var pos = transform.position;
 
-            var direction = pos - platform;
+            var direction = pos - platform.position;
             var directionAfterRotation = deltaRotation * direction;
 
-            var NewPoint = platform + directionAfterRotation;
+            var NewPoint = platform.position + directionAfterRotation;
 
 
             pos = NewPoint - transform.position;
@@ -241,7 +241,7 @@ namespace MalbersAnimations
 
         /// <summary>  Returns the Real Transform Core   </summary> 
         public static Transform FindObjectCore(this Transform transf)
-        {
+        { 
             var core = transf;
             var IsObjectCore = core.FindInterface<IObjectCore>();
             if (IsObjectCore != null) return IsObjectCore.transform;
@@ -432,71 +432,36 @@ namespace MalbersAnimations
         #region Delay Action
 
         /// <summary>Do an action the next frame</summary>
-        public static IEnumerator Delay_Action(this MonoBehaviour mono, Action action) => Delay_Action(mono, (int)1, action);
+        public static void Delay_Action(this MonoBehaviour mono, Action action)
+        {
+            if (mono.enabled && mono.gameObject.activeInHierarchy)
+                mono.StartCoroutine(DelayedAction(1, action));
+        }
 
         /// <summary>Do an action the next given frames</summary>
-        public static IEnumerator Delay_Action(this MonoBehaviour mono, int frames, Action action)
+        public static void Delay_Action(this MonoBehaviour mono, int frames, Action action)
         {
             if (mono.enabled && mono.gameObject.activeInHierarchy)
-            {
-                var coro = DelayedAction(frames, action);
-                mono.StartCoroutine(coro);
-
-                return coro;
-            }
-            return null;
+                mono.StartCoroutine(DelayedAction(frames, action));
         }
-
-        /// <summary>If the action is active stop it!</summary>
-        public static void Stop_Action(this MonoBehaviour mono, IEnumerator action)
-        {
-            if (action != null) mono.StopCoroutine(action);
-        }
-
-   
 
         /// <summary>Do an action after certain time</summary>
-        public static IEnumerator Delay_Action(this MonoBehaviour mono, float time, Action action)
+        public static void Delay_Action(this MonoBehaviour mono, float time, Action action)
         {
             if (mono.enabled && mono.gameObject.activeInHierarchy)
-            {
-                var coro = DelayedAction(time, action);
-                mono.StartCoroutine(coro);
-
-                return coro;
-            }
-            return null;
+                mono.StartCoroutine(DelayedAction(time, action));
         }
 
-        /// <summary>Do an action after certain time and stop an oldone</summary>
-        public static void Delay_Action(this MonoBehaviour mono, ref IEnumerator oldAction, float time, Action action)
-        {
-            if (oldAction != null) mono.StopCoroutine(oldAction);
-            oldAction = Delay_Action(mono, time, action);
-        }
-
-        public static IEnumerator Delay_Action(this MonoBehaviour mono, Func<bool> Condition, Action action)
+        public static void Delay_Action(this MonoBehaviour mono, Func<bool> Condition, Action action)
         {
             if (mono.enabled && mono.gameObject.activeInHierarchy)
-            {
-                var coro = DelayedAction(Condition, action);
-                mono.StartCoroutine(coro);
-
-                return coro;
-            }
-            return null;
+                mono.StartCoroutine(DelayedAction(Condition, action));
         }
 
-        public static IEnumerator Delay_Action(this MonoBehaviour mono, WaitForSeconds time, Action action)
+        public static void Delay_Action(this MonoBehaviour mono, WaitForSeconds time, Action action)
         {
             if (mono.enabled && mono.gameObject.activeInHierarchy)
-            {
-                var coro = DelayedAction(time, action);
-                mono.StartCoroutine(coro);
-
-                return coro;
-            }
-            return null;
+                mono.StartCoroutine(DelayedAction(time, action));
         }
 
         private static IEnumerator DelayedAction(int frame, Action action)
@@ -506,6 +471,7 @@ namespace MalbersAnimations
 
             action.Invoke();
         }
+
 
 
         private static IEnumerator DelayedAction(Func<bool> Condition, Action action)
@@ -558,7 +524,6 @@ namespace MalbersAnimations
             return default;
         }
 
-     
 
         public static Component FindComponent(this GameObject c, Type t)
         {
@@ -610,24 +575,10 @@ namespace MalbersAnimations
             T Ttt = c.GetComponent<T>();
             if (Ttt != null) return Ttt;
 
-            Ttt = c.GetComponentInParent<T>(true);
+            Ttt = c.GetComponentInParent<T>();
             if (Ttt != null) return Ttt;
 
             Ttt = c.GetComponentInChildren<T>(true);
-            if (Ttt != null) return Ttt;
-
-            return default;
-        }
-
-        public static T FindInterface<T>(this GameObject c, bool includeInactive)
-        {
-            T Ttt = c.GetComponent<T>();
-            if (Ttt != null) return Ttt;
-
-            Ttt = c.GetComponentInParent<T>(includeInactive);
-            if (Ttt != null) return Ttt;
-
-            Ttt = c.GetComponentInChildren<T>(includeInactive);
             if (Ttt != null) return Ttt;
 
             return default;
@@ -651,7 +602,6 @@ namespace MalbersAnimations
         public static T FindComponent<T>(this Component c) where T : Component => c.gameObject.FindComponent<T>();
 
         public static T FindInterface<T>(this Component c) => c.gameObject.FindInterface<T>();
-        public static T FindInterface<T>(this Component c, bool includeInactive) => c.gameObject.FindInterface<T>(includeInactive);
         public static T[] FindInterfaces<T>(this Component c) => c.gameObject.FindInterfaces<T>();
 
         /// <summary>Search for the Component in the root of the Object </summary>
@@ -698,7 +648,7 @@ namespace MalbersAnimations
         }
 
         /// <summary> Gets a real copy of a component / </summary>
-        private static T GetCopyOf<T>(this Component comp, T other) where T : Component
+        public static T GetCopyOf<T>(this Component comp, T other) where T : Component
         {
             Type type = comp.GetType();
             if (type != other.GetType()) return null; // type mis-match
@@ -730,17 +680,6 @@ namespace MalbersAnimations
             return go.AddComponent<T>().GetCopyOf(toAdd) as T;
         }
 
-
-        /// <summary>  Reset the delta RootMotion of the Animator  </summary>
-        public static IDeltaRootMotion TryDeltaRootMotion(this Component c)
-        {
-            if (c.TryGetComponent(out IDeltaRootMotion target))
-            {
-                target.ResetDeltaRootMotion();
-                return target;
-            }
-            return null;
-        }
 
         #endregion
 
@@ -875,7 +814,8 @@ namespace MalbersAnimations
 
             if (args != null) argType = args.GetType();
 
-            MethodInfo methodPtr;
+
+            MethodInfo methodPtr = null;
 
             if (argType != null)
             {

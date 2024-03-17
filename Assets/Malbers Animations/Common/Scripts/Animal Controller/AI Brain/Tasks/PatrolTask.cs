@@ -20,9 +20,9 @@ namespace MalbersAnimations.Controller.AI
 
         [Tooltip("Use a Runtime GameObjects Set to find the Next waypoint")]
         public RuntimeGameObjects RuntimeSet;
-        public RuntimeSetTypeGameObject rtype = RuntimeSetTypeGameObject.Random;
-        public IntReference RTIndex = new();
-        public StringReference RTName = new();
+        public GetRuntimeGameObjects.RuntimeSetTypeGameObject rtype = GetRuntimeGameObjects.RuntimeSetTypeGameObject.Random;
+        public IntReference RTIndex = new IntReference();
+        public StringReference RTName = new StringReference();
 
 
         public override void StartTask(MAnimalBrain brain, int index)
@@ -41,9 +41,34 @@ namespace MalbersAnimations.Controller.AI
                 case PatrolType.UseRuntimeSet:
                     if (RuntimeSet != null)                                             //If we had a last Waypoint then move to it
                     {
-                        brain.TargetAnimal = null;                                      //Clean the Animal Target in case it was one
-                        GameObject go = RuntimeSet.GetItem(rtype, RTIndex, RTName, brain.Animal.gameObject);
-                        if (go) brain.AIControl.SetTarget(go.transform, true);
+                        brain.TargetAnimal = null;                                                          //Clean the Animal Target in case it was one
+                        GameObject go;
+
+                        switch (rtype)
+                        {
+                            case GetRuntimeGameObjects.RuntimeSetTypeGameObject.First:
+                                go = RuntimeSet.Item_GetFirst();
+                                if (go)  brain.AIControl.SetTarget(go.transform, true);
+                                break;
+                            case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Random:
+                                go = RuntimeSet.Item_GetRandom();
+                                if (go) brain.AIControl.SetTarget(go.transform, true);
+                                break;
+                            case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Index:
+                                go = RuntimeSet.Item_Get(RTIndex);
+                                if (go) brain.AIControl.SetTarget(go.transform, true);
+                                break;
+                            case GetRuntimeGameObjects.RuntimeSetTypeGameObject.ByName:
+                                go = RuntimeSet.Item_Get(RTName);
+                                if (go) brain.AIControl.SetTarget(go.transform, true);
+                                break;
+                            case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Closest:
+                                go = RuntimeSet.Item_GetClosest(brain.Animal.gameObject);
+                                if (go) brain.AIControl.SetTarget(go.transform, true);
+                                break;
+                            default:
+                                break;
+                        }
                         break;
                     }
                     break;
@@ -65,37 +90,11 @@ namespace MalbersAnimations.Controller.AI
         {
             brain.AIControl.AutoNextTarget = true; //When Patrolling make sure AutoTarget is set to true... 
 
-            switch (patrolType)
+            if (IgnoreWaitTime)
             {
-                case PatrolType.LastWaypoint:
-                    if (IgnoreWaitTime)
-                    {
-                        brain.AIControl.StopWait(); //Ingore wait time
-                        brain.AIControl.SetTarget(brain.AIControl.NextTarget, true);
-                    }
-                    break;
-                case PatrolType.UseRuntimeSet:
-
-                    GameObject NextTarget = RuntimeSet.GetItem(rtype, RTIndex, RTName, brain.Animal.gameObject);
-                    if (NextTarget && brain.AIControl.NextTarget == null)
-                    {
-                        if (IgnoreWaitTime)
-                        {
-                            brain.AIControl.StopWait(); //Ingore wait time
-                            brain.AIControl.SetTarget(NextTarget.transform, true);
-                        }
-                        else
-                        {
-                            brain.AIControl.SetNextTarget(NextTarget);
-                            brain.AIControl.MovetoNextTarget();
-                        }
-                    }
-                        break;
-                default:
-                    break;
-            }
-
-                            
+                brain.AIControl.StopWait(); //Ingore wait time
+                brain.AIControl.SetTarget(brain.AIControl.NextTarget,true);
+            }                        
         }
 
         void Reset() { Description = "Simple Patrol Logic using the Default AiAnimal Control Movement System"; }
@@ -146,13 +145,13 @@ namespace MalbersAnimations.Controller.AI
 
                     UnityEditor.EditorGUILayout.PropertyField(RuntimeSet);
                     UnityEditor.EditorGUILayout.PropertyField(rtype, new GUIContent("Get"));
-                    var Sel = (RuntimeSetTypeGameObject)rtype.intValue;
+                    var Sel = (GetRuntimeGameObjects.RuntimeSetTypeGameObject)rtype.intValue;
                     switch (Sel)
                     {
-                        case RuntimeSetTypeGameObject.Index:
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Index:
                             UnityEditor.EditorGUILayout.PropertyField(RTIndex, new GUIContent("Element Index"));
                             break;
-                        case RuntimeSetTypeGameObject.ByName:
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.ByName:
                             UnityEditor.EditorGUILayout.PropertyField(RTName, new GUIContent("Element Name"));
                             break;
                         default:

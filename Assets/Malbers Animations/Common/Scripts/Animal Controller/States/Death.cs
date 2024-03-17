@@ -1,30 +1,28 @@
-﻿using UnityEngine;
+﻿using MalbersAnimations.Utilities;
+using UnityEngine;
 
 namespace MalbersAnimations.Controller
 {
     [HelpURL("https://docs.google.com/document/d/1QBLQVWcDSyyWBDrrcS2PthhsToWkOayU0HUtiiSWTF8/edit#heading=h.kraxblx9518t")]
     public class Death : State
     {
-        public override string StateName => "Death/Death (Animation)";
-
-        public override string StateIDName => "Death";
+        public override string StateName => "Death";
 
         [Header("Death Parameters")]
 
         public bool DisableAllComponents = true;
-        public bool DisableMainCollider = true;
         public bool RemoveAllColliders = false;
         public bool RemoveAllTriggers = true;
         public bool IsKinematic = true;
-        //public bool DisableModes = true;
+        public bool DisableModes = true;
         public int DelayFrames = 2;
         public float RigidbodyDrag = 5;
         public float RigidbodyAngularDrag = 15;
 
         [Space]
         public bool disableAnimal = true;
-
-        [Hide("disableAnimal")]
+        
+        [Hide("disableAnimal")] 
         public float disableAnimalTime = 5f;
 
 
@@ -41,16 +39,12 @@ namespace MalbersAnimations.Controller
             animal.InputSource?.Enable(false);
             animal.Mode_Stop();
             animal.Delay_Action(DelayFrames, () => DisableAll()); //Wait 2 frames
-                                                                  //   if (DisableModes) animal.Mode_Disable_All();
-
-
+            if (DisableModes) animal.Mode_Disable_All();
         }
 
         void DisableAll()
         {
             SetEnterStatus(0);
-
-            if (DisableMainCollider && animal.MainCollider != null) { animal.MainCollider.enabled = false; }
 
             if (DisableAllComponents)
             {
@@ -92,13 +86,10 @@ namespace MalbersAnimations.Controller
             //Do nothing... Death does not need a Speed Set
         }
 
-        internal override void Reset()
+        void Reset()
         {
-            base.Reset();
-
+           
             ID = MTools.GetInstance<StateID>("Death");
-
-            noModes.Value = true;
 
             General = new AnimalModifier()
             {

@@ -1,4 +1,5 @@
-﻿using MalbersAnimations.Scriptables;
+﻿
+using MalbersAnimations.Scriptables;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,6 @@ namespace MalbersAnimations.Controller
     public class Jump : State
     {
         public override string StateName => "Jump/Root Motion Jump";
-        public override string StateIDName => "Jump";
 
         /// <summary>If the Jump input is pressed, the Animal will keep going Up while the Jump Animation is Playing</summary>
         [Header("Jump Parameters")]
@@ -33,11 +33,6 @@ namespace MalbersAnimations.Controller
 
         [Space, Tooltip("How much Movement the Animal can do while Jumping")]
         public List<StateID> ResetJump = new();
-
-
-        [Tooltip("It will use the Index of the jumps profiles instead of getting the Index from ")]
-        public int lockJumpProfile = -1;
-
 
 #if UNITY_2020_3_OR_NEWER
         [NonReorderable]
@@ -65,22 +60,7 @@ namespace MalbersAnimations.Controller
         //private int jumpsPerformanced;
 
         // public override bool TryActivate() => false;
-
-
-
-        /// <summary> Use this to lock jumps profiles and not use the Vertical to check which is the valid profile </summary>
-        public void LockJumpProfile(int index)
-        {
-            index = Mathf.Clamp(index, 0, jumpProfiles.Count-1);  
-            activeJump = jumpProfiles[index];
-            animal.VerticalSmooth = activeJump.VerticalSpeed;
-            animal.SetAnimParameter(animal.hash_Vertical, animal.VerticalSmooth);
-        }
-
-        public override bool TryActivate()
-        {
-            return InputValue && (JumpsPerformanced < Jumps);
-        }
+        public override bool TryActivate() => InputValue && (JumpsPerformanced < Jumps);
 
         public override void ResetStateValues()
         {
@@ -108,21 +88,27 @@ namespace MalbersAnimations.Controller
         {
             if (JumpsPerformanced < Jumps)
             {
-                //meaning we are Transition from itself and the animation has not cover its 25% yet
-                if (ActiveState == this && animal.StateTime < 0.25f)   return;
+                //SpeedSets  = new List<MSpeedSet> { animal.CurrentSpeedSet }; //Store the Speed from the Last State
+
+
+                //meaning we are Transition from itself and the animation has not cover its 33% yet
+                if (CurrentActiveState == this && animal.StateTime < 0.3f)
+                {
+                    return;
+                }
 
                 base.Activate();        
 
-                //Make sure while you are on Jump State above the list cannot check for Trying to activate State below him
-                IgnoreLowerStates = true;          
+                IgnoreLowerStates = true;            //Make sure while you are on Jump State above the list cannot check for Trying to activate State below him
 
                 animal.currentSpeedModifier.animator = 1;
+                //CanJumpAgain = false;
 
                 JumpsPerformanced++;
 
                 SetEnterStatus(JumpsPerformanced); //Sent to the animator the Performanced Jump
 
-                FindJumpProfile();
+                //Debug.Log("JumpsPerformanced = " + JumpsPerformanced);
             }
         }
 
@@ -181,6 +167,8 @@ namespace MalbersAnimations.Controller
         public override void EnterCoreAnimation()
         {
             Debugging($"[Enter Core Tag - [Jump]");
+
+            FindJumpProfile();
 
             animal.ResetSlopeValues();
 
@@ -438,7 +426,7 @@ namespace MalbersAnimations.Controller
                 OnHoldByReset = false;
             }
             //If we were not jumping then increase the Double Jump factor when falling from locomotion
-            else if (newState == StateEnum.Fall && animal.LastState && animal.LastState.ID <= 1)
+            else if (newState == StateEnum.Fall && animal.LastState.ID <= 1)
             {
                 JumpsPerformanced++; //If we are in fall animation then increase a Jump perfomanced
                 OnHoldByReset = false;
@@ -456,9 +444,9 @@ namespace MalbersAnimations.Controller
             //Do nothing... the Jump is an automatic State, the Fall Speed is created internally
         }
 
-        internal override void Reset()
+        internal void Reset()
         {
-            base.Reset();
+            ID = MTools.GetInstance<StateID>("Jump");
             Input = "Jump";
 
             SleepFromState = new List<StateID>() { MTools.GetInstance<StateID>("Fall"), MTools.GetInstance<StateID>("Fly") };

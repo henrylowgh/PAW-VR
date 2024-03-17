@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcb15355fb5af304ebab1307cd8dab67, type: 3}
   m_Name: Wait 2-3 sec
   m_EditorClassIdentifier: 
-  active: 1
   Description: 'Dont go right away to search for the ball
 
     Wait a 2-3seconds
@@ -26,8 +25,6 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0.2
     Variable: {fileID: 0}
-  WaitForAllTasks: 0
-  waitForTask: -1
   WaitMinTime:
     UseConstant: 1
     ConstantValue: 2
@@ -61,5 +58,3 @@ MonoBehaviour:
   GizmoStateColor: {r: 1, g: 0.91456765, b: 0, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
-  TasksIndex: -1
-  DecisionIndex: 0

@@ -3,9 +3,6 @@ using UnityEngine.Events;
 using MalbersAnimations.Events;
 using MalbersAnimations.Scriptables;
 using System;
-using MalbersAnimations.Utilities;
-using System.Collections;
-
 
 
 #if UNITY_EDITOR
@@ -17,106 +14,41 @@ namespace MalbersAnimations.Weapons
     [AddComponentMenu("Malbers/Weapons/Shootable")]
     public class MShootable : MWeapon, IShootableWeapon, IThrower
     {
-
-        #region Enums
-        public enum Release_Projectile
-        { 
-            Never,
-            OnAttackStart, 
-            OnAttackReleased, 
-        }
-        public enum Equip_Projectile
-        {
-            ByAnimation = 1, 
-            OnAim = 2, 
-            OnAttackStart = 4,
-            OnAttackReleased = 8,
-            AfterReload = 16 ,
-            OnProjectileReleased = 32,
-            OnEquip = 64,
-        }
-        public enum AimingAction { Manual, Automatic, Ignore }
-        #endregion 
-
         #region Variables
-
-
-        //public enum Cancel_Aim { ReleaseProjectile, ResetWeapon }
-
-        [Tooltip("When the projectile will be released")]
+        public enum Release_Projectile { Never, OnAttackStart, OnAttackReleased, ByAnimation }
+        public enum Cancel_Aim { ReleaseProjectile, ResetWeapon }
+        ///<summary> Does not shoot projectile when is false, useful for other controllers like Invector and ootii to let them shoot the arrow themselves </summary>
+        [Tooltip("When the Projectile is Release?")]
         public Release_Projectile releaseProjectile = Release_Projectile.OnAttackStart;
 
-        [Flag,Tooltip("When the projectile will be released")]
-        public Equip_Projectile equipProjectile = Equip_Projectile.OnAim | Equip_Projectile.ByAnimation;
-
-
-        [Tooltip("How the weapon will handle aiming")]
-        public AimingAction aimAction = AimingAction.Manual;
-
-        [Tooltip("Delay to release the projectile after the Attack is Played. E.g. the Trhow animation is played but the projectile will be released a seconds after")]
-        public FloatReference releaseDelay = new ();
-
-        /////<summary> When Aiming is Cancel what the Weapon should do? </summary>
-        //[Tooltip("When the Projectile is Release?")]
-        //public Cancel_Aim CancelAim = Cancel_Aim.ResetWeapon;
-
-        [Tooltip("The projectile will be released by the Animator using Weapon message behavior")]
-        public BoolReference releaseByAnimation = new(false);
-
+        ///<summary> When Aiming is Cancel what the Weapon should do? </summary>
+        [Tooltip("When the Projectile is Release?")]
+        public Cancel_Aim CancelAim = Cancel_Aim.ResetWeapon;
 
         [Tooltip("Projectile prefab the weapon fires")]
-        public GameObjectReference m_Projectile = new();                                //Arrow to Release Prefab
+        public GameObjectReference m_Projectile = new GameObjectReference();                                //Arrow to Release Prefab
         [Tooltip("Parent of the Projectile")]
         public Transform m_ProjectileParent;
-        public Vector3Reference gravity = new(Physics.gravity);
+        public Vector3Reference gravity = new Vector3Reference(Physics.gravity);
 
-        public BoolReference UseAimAngle = new(false);
-       
-
-
+        public BoolReference UseAimAngle = new BoolReference(false);
+        public BoolReference HasReloadAnim = new BoolReference(false);
         [Tooltip("Does the weapon has Fire Animation? if not then does not require to exit Aim Animation")]
-        public BoolReference HasFireAnim = new(true);
+        public BoolReference HasFireAnim = new BoolReference(true);
 
-        public FloatReference m_AimAngle = new(0);
+        public FloatReference m_AimAngle = new FloatReference(0);
 
         /// <summary>This Curve is for Limiting the Bow Animations while the Character is on weird/hard Positions</summary>
         [MinMaxRange(-180, 180)]
         [Tooltip("Value to limit firing projectiles when the Character is on weird or dificult Positions. E.g. Firing Arrows on impossible angles")]
-        public RangedFloat AimLimit = new(-180, 180);
+        public RangedFloat AimLimit = new RangedFloat(-180, 180);
 
 
 
-        /// <summary>Can the Weapon be Charged? Meaning Charge time is greater than 0</summary>
-        public override bool CanCharge => releaseProjectile == Release_Projectile.OnAttackReleased && ChargeTime > 0;
-
-        //Make sure the weapon can unequip on aim
-        public override bool CanUnequip => !IsAiming || UnequipOnAim;
-
-        #region Reload and Ammo
-
-
-
-
-        [Tooltip("Ignore Completely the Reload Logic")]
-        public BoolReference noReload = new(false);
-
-        /// <summary>Is the Playing a Reloading animation</summary>
-        public IntReference m_Ammo = new(30);                              //Total of Ammo for this weapon
-        public IntReference m_AmmoInChamber = new(1);                      //Total of Ammo in the Chamber
-        public IntReference m_ChamberSize = new(1);                        //Max Capacity of the Ammo in once hit
-
-        [Tooltip("Time needed to complete the reload of a weapon. Put a new projectile(s) the chamber ")]
-        public FloatReference m_ReloadTime = new(1.5f);                    //Press Fire one or continues 
-
-        [Tooltip("The weapon will Reload the weapon right after the last projectile of the chamber has been released")]
-        public BoolReference m_AutoReload = new(false);                    //Press Fire one or continues 
-
-        [Tooltip("Delay time to auto-Reload right after the weapon has no ammo in chamber and the last projectile has been released")]
-        public FloatReference m_AutoReloadTime = new(0.25f);               //Press Fire one or continues 
-
-        [Tooltip("If the Weapon have reload animation then Play it")]
-        public BoolReference HasReloadAnim = new(false);
-        #endregion
+        [SerializeField] private IntReference m_Ammo = new IntReference(30);                             //Total of Ammo for this weapon
+        [SerializeField] private IntReference m_AmmoInChamber = new IntReference(1);                     //Total of Ammo in the Chamber
+        [SerializeField] private IntReference m_ChamberSize = new IntReference(1);                       //Max Capacity of the Ammo in once hit
+        [SerializeField] private BoolReference m_AutoReload = new BoolReference(false);                  //Press Fire one or continues 
 
         #endregion
 
@@ -127,65 +59,16 @@ namespace MalbersAnimations.Weapons
         #endregion
 
         #region Properties
-
-        
-        public override bool CanAttack
-        {
-            get => canAttack;
-            set
-            {
-                if (Rate <= 0){ canAttack = true; return; } //Restore Can Attack if the weapon has no Rate
-
-                canAttack = value;
-
-
-                // Debug.Log($"CAN ATTACK {value}");
-
-                if (!canAttack)
-                {
-                    this.Stop_Action(iCanAttack); //IMPORTANT!! STOP THE COROUTINE
-
-                    iCanAttack = this.Delay_Action(Rate, () =>
-                    {
-                        CanAttack = true;
-                        //Check if we were aiming after the attack cooldown finish
-                        if (!IsReloading && !InAutoReloadTime) CheckAim();
-                    });
-
-                }
-            }
-        }
-        private  IEnumerator iCanAttack;
-
-        public virtual GameObject Projectile { get => m_Projectile.Value; set => m_Projectile.Value = value; }
-        public virtual float AutoReloadTime { get => m_AutoReloadTime.Value; set => m_AutoReloadTime.Value = value; }
-
-        /// <summary> Delay to release the projectile after the Attack is Played  </summary>
-        public virtual float ReleaseDelay { get => releaseDelay.Value; set => releaseDelay.Value = value; }
-        private IEnumerator iReleaseDelay;
-
-
-        /// <summary>The projectile will be released by the animator </summary>
-        public virtual bool ReleaseByAnimation { get => releaseByAnimation.Value; set => releaseByAnimation.Value = value; }
-
-        /// <summary>Ignore Reload Logic</summary>
-        public virtual bool NoReload { get => noReload.Value; set => noReload.Value = value; }
-        public virtual bool HasReload => !NoReload;
-
-
-        /// <summary>The weapon is playing autoreload Time</summary>
-        public virtual bool InAutoReloadTime { get; protected set; }
+        public GameObject Projectile { get => m_Projectile.Value; set => m_Projectile.Value = value; }
 
         /// <summary> Projectile Instance to launch from the weapon</summary>
-        public virtual GameObject ProjectileInstance { get; set; }
-
-        public virtual bool ProjectileEquipped => ProjectileInstance != null;
+        public GameObject ProjectileInstance { get; set; }
 
         /// <summary> Projectile Interface Reference</summary>
-        public MProjectile MProjectile { get; set; }
+        public IProjectile I_Projectile { get; set; }
         public Transform ProjectileParent => m_ProjectileParent;
 
-        //public bool InstantiateProjectileOfFire = true;
+        public bool InstantiateProjectileOfFire = true;
 
         public Vector3 Gravity { get => gravity.Value; set => gravity.Value = value; }
 
@@ -212,17 +95,13 @@ namespace MalbersAnimations.Weapons
 
         public int ChamberSize { get => m_ChamberSize.Value; set => m_ChamberSize.Value = value; }
 
-        public override bool HasAmmo => TotalAmmo == -1 || AmmoInChamber > 0 || NoReload;
+        public override bool HasAmmo => TotalAmmo == -1 || AmmoInChamber > 0;
 
         /// <summary>Aim IK Weight</summary>
         public float AimWeight { get; private set; }
 
         /// <summary>With Aim Limit?</summary>
         public bool CanShootWithAimLimit { get; private set; }
-
-        [Tooltip("The Shootable can be stored if is aiming. ")]
-        public BoolReference m_UnequipOnAim = new(false);
-        public bool UnequipOnAim { get => m_UnequipOnAim.Value; set => m_UnequipOnAim.Value = value; }
 
 
         public override bool IsEquiped
@@ -231,58 +110,46 @@ namespace MalbersAnimations.Weapons
             set
             {
                 base.IsEquiped = value;
-
-                if (value)
-                {
-                    if ((equipProjectile & Equip_Projectile.OnEquip) == Equip_Projectile.OnEquip)
-                        EquipProjectile();
-
-                    //Make sure its a projectile in the chamber!!
-                    if (AutoReload)
-                    {
-                        TryReload();
-                    }
-                }
-                else
-                {
+                if (!value)
                     DestroyProjectileInstance(); //If by AnyChange the Projectile is live Destroy it!!
-                }
             }
         }
 
         public override bool IsAiming
         {
+            get => base.IsAiming;
             set
             {
                 base.IsAiming = value;
 
-                if (value)
+                if (!value)
                 {
-                   if ((equipProjectile & Equip_Projectile.OnAim) == Equip_Projectile.OnAim) 
-                        EquipProjectile();
-                }
-                else
-                {
-                    //ResetCharge(); Only Reset charge 
+                    if (CancelAim == Cancel_Aim.ReleaseProjectile) //if the weapon is set to Cancel the Aim
+                    {
+                        Debugging("Release Projectile. [Cancel Aim] ", this);
+                        IsCharging = true;
+
+                        MainAttack_Released(null);
+                        // Owner?.SendMessage("MainAttack_Released", SendMessageOptions.DontRequireReceiver); //?!?!?
+                    }
+                    else
+                    {
+                        WeaponReady(false);                                 //if is not aiming then set Ready to false
+                        ResetCharge();                                   //Reset the Charge of the wapon
+                    }
                 }
             }
         }
 
 
         #endregion
-
-
-        [SerializeField, Tooltip("Apply Gravity after certain distance is reached")]
-        private FloatReference m_AfterDistance = new(0f);
-        public float AfterDistance { get => m_AfterDistance.Value; set => m_AfterDistance.Value = value; }
-
         public override bool CanAim => true;
 
-        ///// <summary>  Set the total Ammo (Refill when you got some ammo)  </summary>
-        //public void SetTotalAmmo(int value)
-        //{
-        //    if (AutoReload) TryReload();
-        //}
+        /// <summary>  Set the total Ammo (Refill when you got some ammo)  </summary>
+        public void SetTotalAmmo(int value)
+        {
+            if (AutoReload) TryReload();
+        }
 
         void Awake()
         {
@@ -291,195 +158,87 @@ namespace MalbersAnimations.Weapons
             if (AimOrigin == null) AimOrigin = transform;
 
             if (ChamberSize < 0) ChamberSize = 1; //Bug Fix
-
-            if (ReleaseDelay < 0) releaseDelay = 0; //Clamp to zero
         }
 
-        //private void OnEnable()
-        //{
-        //    if (!m_Ammo.UseConstant && m_Ammo.Variable != null) //Listen the Total ammo in case it changes
-        //        m_Ammo.Variable.OnValueChanged += SetTotalAmmo;
-        //}
+        private void OnEnable()
+        {
+            if (!m_Ammo.UseConstant && m_Ammo.Variable != null) //Listen the Total ammo in case it changes
+                m_Ammo.Variable.OnValueChanged += SetTotalAmmo;
+        }
 
-        //private void OnDisable()
-        //{
-        //    if (!m_Ammo.UseConstant && m_Ammo.Variable != null)
-        //        m_Ammo.Variable.OnValueChanged -= SetTotalAmmo;
-        //}
+        private void OnDisable()
+        {
+            if (!m_Ammo.UseConstant && m_Ammo.Variable != null)
+                m_Ammo.Variable.OnValueChanged -= SetTotalAmmo;
+        }
 
         internal override void MainAttack_Start(IMWeaponOwner RC)
         {
-            Input = true;
-
             base.MainAttack_Start(RC);
 
-            if (IsReloading || RC.StoreWeapon)
-            {
-                return; //Do not fire if is reloading
-            }
+            //  OneChamberAmmo();
 
-            // Calculate is there's an Imposible range to shoot 
-            CanShootWithAimLimit = (AimLimit.IsInRange(RC.HorizontalAngle));
-
-            if (!RC.Aim && aimAction == AimingAction.Automatic)
+            //  Debug.Log("IsAiming && CanAttack && IsReady");
+            if (IsAiming && CanAttack && IsReady && CanShootWithAimLimit) //and the Rider is not on any reload animation
             {
-                //Force aiming to charge the weapon
-                RC.Aim_Set(true);
-            }
-
-            //If can Aim but is not aiming or is not on limits skip
-            if (aimAction != AimingAction.Ignore && !IsAiming || !CanShootWithAimLimit)
-            {
-                return;
-            }
-
-            if (CanAttack) //and the Rider is not on any reload animation
-            {
+                // Debug.Log("HasAmmo");
                 if (HasAmmo)                                                                  //If there's Ammo on the chamber
                 {
-                    //Equip the projectile if its set to intantiate on start
-                    if ((equipProjectile & Equip_Projectile.OnAttackStart) == Equip_Projectile.OnAttackStart)
-                        EquipProjectile();
-
                     //Means the Weapon does not need to Charge  so Release the Projectile First!
-                    if (releaseProjectile == Release_Projectile.OnAttackStart)
+                    if (!CanCharge || releaseProjectile == Release_Projectile.OnAttackStart)
                     {
-                        Debugging($"<color=white> Weapon <b>[Fire Projectile] On Start </b></color>", this);  //Debug
+                        //  Debug.Log("Does not need charge");
+                        // CalculateAimLimit(RC);
 
-                        FireAnim_ReleaseProjectile();
+
+                        Debugging($"<color=white> Weapon <b>[Fire Projectile No Charge] </b></color>", this);  //Debug
+
+                        if (HasFireAnim.Value)
+                            WeaponAction.Invoke((int)Weapon_Action.Attack);
+
+                        if (releaseProjectile == Release_Projectile.OnAttackStart)
+                            ReleaseProjectile();
+
                     }
+
                 }
                 else
                 {
                     PlaySound(WSound.Empty);                   //Play Empty Sound Which is stored in the 4 Slot  
-                    Debugging("<color=red> <b>[Empty Ammo]</b> </color>", this);
+                    Debugging("[Empty Ammo]", this);
                 }
+
+                CanAttack = false;  //Calcualte the Rate Fire of the arm
             }
-            else
-            {
-               // Debug.Log("CANNOT ATTACK");
-            }
-        } 
+        }
+
+        ///// <summary>Check if the weapon is a one Chamber Ammo, meaning there can be only one projectile on the chamber and on the Weapon </summary>
+        //private void OneChamberAmmo()
+        //{
+        //    if (!HasAmmo && TotalAmmo > 0 && ChamberSize == 1 && AutoReload)
+        //    {
+        //        AmmoInChamber = 1; //HACK for 1 Chamber Size Weapon
+
+
+        //        if (debug) Debug.Log($"{name}:<color=white> <b>[HACK for the BOW ARROWS] </b>   </color>");  //Debug
+        //    }
+        //}
 
         internal override void MainAttack_Released(IMWeaponOwner RC)
         {
             Input = false;
-           
+
             Debugging($"Main Attack Released", this);
 
+            //CalculateAimLimit(RC);
 
-             AttackFromAutomatic = false;
-
-            //Check No Aiming values (NEW)
-            if (aimAction != AimingAction.Ignore && !IsAiming || !CanShootWithAimLimit) return;
-
-            if (!CanAttack) return; //Do nothing if the Rate is on ????
-
-            if (releaseProjectile == Release_Projectile.OnAttackReleased)
+            if (IsReady && HasAmmo && CanCharge && IsCharging && CanShootWithAimLimit)   //If we are not firing any arrow then try to Attack with the bow
             {
-                if (HasAmmo)   //If we are not firing any arrow then try to Attack with the bow
-                {
-                    //Equip the Projectile if its equipped on attack released
-                    if ((equipProjectile & Equip_Projectile.OnAttackReleased) == Equip_Projectile.OnAttackReleased)
-                        EquipProjectile();
+                if (HasFireAnim.Value)
+                    WeaponAction?.Invoke((int)Weapon_Action.Attack);    //Play the Fire Animation on the CHaracter
 
-                    FireAnim_ReleaseProjectile();
-                }
-            }
-
-           // ResetCharge();
-        }
-
-
-      
-
-        private void FireAnim_ReleaseProjectile()
-        {
-            //Play the Fire Animation on the Character IF the Weapon can be charged!!
-            if (HasFireAnim.Value)
-                WeaponAction?.Invoke((int)Weapon_Action.Attack);
-
-
-            //Fire the projectile on Attack Start after a delay time if is not released by the Animator
-            if (!ReleaseByAnimation)
-                this.Delay_Action(ref iReleaseDelay, ReleaseDelay, () => ReleaseProjectile());
-
-            CanAttack = false;
-            IsAttacking = true;
-        }
-
-
-
-        //IEnumerator I_AutoRelease;
-
-        /// <summary> Charge the Weapon!! </summary>
-        internal override void Attack_Charge(IMWeaponOwner RC, float time)
-        {
-            if (Input) //The Input For Charging is Down
-            {
-                if (CanAttack && !IsAttacking)
-                {
-                    if (aimAction == AimingAction.Manual && !IsAiming) return; //Do not charge it the aiming is manual
-
-                    if (HasAmmo && CanCharge)  //Is the Weapon ready?? we Have projectiles and we can Charge
-                    {
-                        //CalculateAimLimit(RC);
-                        if (!CanShootWithAimLimit)
-                        {
-                            ResetCharge();
-                            return;
-                        }
-
-                        if (!IsCharging)            //If Attack is pressed Start Bending for more Strength the Bow
-                        {
-                            IsCharging = true;
-                            ChargeCurrentTime = 0;
-                            Predict?.Invoke(true);
-                            PlaySound(WSound.Charge); //Play the Charge Sound
-                            Debugging("[Charge: 0]", this);
-                        }
-                        else    //If Attack is pressed Continue Bending the Bow for more Strength the Bow
-                        {
-                            if (!IsAttacking) Charge(time);
-                        }
-                    }
-
-
-                    //If is automatic then continue attacking ◘◘◘TEST THIS!!!!!
-                    if (Automatic && Rate > 0 && !IsReloading && HasAmmo)
-                    {
-                        if (releaseProjectile == Release_Projectile.OnAttackStart)
-                        {
-                            Debugging($"[**Automatic Fire** Attack Start]", this);
-                            ChargeCurrentTime = ChargeTime; //Make full charge!!
-
-                            MainAttack_Start(RC);
-                        }
-                        else if (releaseProjectile == Release_Projectile.OnAttackReleased && MaxCharged)
-                        {
-                            Debugging($"[**Automatic Fire** Attack Released]", this);
-                           
-                            if (HasAmmo)   //If we are not firing any arrow then try to Attack with the bow
-                            {
-                                //Equip the Projectile if its equipped on attack released
-                                if ((equipProjectile & Equip_Projectile.OnAttackReleased) == Equip_Projectile.OnAttackReleased)
-                                    EquipProjectile();
-
-                                FireAnim_ReleaseProjectile();
-                            }
-
-                           // ResetCharge();
-                            Input = true;
-                        }
-                        
-                        return;
-                    }
-
-                }
-                //else
-                //{
-                //    Predict?.Invoke(false);
-                //}
+                if (releaseProjectile == Release_Projectile.OnAttackReleased)
+                    ReleaseProjectile();
             }
         }
 
@@ -491,17 +250,48 @@ namespace MalbersAnimations.Weapons
 
             if (AmmoInChamber <= 0 && AutoReload)
             {
-                if (!HasReloadAnim)
-                    IsReloading = true; //otherwise it will not reproduce the reload animations ??
+                TryReload();
+            }
+        }
 
-                InAutoReloadTime = true;
-                this.Delay_Action(AutoReloadTime,
-                   () =>
-                   {
-                       TryReload();
-                       InAutoReloadTime = false;
-                       //IsReloading = false;
-                   });
+
+        /// <summary> Charge the Weapon!! </summary>
+        internal override void Attack_Charge(IMWeaponOwner RC, float time)
+        {
+            // Debug.Log(" Shootable ATACKCHARGE"+Input);
+            if (Input) //The Input For Charging is Down
+            {
+                if (Automatic && CanAttack && Rate > 0) //If is automatic then continue attacking ◘◘◘TEST THIS!!!!!
+                {
+                    MainAttack_Start(RC);
+                    Debugging($"[Automatic Fire]", this);
+                }
+
+                if (IsReady && HasAmmo && CanCharge)  //Is the Weapon ready?? we Have projectiles and we can Charge
+                {
+                    //CalculateAimLimit(RC);
+                    if (!CanShootWithAimLimit)
+                    {
+                        ResetCharge();
+                        return;
+                    }
+
+                    if (!IsCharging && IsAiming)            //If Attack is pressed Start Bending for more Strength the Bow
+                    {
+
+                        IsCharging = true;
+                        ChargeCurrentTime = 0;
+                        Predict?.Invoke(true);
+
+                        PlaySound(WSound.Charge); //Play the Charge Sound
+
+                        Debugging("[Charge: 0]", this);
+                    }
+                    else             // //If Attack is pressed Continue Bending the Bow for more Strength the Bow
+                    {
+                        Charge(time);
+                    }
+                }
             }
         }
 
@@ -510,31 +300,33 @@ namespace MalbersAnimations.Weapons
             CanShootWithAimLimit = (AimLimit.IsInRange(RC.HorizontalAngle)); // Calculate is there's an Imposible range to shoot 
         }
 
+
         public override void ResetCharge()
         {
             base.ResetCharge();
             Predict?.Invoke(false);
             Velocity = Vector3.zero; //Reset Velocity
-           // Debug.Log("RESET CHARGE!!!");
+
+            //  Debug.Log("ResetCharg_Shooteable");
         }
 
         public override void Charge(float time)
         {
-            //No Charge while the projectile is release on Start ??? is this neeeded?
-            if (releaseProjectile == Release_Projectile.OnAttackStart) return;
-
-            if (!MaxCharged)  base.Charge(time);
+            base.Charge(time);
             CalculateVelocity();
-            Predict?.Invoke(true);
+            //Predict?.Invoke(true);
         }
 
 
         /// <summary> Create an arrow ready to shooot CALLED BY THE ANIMATOR </summary>
         public virtual void EquipProjectile()
-        {   
-             if (!HasAmmo) return;                                           //means there's no Ammo so no equipping!
+        {
+            //Debug.Log("HasAmmo = " + HasAmmo);
+            //Debug.Log("m_AmmoInChamber = " + m_AmmoInChamber.Value);
 
-            if (ProjectileInstance == null) //Means there's no projectile equipped!
+            if (!HasAmmo) return;                                           //means there's no Ammo
+
+            if (ProjectileInstance == null)
             {
                 var Pos = ProjectileParent ? ProjectileParent.position : AimOriginPos;
                 var Rot = ProjectileParent ? ProjectileParent.rotation : AimOrigin.rotation;
@@ -544,29 +336,19 @@ namespace MalbersAnimations.Weapons
                 {
                     //Instantiate the Arrow in the Parent Object of the Shooteable Weapon
                     ProjectileInstance = Instantiate(Projectile, Pos, Rot, ProjectileParent);
-                    //Debugging($"◘ [Projectile Instantiated] [{ProjectileInstance.name}] ", ProjectileInstance);
+                    Debugging($"◘ [Projectile Instantiated] [{ProjectileInstance.name}] ", ProjectileInstance);
                 }
                 else
                 {
                     ProjectileInstance = Projectile;
                 }
 
-                if (ProjectileInstance.TryGetComponent<MProjectile>(out var projectile))
+                if (ProjectileInstance.TryGetComponent<IProjectile>(out var projectile))
                 {
-                    MProjectile = projectile; //Safe in a variable
-
-                    ProjectileInstance.transform.Translate(MProjectile.PosOffset, Space.Self);   //Translate in the offset of the arrow to put it on the hand
-                    ProjectileInstance.transform.Rotate(MProjectile.RotOffset, Space.Self);      //Rotate in the offset of the arrow to put it on the hand
+                    I_Projectile = projectile; //Safe in a variable
+                    ProjectileInstance.transform.Translate(I_Projectile.PosOffset, Space.Self);   //Translate in the offset of the arrow to put it on the hand
+                    ProjectileInstance.transform.Rotate(I_Projectile.RotOffset, Space.Self);      //Rotate in the offset of the arrow to put it on the hand
                     //ProjectileInstance.transform.localScale = (projectile.ScaleOffset);       //Scale in the offset of the arrow to put it on the hand
-
-
-                    //Use Weapon Effects on the projectiles
-                    if (MProjectile.hitEffects == null || MProjectile.hitEffects.Count == 0)
-                    { MProjectile.hitEffects = hitEffects; }
-                    if (MProjectile.HitEffect == null)
-                    { MProjectile.HitEffect = HitEffect; }
-                    if (MProjectile.hitSound == null || MProjectile.hitSound.Value == null)
-                    { MProjectile.hitSound = hitSound; }
                 }
 
                 if (ProjectileInstance.TryGetComponent<Rigidbody>(out var projectile_RB))
@@ -582,97 +364,72 @@ namespace MalbersAnimations.Weapons
                     projectile_Col.enabled = false;
                 }
 
-               
-
                 OnLoadProjectile.Invoke(ProjectileInstance);
-
-                // ProjectIsReleased = false;
 
                 Debugging($"◘ [Projectile Equiped] [{ProjectileInstance.name}] ", ProjectileInstance);
             }
-            else
-            {
-                Debugging($"◘ [Projectile Already Equipped] Skip", ProjectileInstance, "gray");
-            }
         }
-
-        /// <summary> Set a new projectile</summary>
-        /// <param name="projectile"></param>
-        public virtual void SetProjectile(GameObject projectile) => Projectile = projectile;
-
-        public virtual void Fire() => ReleaseProjectile();
 
         public virtual void ReleaseProjectile()
         {
             if (!gameObject.activeInHierarchy) return; //Crazy bug ??
 
-            Predict?.Invoke(false); //Hide the Prediction Trajectory
-
-            //CanAttack = false; //Wait the Rate to attack again
-            //Debug.Log("Release Projectile!!!!!!!!");
+            Predict?.Invoke(false);
 
             if (releaseProjectile == Release_Projectile.Never)
             {
                 DestroyProjectileInstance();
                 return;
             }
-
-            if ((equipProjectile & Equip_Projectile.OnProjectileReleased) == Equip_Projectile.OnProjectileReleased)
-                EquipProjectile();
-
-
-            FireProjectile();
-
-
-            if (HasReload)
+            else if (InstantiateProjectileOfFire)
             {
-                //Reduce the Ammo the next frame
-                this.Delay_Action( () => ReduceAmmo(1));
-            } 
-        }
+                EquipProjectile();
+            }
+
+            // ReduceAmmo(1);
 
 
+            this.Delay_Action(2, () => ReduceAmmo(1)); //Reduce the Ammo the next frame
 
-        public void FireProjectile()
-        {
             if (ProjectileInstance == null) return;
 
-            ProjectileInstance.transform.parent = null; //Unparent the projectile
+
+            ProjectileInstance.transform.parent = null;
 
 
-            if (MProjectile != null)
+            if (I_Projectile != null)
             {
-                ProjectileInstance.transform.position = AimOrigin.position;                 //Put the Correct position to Throw the projectile IMPORTANT!!!!!
+                ProjectileInstance.transform.position = AimOrigin.position;                  //Put the Correct position to Throw the Arrow IMPORTANT!!!!!
 
                 CalculateVelocity();
 
-                ProjectileInstance.transform.forward = Velocity.normalized;                 //Align the Projectile to the velocity
+                ProjectileInstance.transform.forward = Velocity.normalized; //Align the Projectile to the velocity
 
-                ProjectileInstance.transform.Translate(MProjectile.PosOffset, Space.Self); //Translate in the offset of the arrow to put it on the hand
 
-                MProjectile.Prepare(Owner, Gravity, Velocity, Layer, TriggerInteraction);
-                MProjectile.AfterDistance = AfterDistance;
+                ProjectileInstance.transform.Translate(I_Projectile.PosOffset, Space.Self);  //Translate in the offset of the arrow to put it on the hand
 
-                if (HitEffect != null) MProjectile.HitEffect = HitEffect;                  //Send the Hit Effect too
+                I_Projectile.Prepare(Owner, Gravity, Velocity, Layer, TriggerInteraction);
+
+                if (HitEffect != null) I_Projectile.HitEffect = HitEffect; //Send the Hit Effect too
 
                 var newDamage = new StatModifier(statModifier)
                 { Value = Mathf.Lerp(MinDamage, MaxDamage, ChargedNormalized) };
 
-                MProjectile.PrepareDamage(newDamage, CriticalChance, CriticalMultiplier, element);
+                I_Projectile.PrepareDamage(newDamage, CriticalChance, CriticalMultiplier, element);
 
                 Debugging($"◘ [Projectile Released] [{ProjectileInstance.name}]", ProjectileInstance);
-                MProjectile.Fire();
+                I_Projectile.Fire();
             }
 
             OnFireProjectile.Invoke(ProjectileInstance);
             ProjectileInstance = null;
-            MProjectile = null;
+            I_Projectile = null;
 
             // WeaponReady(false); //Tell the weapon cannot be Ready until Somebody set it ready again
 
             PlaySound(WSound.Fire); //Play the Release Projectile Sound
 
-            ResetCharge(); //IMPORTANT!!! DO NOT ELIMINATE
+            ResetCharge();
         }
 
         private void CalculateVelocity()
@@ -686,8 +443,6 @@ namespace MalbersAnimations.Weapons
             }
             else
                 Velocity = Direction * Power;
-
-           // Debug.Log($"POWER {Power} ChargedNormalized {ChargedNormalized} ChargeCurrentTime{ChargeCurrentTime}");
         }
 
 
@@ -702,17 +457,15 @@ namespace MalbersAnimations.Weapons
 
             }
             ProjectileInstance = null; //Clean the Projectile Instance
-            MProjectile = null; //Clean Projectile interface
+            I_Projectile = null; //Clean Projectile interface
         }
 
         /// <summary> This is where I call the Animations for the Reload.. not the Actual Reloading of the weapon</summary>
         public override bool TryReload()
         {
-            if (!HasReload) return false; //Do nothing if it does not have any reload logic
             if (TotalAmmo == 0) return false;                //Means the Weapon Cannot Reload
-            if (ChamberSize == AmmoInChamber) return false;  //Means there's no need to Reload.. the Chamber is full!!
 
-            // Debug.Log("Try reloaddddd 2e2");
+            if (ChamberSize == AmmoInChamber) return false;  //Means there's no need to Reload.. the Chamber is full!!
 
             if (HasReloadAnim.Value)
             {
@@ -720,12 +473,9 @@ namespace MalbersAnimations.Weapons
                 if (CanReload())
                 {
                     PlaySound(WSound.Reload);
+
                     WeaponAction.Invoke((int)Weapon_Action.Reload);
-
-                    IsReloading = true; //Do Reload Animations
-                    this.Delay_Action(m_ReloadTime.Value, () => ReloadWeapon()); //Do the actual reloading of the weapon
-
-                    IsAttacking = false; //No Longer Attaking
+                    //  IsReloading = true;
 
                     return true;
                 }
@@ -734,22 +484,15 @@ namespace MalbersAnimations.Weapons
                     //Do Fail Reload
 
                     WeaponAction.Invoke((int)Weapon_Action.Idle);
-                    PlaySound(WSound.Empty);
+                    PlaySound(WSound.Reload);
                     ReloadWeapon(); //HACK MAYBE?
                     return false;
                 }
             }
             else
             {
-                //IsReloading = false;
-
-
-                //Auto Aim after the reload
-                if (aimAction == AimingAction.Automatic)
-                    WeaponAction.Invoke((int)Weapon_Action.Aim);
-                else
-                    WeaponAction.Invoke((int)Weapon_Action.Idle);
-
+                IsReloading = false;
+                // FinishReload();
                 return ReloadWeapon();
             }
         }
@@ -758,9 +501,6 @@ namespace MalbersAnimations.Weapons
         public bool CanReload()
         {
             //Means the Weapon Cannot Reload, there's no more ammo
-
-            // Debug.Log($"CAN RELOAD {TotalAmmo}, ");
-
             if (TotalAmmo == 0)
             {
                 Debugging($"X Cannot Reload. Total Ammo == 0", this);
@@ -780,13 +520,13 @@ namespace MalbersAnimations.Weapons
             }
 
 
-            //Ammo Needed to refill the Chamber
-            int ReloadAmount = Mathf.Clamp(ChamberSize - AmmoInChamber, 0, TotalAmmo);
+            int ReloadAmount = ChamberSize - AmmoInChamber;                    //Ammo Needed to refill the Chamber
+            int AmmoLeft = TotalAmmo - ReloadAmount;                           //Ammo Remaining
 
-            //Ammo Remaining
-            int AmmoLeft = TotalAmmo - ReloadAmount;
+            //    Debug.Log($"ChamberSize {ChamberSize}: AmmoInChamber {AmmoInChamber}");
 
-            if (AmmoLeft >= 0)
+
+            if (AmmoLeft > 0 /*|| ChamberSize == 1*/)
             {
                 Debugging($"Can Reload", this);
                 return true; //Meaning it can Reload something
@@ -801,27 +541,18 @@ namespace MalbersAnimations.Weapons
         /// <summary> This can be called also by the ANIMATOR </summary>
         public bool ReloadWeapon()
         {
-            if (HasReload)
-            {
-                //Ammo Needed to refill the Chamber
-                int RefillChamber = ChamberSize - AmmoInChamber;
-
-                if (ReloadLogic(RefillChamber))
-                {
-                    FinishReload();
-                    return true;
-                }
-
-            }
-            return false;
+            int RefillChamber = ChamberSize - AmmoInChamber;                    //Ammo Needed to refill the Chamber
+            return Reload(RefillChamber);
         }
 
-        public bool ReloadLogic(int ReloadAmount)
+        public bool Reload(int ReloadAmount)
         {
+            // Debug.Log("reload!!!");
             if (TotalAmmo == -1) //Means that you will have Infinity Ammo
             {
                 AmmoInChamber = ChamberSize;
                 OnReload.Invoke();
+                //Debug.Log("Infinite");
                 return true;
             }
 
@@ -829,9 +560,11 @@ namespace MalbersAnimations.Weapons
             if ((TotalAmmo == 0) ||                                  //Means the Weapon Cannot Reload, there's no more ammo
                 (ChamberSize == AmmoInChamber))                      //Means there's no need to Reload.. the Chamber is full!!
             {
-                Debugging($"[Cannot Reload no more ammo left]", this);
+                //  Debug.Log("the Chamber is full");
                 return false;
             }
+
+
 
             ReloadAmount = Mathf.Clamp(ReloadAmount, 0, ChamberSize - AmmoInChamber);
 
@@ -849,14 +582,13 @@ namespace MalbersAnimations.Weapons
                 TotalAmmo = 0;                                                  //Empty the Total Ammo
             }
 
-            ////Hack to use the AmmoInChamber when there is only one bullet left in the total ammo
-            //if (ChamberSize <= 1 && TotalAmmo == 0)
-            //{
-            //    Debug.Log("---Hack to use the AmmoInChamber -- WORKING! ");
-            //    AmmoInChamber = 0;
-            //    return false;
-            //}
-            Debugging($"[Reloading Ammo!: <B>[{ReloadAmount}]]</B>", this);
+            //Hack to use the AmmoInChamber
+            if (ChamberSize <= 1 && TotalAmmo == 0)
+            {
+                AmmoInChamber = 0;
+                return false;
+            }
+            Debugging($"[Reloading:{ReloadAmount}]", this);
 
 
             OnReload.Invoke();
@@ -866,41 +598,10 @@ namespace MalbersAnimations.Weapons
         /// <summary> If finish reload but is still aiming go to the Aiming animation **CALLED BY THE ANIMATOR**</summary>
         public virtual void FinishReload()
         {
-            if (!IsEquiped) return; //Make sure it cannot be reload when its not equipped.
-            if (CurrentOwner.DrawWeapon || CurrentOwner.StoreWeapon) return; //Do nothing also if the weapon is being stored
-
+            WeaponAction?.Invoke(IsAiming && !IsReady ? (int)Weapon_Action.Aim : (int)Weapon_Action.Idle); //Check if Aiming is still on
             IsReloading = false;
-
-
-            if (aimAction == AimingAction.Automatic)
-            {
-                WeaponAction?.Invoke((int)Weapon_Action.Aim);
-            }
-            else
-            {
-                CheckAim();
-            }
-
-            //Equip projectile after reload
-            if ((equipProjectile & Equip_Projectile.AfterReload) == Equip_Projectile.AfterReload)
-                EquipProjectile();
-
-
             Debugging("[Finish Reload]", this);
         }
-
-
-        ///// <summary>Check if the weapon is a one Chamber Ammo, meaning there can be only one projectile on the chamber and on the Weapon </summary>
-        //private void OneChamberAmmo()
-        //{
-        //    if (!HasAmmo && TotalAmmo > 0 && ChamberSize == 1 && AutoReload)
-        //    {
-        //        AmmoInChamber = 1; //HACK for 1 Chamber Size Weapon
-
-
-        //        if (debug) Debug.Log($"{name}:<color=white> <b>[HACK for the BOW ARROWS] </b>   </color>");  //Debug
-        //    }
-        //}
     }
 
 
@@ -910,15 +611,10 @@ namespace MalbersAnimations.Weapons
     [CanEditMultipleObjects, CustomEditor(typeof(MShootable))]
     public class MShootableEditor : MWeaponEditor
     {
-        SerializedProperty m_AmmoInChamber, m_Ammo, m_ChamberSize,
-            releaseProjectile, releaseDelay, releaseByAnimation,
-            equipProjectile,
-            m_Projectile, AimLimit,
-            m_AutoReload, m_AutoReloadTime, m_ReloadTime, NoReload, HasReloadAnim, m_UnequipOnAim, m_AfterDistance,
-          //  InstantiateProjectileOfFire, 
-            ProjectileParent,   HasFireAnim, aimAction,
+        SerializedProperty m_AmmoInChamber, m_Ammo, m_ChamberSize, releaseProjectile, m_Projectile, AimLimit,
+            m_AutoReload, InstantiateProjectileOfFire, ProjectileParent, CancelAim, HasFireAnim,
             //  AimID, FireID, ReloadID,
-            OnReload, OnLoadProjectile, OnFireProjectile, gravity, UseAimAngle, m_AimAngle  ;
+            OnReload, OnLoadProjectile, OnFireProjectile, gravity, UseAimAngle, m_AimAngle, HasReloadAnim;
 
         protected MShootable mShoot;
 
@@ -936,28 +632,21 @@ namespace MalbersAnimations.Weapons
             AimLimit = serializedObject.FindProperty("AimLimit");
             UseAimAngle = serializedObject.FindProperty("UseAimAngle");
             m_AimAngle = serializedObject.FindProperty("m_AimAngle");
-            //CancelAim = serializedObject.FindProperty("CancelAim");
+            CancelAim = serializedObject.FindProperty("CancelAim");
             HasFireAnim = serializedObject.FindProperty("HasFireAnim");
-            aimAction = serializedObject.FindProperty("aimAction");
+
+            //AimID = serializedObject.FindProperty("AimID");
+            //FireID = serializedObject.FindProperty("FireID");
+            //ReloadID = serializedObject.FindProperty("ReloadID");
 
 
-            m_ReloadTime = serializedObject.FindProperty("m_ReloadTime");
             m_AutoReload = serializedObject.FindProperty("m_AutoReload");
-            m_AutoReloadTime = serializedObject.FindProperty("m_AutoReloadTime");
-            NoReload = serializedObject.FindProperty("noReload");
             HasReloadAnim = serializedObject.FindProperty("HasReloadAnim");
-            //InstantiateProjectileOfFire = serializedObject.FindProperty("InstantiateProjectileOfFire");
+            InstantiateProjectileOfFire = serializedObject.FindProperty("InstantiateProjectileOfFire");
 
             releaseProjectile = serializedObject.FindProperty("releaseProjectile");
-            releaseDelay = serializedObject.FindProperty("releaseDelay");
-            releaseByAnimation = serializedObject.FindProperty("releaseByAnimation");
-
-
-
-            equipProjectile = serializedObject.FindProperty("equipProjectile");
             m_Projectile = serializedObject.FindProperty("m_Projectile");
             ProjectileParent = serializedObject.FindProperty("m_ProjectileParent");
-            m_AfterDistance = serializedObject.FindProperty("m_AfterDistance");
 
 
             m_AmmoInChamber = serializedObject.FindProperty("m_AmmoInChamber");
@@ -968,7 +657,6 @@ namespace MalbersAnimations.Weapons
             OnLoadProjectile = serializedObject.FindProperty("OnLoadProjectile");
             OnFireProjectile = serializedObject.FindProperty("OnFireProjectile");
             gravity = serializedObject.FindProperty("gravity");
-            m_UnequipOnAim = serializedObject.FindProperty("m_UnequipOnAim");
         }
 
 
@@ -995,15 +683,14 @@ namespace MalbersAnimations.Weapons
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                minForce.isExpanded = MalbersEditor.Foldout(minForce.isExpanded, "Projectile Speed and Physics");
+                minForce.isExpanded = MalbersEditor.Foldout(minForce.isExpanded, "Physics Force");
 
                 if (minForce.isExpanded)
                 {
-                    EditorGUILayout.PropertyField(minForce, new GUIContent("Min", "Minimun Force Speed of the Projectile and force to apply to a hitted rigid body"));
-                    EditorGUILayout.PropertyField(Force, new GUIContent("Max", "Maximun Force Speed of the Projectile and force to apply to a hitted rigid body"));
+                    EditorGUILayout.PropertyField(minForce, new GUIContent("Min", "Minimun Force to apply to a hitted rigid body"));
+                    EditorGUILayout.PropertyField(Force, new GUIContent("Max", "Maximun Force to apply to a hitted rigid body"));
                     EditorGUILayout.PropertyField(forceMode);
                     EditorGUILayout.PropertyField(gravity);
-                    EditorGUILayout.PropertyField(m_AfterDistance);
                 }
             }
             DrawMisc();
@@ -1014,34 +701,15 @@ namespace MalbersAnimations.Weapons
 
         protected override void DrawAdvancedWeapon()
         {
-            DrawDamage();
-
-                var dc = GUI.backgroundColor;
-            if (releaseProjectile.intValue == (int)MShootable.Release_Projectile.OnAttackStart)
-            {
-                GUI.backgroundColor = new Color(0.2f * 2, 0.5f * 2, 1f * 2, 1f);
-                EditorGUILayout.HelpBox("Charging will be ignored when [Release Projectile = On Attack Start]", MessageType.Warning);
-            }
-            else if (mShoot.chargeTime.Value <= 0)
-            {
-                GUI.backgroundColor = new Color(0.2f * 2, 0.5f * 2, 1f * 2, 1f);
-                EditorGUILayout.HelpBox("Charging will be ignored when [Charge Time = 0]", MessageType.Warning);
-            }
-                GUI.backgroundColor = dc;
-
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                m_AimOrigin.isExpanded = MalbersEditor.Foldout(m_AimOrigin.isExpanded, "Aiming");
+                m_AimOrigin.isExpanded = MalbersEditor.Foldout(m_AimOrigin.isExpanded, "Aim Properties");
 
                 if (m_AimOrigin.isExpanded)
                 {
                     EditorGUILayout.PropertyField(m_AimOrigin);
-                    EditorGUILayout.PropertyField(aimAction);
-
-                    if (mShoot.aimAction != MShootable.AimingAction.Ignore)
-                    {
-                        EditorGUILayout.PropertyField(m_AimSide);
-                    }
+                    EditorGUILayout.PropertyField(m_AimSide);
+                    EditorGUILayout.PropertyField(CancelAim);
                     EditorGUILayout.PropertyField(AimLimit);
 
                     EditorGUILayout.PropertyField(UseAimAngle, new GUIContent("Use Aim Angle", " Adds a Throw Angle to the Aimer Direction?"));
@@ -1049,7 +717,6 @@ namespace MalbersAnimations.Weapons
                     {
                         EditorGUILayout.PropertyField(m_AimAngle, new GUIContent("Aim Angle", " Adds a Throw Angle to the Aimer Direction"));
                     }
-                    EditorGUILayout.PropertyField(m_UnequipOnAim);
                 }
             }
 
@@ -1059,65 +726,38 @@ namespace MalbersAnimations.Weapons
                 releaseProjectile.isExpanded = MalbersEditor.Foldout(releaseProjectile.isExpanded, "Projectile");
 
                 if (releaseProjectile.isExpanded)
-                { 
-                    EditorGUILayout.PropertyField(HasFireAnim);
-                    EditorGUILayout.PropertyField(equipProjectile);
+                {
                     EditorGUILayout.PropertyField(releaseProjectile);
-                    EditorGUILayout.PropertyField(releaseByAnimation);
-
-                    using (new EditorGUI.DisabledGroupScope(mShoot.ReleaseByAnimation))
-                        EditorGUILayout.PropertyField(releaseDelay);
-
-                 
 
                     if (releaseProjectile.intValue != 0)
                     {
-                        //EditorGUILayout.PropertyField(InstantiateProjectileOfFire,
-                        //    new GUIContent("Inst Projectile on Fire", "Instanciate the Projectile when Firing the weapon." +
-                        //    "\n E.g The Pistol Instantiate the projectile on Firing. The bow Instantiate the Arrow Before Firing"));
+                        EditorGUILayout.PropertyField(HasFireAnim);
+                        EditorGUILayout.PropertyField(InstantiateProjectileOfFire,
+                            new GUIContent("Inst Projectile on Fire", "Instanciate the Projectile when Firing the weapon." +
+                            "\n E.g The Pistol Instantiate the projectile on Firing. The bow Instantiate the Arrow Before Firing"));
                         EditorGUILayout.PropertyField(m_Projectile);
                         EditorGUILayout.PropertyField(ProjectileParent);
                     }
-                }
-
-                minForce.isExpanded = MalbersEditor.Foldout(minForce.isExpanded, "Projectile Speed and Physics");
-
-                if (minForce.isExpanded)
-                {
-                    EditorGUILayout.PropertyField(minForce, new GUIContent("Min", "Minimun Force Speed of the Projectile and force to apply to a hitted rigid body"));
-                    EditorGUILayout.PropertyField(Force, new GUIContent("Max", "Maximun Force Speed of the Projectile and force to apply to a hitted rigid body"));
-                    EditorGUILayout.PropertyField(forceMode);
-                    EditorGUILayout.PropertyField(gravity);
                 }
             }
 
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                HasReloadAnim.isExpanded = MalbersEditor.Foldout(HasReloadAnim.isExpanded, "Reload & Ammunition");
+                m_AutoReload.isExpanded = MalbersEditor.Foldout(m_AutoReload.isExpanded, "Ammunition");
 
-                if (HasReloadAnim.isExpanded)
+                if (m_AutoReload.isExpanded)
                 {
-                        EditorGUILayout.PropertyField(NoReload);
-                    if (!mShoot.noReload.Value)
+                    //EditorGUILayout.PropertyField(m_Automatic, new GUIContent("Automatic", "one shot at the time or Automatic"));
+                    EditorGUILayout.PropertyField(m_AutoReload, new GUIContent("Auto Reload", "The weapon will reload automatically when the Ammo in chamber is zero"));
+                    EditorGUILayout.PropertyField(HasReloadAnim, new GUIContent("Has Reload Anim", "If the Weapon have reload animation then Play it"));
+                    EditorGUILayout.PropertyField(m_ChamberSize, new GUIContent("Chamber Size", "Total of Ammo that can be shoot before reloading"));
+
+                    if (mShoot.ChamberSize > 1)
                     {
-                        EditorGUILayout.PropertyField(HasReloadAnim);
-                        EditorGUILayout.PropertyField(m_ReloadTime);
-                        EditorGUILayout.PropertyField(m_AutoReload);
-
-                        if (mShoot.AutoReload)
-                            EditorGUILayout.PropertyField(m_AutoReloadTime);
-
-                        EditorGUILayout.PropertyField(m_ChamberSize, new GUIContent("Chamber Size", "Total of Ammo that can be shoot before reloading"));
-
-                        if (mShoot.ChamberSize > 1)
-                        {
-                            EditorGUILayout.PropertyField(m_AmmoInChamber, new GUIContent("Ammo in Chamber", "Current ammo in the chamber"));
-                        }
-                        EditorGUILayout.PropertyField(m_Ammo, new GUIContent("Total Ammo", "Total ammo for the weapon. Set it to -1 to have infinity ammo"));
-
-                        EditorGUILayout.HelpBox("<Total Ammo = -1> means infinite Ammo", MessageType.Info);
+                        EditorGUILayout.PropertyField(m_AmmoInChamber, new GUIContent("Ammo in Chamber", "Current ammo in the chamber"));
                     }
+                    EditorGUILayout.PropertyField(m_Ammo, new GUIContent("Total Ammo", "Total ammo for the weapon. Set it to -1 to have infinity ammo"));
                 }
             }
         }

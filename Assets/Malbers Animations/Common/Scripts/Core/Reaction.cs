@@ -13,44 +13,37 @@ namespace MalbersAnimations.Reactions
         /// <summary>Get the Type of the reaction</summary>
         public abstract Type ReactionType { get; }
 
-        public void React(Component component) => TryReact(useLocalTarget ? LocalTarget : component);
+        public void React(Component component) => TryReact(component);
 
         public void React(GameObject go) => TryReact(go.transform);
 
-        [Tooltip("Enable or Disable the Reaction")]
+        [Tooltip("Temporally Enable or Disable the Reaction")]
         [HideInInspector] public bool Active = true;
 
-        [Tooltip("If local is true, the component used for the reaction will not change when you send a Dynamic value")]
-        public bool useLocalTarget;
+        [Min(0)]public float delay = 0;
 
-        [Hide("useLocalTarget")]
-        [Tooltip("Local component to apply the reaction\n Make sure the Component is the correct Type!!")]
-        [SerializeField,RequiredField] protected Component LocalTarget;
+        [Tooltip("The component assigned is verified. Which means is the Correct type")]
+        protected Component Verified;
 
-        [Tooltip("Delay the Reaction this ammount of seconds")]
-        [Min(0)] public float delay = 0;
 
         /// <summary>  Checks and find the correct component to apply a reaction  </summary>  
         public Component VerifyComponent(Component component)
         {
             Component TrueComponent;
 
-            //Find if the component is the same 
-            if (ReactionType.IsAssignableFrom(component.GetType())) 
+            if (ReactionType.IsAssignableFrom(component.GetType()))
             {
                 TrueComponent = component;
             }
             else
             {
-                //Debug.Log($"Component {component.name} REACTION TYPE: {ReactionType.Name}");
+                TrueComponent = component.GetComponentInParent(ReactionType);
 
-                TrueComponent = component.GetComponent(ReactionType);
-               
-                if (TrueComponent == null)
-                    TrueComponent = component.GetComponentInParent(ReactionType);
                 if (TrueComponent == null)
                     TrueComponent = component.GetComponentInChildren(ReactionType);
             }
+
+            Verified = TrueComponent; //Store if that component is verified.
 
             return TrueComponent;
         }
@@ -60,38 +53,24 @@ namespace MalbersAnimations.Reactions
             if (Active && component != null)
             {
                 //Check if the component is the correct component.. a first time
-                if (LocalTarget == null || LocalTarget != component)
+                if (Verified == null || Verified != component)
                 {
-                    LocalTarget = VerifyComponent(component);
-                    if (LocalTarget == null) return false;
+                    Verified = VerifyComponent(component);
+                    if (Verified == null) return false;
                 }
 
                 //If the Reaction has a Delay
                 if (delay > 0 && component.TryGetComponent<MonoBehaviour>( out var Mono))
                 {
-                    Mono.Delay_Action(delay, () => _TryReact(LocalTarget));
+                    Mono.Delay_Action(delay, () => _TryReact(Verified));
                     return true;
                 }
                 else
                 {
-                    return _TryReact(LocalTarget);
+                    return _TryReact(Verified);
                 }
             }
             return false;
-        }
-
-        //React to multiple components
-        public bool TryReact(params Component[] components)
-        {
-            if (Active && components != null && components.Length>0)
-            {
-                foreach (var component in components)
-                {
-                    var comp = VerifyComponent(component);
-                   _TryReact(comp);
-                }
-            }
-            return true;
         }
     }
 }

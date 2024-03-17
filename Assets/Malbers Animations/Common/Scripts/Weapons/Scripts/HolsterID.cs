@@ -7,7 +7,7 @@ using UnityEngine.Events;
 namespace MalbersAnimations
 {
     [System.Serializable]
-    [CreateAssetMenu(menuName = "Malbers Animations/ID/Holster", fileName = "New Holster ID", order = -1000)]
+    [UnityEngine.CreateAssetMenu(menuName = "Malbers Animations/ID/Holster", fileName = "New Holster ID", order = -1000)]
     public class HolsterID : IDs { }
 
 
@@ -25,7 +25,7 @@ namespace MalbersAnimations
         public MWeapon Weapon;
 
         [Tooltip("Input to Equip the weapon in the holster")]
-        public StringReference Input = new();
+        public StringReference Input = new StringReference();
 
         [Tooltip("If the weapon is added to the holster then it will be equipped on the Hand automatically")]
         public BoolReference AutoEquip = new();
@@ -33,7 +33,7 @@ namespace MalbersAnimations
         /// <summary> Used to connect the Inputs to the Abilities instead of the General Mode </summary>
         public UnityAction<bool> InputListener;
 
-        public WeaponEvent OnWeaponInHolster = new();
+        public WeaponEvent OnWeaponInHolster = new WeaponEvent();
 
         public int GetID => ID != null ? ID.ID : 0;
 

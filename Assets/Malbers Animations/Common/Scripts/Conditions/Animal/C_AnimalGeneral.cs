@@ -23,7 +23,7 @@
                     case AnimalCondition.Sleep: return Target.Sleep;
                     case AnimalCondition.AdditivePosition: return Target.UseAdditivePos;
                     case AnimalCondition.AdditiveRotation: return Target.UseAdditiveRot;
-                    case AnimalCondition.InZone: return Target.InZone;
+                    case AnimalCondition.InZone: return Target.InZone != null;
                     case AnimalCondition.InGroundChanger: return Target.GroundChanger != null;
                 }
             }

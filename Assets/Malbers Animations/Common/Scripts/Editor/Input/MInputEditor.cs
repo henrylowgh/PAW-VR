@@ -16,13 +16,13 @@ namespace MalbersAnimations
         protected SerializedProperty
             inputs, showInputEvents, IgnoreOnPause, OnInputEnabled, 
             
-            ActiveMapIndex, actionMaps, ActiveMap, DefaultMap, ResetAllInputsOnDisable, DefaultIndex,
+            ActiveMapIndex, actionMaps, ActiveMap, DefaultMap, ResetAllInputsOnDisable,
 
 
             OnInputDisableds, OnInputDisabled, ResetOnFocusLost;
         private MInput _M;
 
-        private readonly Dictionary<string, ReorderableList> innerListDict = new ();
+        private Dictionary<string, ReorderableList> innerListDict = new Dictionary<string, ReorderableList>();
         string[] ActionMapsNames;
 
 
@@ -44,9 +44,6 @@ namespace MalbersAnimations
             ActiveMapIndex = serializedObject.FindProperty("ActiveMapIndex");
             actionMaps = serializedObject.FindProperty("actionMaps");
             DefaultMap = serializedObject.FindProperty("DefaultMap");
-
-            DefaultIndex = DefaultMap.FindPropertyRelative("selectedIndex");
-
             ResetAllInputsOnDisable = serializedObject.FindProperty("ResetAllInputsOnDisable");
 
 
@@ -54,12 +51,7 @@ namespace MalbersAnimations
             {
                 drawElementCallback = DrawElementCallback,
                 drawHeaderCallback = HeaderCallbackDelegate,
-                onAddCallback = OnAddCallBack,
-               
-                onSelectCallback = (list) =>
-                {
-                    DefaultIndex.intValue = list.index;
-                }
+                onAddCallback = OnAddCallBack
             };
 
             ActionMapsNames = new string[1]; // Set the first one as One 
@@ -67,11 +59,6 @@ namespace MalbersAnimations
 
 
             showOnPlayMode = false;
-
-            //foreach (var item in _M.actionMaps)
-            //{
-            //    item.selectedIndex;
-            //}
         }
 
         public override void OnInspectorGUI()
@@ -102,8 +89,7 @@ namespace MalbersAnimations
 
                 using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                 {
-                    showInputEvents.boolValue = MalbersEditor.Foldout(showInputEvents.boolValue, "Events");
-                    if (showInputEvents.boolValue)
+                    if (MalbersEditor.Foldout(showInputEvents, "Events"))
                     {
                         EditorGUILayout.PropertyField(OnInputEnabled);
                         EditorGUILayout.PropertyField(OnInputDisabled);
@@ -151,6 +137,7 @@ namespace MalbersAnimations
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
+
                 if (_M.actionMaps.Count>0)
                 {
                     EditorGUILayout.LabelField("Use the method SetMap(name) to switch Input Maps",MalbersEditor.DescriptionStyle);
@@ -206,14 +193,9 @@ namespace MalbersAnimations
                         }
                     }
                 }
-
-
-
                 if (ActiveMapIndex.intValue == 0) //Draw Default Input Map
                 {
                     list.DoLayoutList();
-
-                    list.index = DefaultIndex.intValue;
 
                     var Index = list.index;
 
@@ -253,9 +235,13 @@ namespace MalbersAnimations
                             }
                         }
                     }
+
+
                     DrawActionMapList(selectedMap, index);
                 }
             }
+
+          
         }
 
         private void DrawActionMapList(SerializedProperty selectedMap, int inputIndex)
@@ -264,7 +250,6 @@ namespace MalbersAnimations
 
             var inputs = selectedMap.FindPropertyRelative("inputs");
             var element = _M.actionMaps[inputIndex].inputs;
-            var index = selectedMap.FindPropertyRelative("selectedIndex");
 
             string listKey = inputs.propertyPath;
 
@@ -283,16 +268,9 @@ namespace MalbersAnimations
                         var elementSer = inputs.GetArrayElementAtIndex(index);
                         rect.y += 2;
 
-                        var dbC = GUI.backgroundColor;
-                        GUI.backgroundColor = isActive ? MTools.MBlue : dbC;
-
                         var activeRect = new Rect(rect.x, rect.y, 20, EditorGUIUtility.singleLineHeight);
                         element[index].active.Value = EditorGUI.Toggle(activeRect, element[index].active.Value);
-                       
-                        
                         DrawRow(rect, elementSer);
-                        GUI.backgroundColor = dbC;
-
                     },
 
                     onAddCallback = (list) =>
@@ -310,11 +288,6 @@ namespace MalbersAnimations
 
                         selectedMap.serializedObject.ApplyModifiedProperties();
                         EditorUtility.SetDirty(target);
-                    },
-                    onSelectCallback = (list) =>
-                    {
-                      
-                        index.intValue = list.index;
                     }
                 };
 
@@ -323,12 +296,12 @@ namespace MalbersAnimations
 
             Reo_AbilityList.DoLayoutList();
 
+            int SelectedAbility = Reo_AbilityList.index;
 
-            Reo_AbilityList.index = index.intValue;
 
-            if (index.intValue != -1 && index.intValue < inputs.arraySize)
+            if (SelectedAbility != -1 && SelectedAbility < inputs.arraySize)
             {
-                DrawInputEvents(inputs.GetArrayElementAtIndex(index.intValue));
+                DrawInputEvents(inputs.GetArrayElementAtIndex(SelectedAbility));
             }
         }
 
@@ -336,15 +309,15 @@ namespace MalbersAnimations
         {
             if (Element == null) return;
 
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(Element, new GUIContent($"[{Element.displayName}] Input"), false);
                 EditorGUI.indentLevel--;
 
-                //  var inputname =  Element.FindPropertyRelative("name").stringValue;
-                //  Element.isExpanded = MalbersEditor.Foldout(Element.isExpanded, $" [{inputname}] Input");
-
+              //  var inputname =  Element.FindPropertyRelative("name").stringValue;
+              //  Element.isExpanded = MalbersEditor.Foldout(Element.isExpanded, $" [{inputname}] Input");
+                
                 if (Element.isExpanded)
                 {
 
@@ -357,18 +330,15 @@ namespace MalbersAnimations
                     var OnInputEnable = Element.FindPropertyRelative("OnInputEnable");
                     var OnInputDisable = Element.FindPropertyRelative("OnInputDisable");
                     var ResetOnDisable = Element.FindPropertyRelative("ResetOnDisable");
-                    var ignoreOnPause = Element.FindPropertyRelative("ignoreOnPause");
 
                     using (new GUILayout.HorizontalScope())
                     {
                         EditorGUILayout.PropertyField(active);
                         MalbersEditor.DrawDebugIcon(debug);
                     }
-
                     EditorGUILayout.PropertyField(ResetOnDisable);
-                    EditorGUILayout.PropertyField(ignoreOnPause);
                     EditorGUILayout.Space();
-                    // EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
+                   // EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
 
                     InputButton GetPressed = (InputButton)Element.FindPropertyRelative("GetPressed").enumValueIndex;
 
@@ -408,10 +378,10 @@ namespace MalbersAnimations
                             EditorGUILayout.PropertyField(OnInputChanged);
                             break;
                         case InputButton.Toggle:
-                            EditorGUILayout.PropertyField(OnInputChanged, new GUIContent("On Input Toggle"));
-                            EditorGUILayout.PropertyField(OnInputDown, new GUIContent("On Toggle On"));
-                            EditorGUILayout.PropertyField(OnInputUp, new GUIContent("On Toggle Off"));
-                            break;
+                            EditorGUILayout.PropertyField(OnInputChanged,  new GUIContent("On Input Toggle"));
+                            EditorGUILayout.PropertyField(OnInputDown,  new GUIContent("On Toggle On"));
+                            EditorGUILayout.PropertyField(OnInputUp,  new GUIContent("On Toggle Off"));
+                            break;  
                         case InputButton.Axis:
                             EditorGUILayout.PropertyField(Element.FindPropertyRelative("OnInputFloat"), new GUIContent("On Axis Value Changed"));
                             EditorGUILayout.PropertyField(OnInputChanged);
@@ -423,18 +393,25 @@ namespace MalbersAnimations
                             break;
                     }
 
-                    EditorGUILayout.PropertyField(OnInputEnable, new GUIContent("On [" + Element.displayName + "] Enabled"));
-                    EditorGUILayout.PropertyField(OnInputDisable, new GUIContent("On [" + Element.displayName + "] Disabled"));
+                    OnInputEnable.isExpanded = MalbersEditor.Foldout(OnInputEnable.isExpanded, $"[{Element.displayName}] Enable/Disable");
+
+                    if (OnInputEnable.isExpanded)
+                    {
+                        EditorGUILayout.PropertyField(OnInputEnable, new GUIContent("On [" + Element.displayName + "] Enabled"));
+                        EditorGUILayout.PropertyField(OnInputDisable, new GUIContent("On [" + Element.displayName + "] Disabled"));
+                    }
                 }
             }
+            EditorGUILayout.EndVertical();
         }
 
         protected void HeaderCallbackDelegate(Rect rect)
         {
-            Rect R_1 = new(rect.x + 20, rect.y, (rect.width - 20) / 4 + 12, EditorGUIUtility.singleLineHeight);
-            Rect R_2 = new(rect.x + (rect.width - 20) / 4 + 35, rect.y, (rect.width - 20) / 4 - 20, EditorGUIUtility.singleLineHeight);
-            Rect R_3 = new(rect.x + ((rect.width - 20) / 4) * 2 + 18, rect.y, ((rect.width - 30) / 4) + 11, EditorGUIUtility.singleLineHeight);
-            Rect R_4 = new(rect.x + ((rect.width) / 4) * 3 + 15, rect.y, ((rect.width) / 4) - 15, EditorGUIUtility.singleLineHeight);
+
+            Rect R_1 = new Rect(rect.x + 20, rect.y, (rect.width - 20) / 4 + 12, EditorGUIUtility.singleLineHeight);
+            Rect R_2 = new Rect(rect.x + (rect.width - 20) / 4 + 35, rect.y, (rect.width - 20) / 4 - 20, EditorGUIUtility.singleLineHeight);
+            Rect R_3 = new Rect(rect.x + ((rect.width - 20) / 4) * 2 + 18, rect.y, ((rect.width - 30) / 4) + 11, EditorGUIUtility.singleLineHeight);
+            Rect R_4 = new Rect(rect.x + ((rect.width) / 4) * 3 + 15, rect.y, ((rect.width) / 4) - 15, EditorGUIUtility.singleLineHeight);
 
             EditorGUI.LabelField(R_1, "   Name", EditorStyles.boldLabel);
             EditorGUI.LabelField(R_2, "   Type", EditorStyles.boldLabel);
@@ -449,21 +426,20 @@ namespace MalbersAnimations
             var elementSer = inputs.GetArrayElementAtIndex(index);
 
             rect.y += 2;
-
-            var dbC = GUI.backgroundColor;
-            GUI.backgroundColor = isActive ? MTools.MBlue : dbC;
             element.active.Value = EditorGUI.Toggle(new Rect(rect.x, rect.y, 20, EditorGUIUtility.singleLineHeight), element.active.Value);
-            DrawRow(rect, elementSer);
-            GUI.backgroundColor = dbC;
 
+            DrawRow(rect, elementSer);
         }
 
         private static void DrawRow(Rect rect, SerializedProperty elementSer)
         {
-            Rect R_1 = new(rect.x + 20, rect.y, (rect.width - 20) / 4 + 12, EditorGUIUtility.singleLineHeight);
-            Rect R_2 = new(rect.x + (rect.width - 20) / 4 + 35, rect.y, (rect.width - 20) / 4 - 20, EditorGUIUtility.singleLineHeight);
-            Rect R_3 = new(rect.x + ((rect.width - 20) / 4) * 2 + 18, rect.y, ((rect.width - 30) / 4) + 11, EditorGUIUtility.singleLineHeight);
-            Rect R_4 = new(rect.x + ((rect.width) / 4) * 3 + 15, rect.y, ((rect.width) / 4) - 15, EditorGUIUtility.singleLineHeight);
+            Rect R_1 = new Rect(rect.x + 20, rect.y, (rect.width - 20) / 4 + 12, EditorGUIUtility.singleLineHeight);
+            Rect R_2 = new Rect(rect.x + (rect.width - 20) / 4 + 35, rect.y, (rect.width - 20) / 4 - 20, EditorGUIUtility.singleLineHeight);
+            Rect R_3 = new Rect(rect.x + ((rect.width - 20) / 4) * 2 + 18, rect.y, ((rect.width - 30) / 4) + 11, EditorGUIUtility.singleLineHeight);
+            Rect R_4 = new Rect(rect.x + ((rect.width) / 4) * 3 + 15, rect.y, ((rect.width) / 4) - 15, EditorGUIUtility.singleLineHeight);
+
+
+          //  Rect R_5 = new Rect(rect.width, rect.y,15, EditorGUIUtility.singleLineHeight);
 
 
 
@@ -473,9 +449,7 @@ namespace MalbersAnimations
             var key = elementSer.FindPropertyRelative("key");
             var GetPressed = elementSer.FindPropertyRelative("GetPressed");
 
-          
-
-            //  EditorGUI.PropertyField(R_5, elementSer);
+          //  EditorGUI.PropertyField(R_5, elementSer);
 
             EditorGUI.PropertyField(R_1, name, GUIContent.none);
             //name.stringValue = EditorGUI.TextField(R_1, name.stringValue, EditorStyles.textField);
@@ -506,8 +480,9 @@ namespace MalbersAnimations
         protected void OnAddCallBack(ReorderableList list)
         {
             Undo.RecordObject(target, "Add New Input");
+            if (_M.inputs == null)
+                _M.inputs = new System.Collections.Generic.List<InputRow>();
             
-            _M.inputs ??= new();
             _M.inputs.Add(new InputRow("New", "InputValue", KeyCode.Alpha0, InputButton.Press, InputType.Input));
 
             serializedObject.ApplyModifiedProperties();

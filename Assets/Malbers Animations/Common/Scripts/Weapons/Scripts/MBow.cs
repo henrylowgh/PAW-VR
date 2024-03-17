@@ -50,8 +50,8 @@ namespace MalbersAnimations.Weapons
             set
             {
                 base.IsAiming = value;
-
-                if (!value) 
+                
+                if (!value && CancelAim !=  Cancel_Aim.ReleaseProjectile)
                 {
                     DestroyProjectileInstance(); //IF you finish aiming then destroy the Instance of the projectile
                 }
@@ -67,10 +67,6 @@ namespace MalbersAnimations.Weapons
                 base.IsEquiped = value;
 
                 if (value) BowKnotToHand(false);//Restore the Knot when the weapon is equipped for the first time
-                else
-                {
-                    DestroyProjectileInstance(); //IF you unequip the bow then destroy the Instance of the projectile
-                }
             }
         }
 
@@ -135,30 +131,22 @@ namespace MalbersAnimations.Weapons
         /// <summary> Called by the Animator</summary>
         public virtual void BowKnotToHand(bool enabled)
         {
-           // Debug.Log("BowKnotToHand = " + enabled);
+            //Debug.Log("BowKnotToHand = " + enabled);
             FreeHand = !enabled;
             KnotToHand = enabled;
-            if (!KnotToHand)
-            {
-                RestoreKnot();
-            }
+            if (!KnotToHand) RestoreKnot();
         }
 
         /// <summary>Updates the BowKnot position in the center of the hand if is active</summary>
         protected void BowKnotInHand(IMWeaponOwner RC)
         {
-            if (RC == null) return;
-            if (!RC.StoreWeapon && !RC.DrawWeapon && KnotToHand)
-
+            if (KnotToHand)
             {
                 knot.position = IsRightHanded ?
                     RC.LeftHand.TransformPoint(KnotHandOffset) :
                     RC.RightHand.TransformPoint(KnotHandOffset);
 
-                //knot.SetPositionAndRotation(IsRightHanded ?
-                //    RC.LeftHand.TransformPoint(KnotHandOffset) :
-                //    RC.RightHand.TransformPoint(KnotHandOffset),
-                //    Quaternion.LookRotation((AimOrigin.position - knot.position).normalized, -Gravity));
+                knot.rotation = Quaternion.LookRotation((AimOrigin.position - knot.position).normalized, -Gravity);
             }
         }
 
@@ -197,22 +185,14 @@ namespace MalbersAnimations.Weapons
         {
             base.ResetCharge();
             BendBow(0);
-            if (Sounds.Length > 5 && m_audio.isPlaying && m_audio.clip == Sounds[5]) m_audio.Stop();
+            if (Sounds.Length > 5 && WeaponSound.isPlaying && WeaponSound.clip == Sounds[5]) WeaponSound.Stop();
         }
          
 
         internal override void Weapon_LateUpdate(IMWeaponOwner RC)
         {
             base.Weapon_LateUpdate(RC);
-           
-         
             BowKnotInHand(RC);
-            knot.rotation = Quaternion.LookRotation((AimOrigin.position - knot.position).normalized, -Gravity); //Align
-        }
-
-        internal override void StoringWeapon()
-        {
-            RestoreKnot();
         }
 
         /// CallBack from the RiderCombat Layer in the Animator to reproduce a sound on the weapon
@@ -222,21 +202,21 @@ namespace MalbersAnimations.Weapons
             {
                 var newSound = Sounds[ID];
 
-                if (m_audio && !playingSound && gameObject.activeInHierarchy)
+                if (WeaponSound && !playingSound && gameObject.activeInHierarchy)
                 {
                     if (ID == 5 && CanCharge)                                    //THIS IS THE SOUND FOR BEND THE BOW
                     {
-                        m_audio.pitch = 1.03f / ChargeTime;
+                        WeaponSound.pitch = 1.03f / ChargeTime;
                         StartCoroutine(BowChargeTimePlay(newSound));
                     }
                     else
                     {
-                        m_audio.Stop();
-                        m_audio.pitch = 1;
+                        WeaponSound.Stop();
+                        WeaponSound.pitch = 1;
                         //HACK FOR THE SOUND
                         this.Delay_Action(2, () =>
                         {
-                            m_audio.PlayOneShot(newSound);
+                            WeaponSound.PlayOneShot(newSound);
                             playingSound = false;
                         }
                         );
@@ -249,7 +229,7 @@ namespace MalbersAnimations.Weapons
         {
             while (ChargedNormalized == 0) yield return null;
 
-            m_audio.PlayOneShot(sound);
+            WeaponSound.PlayOneShot(sound);
         }
 
         public override void ResetWeapon()
@@ -279,7 +259,7 @@ namespace MalbersAnimations.Weapons
     [CanEditMultipleObjects, CustomEditor(typeof(MBow))]
     public class MBowEditor : MShootableEditor
     {
-        readonly string[] axis = { "+X", "-X", "+Y", "-Y", "+Z", "-Z" };
+        string[] axis = { "+X", "-X", "+Y", "-Y", "+Z", "-Z" };
         SerializedProperty
               UpperBn, LowerBn, UpperIndex, BowTension, LowerIndex, MaxTension, DefaultPosKnot, knot, MaxArmTension, KnotHandOffset,
               BonesFoldout, RotUpperDir, RotLowerDir, BowIsSet;
@@ -334,7 +314,7 @@ namespace MalbersAnimations.Weapons
             //First Tabs
             int Selection = Editor_Tabs1.intValue;
             if (Selection == 0) DrawWeapon(showAim);
-            else if (Selection == 1) { DrawDamage(); DrawStatModifiers(); }
+            else if (Selection == 1) DrawDamage();
             else if (Selection == 2) DrawIK();
             else if (Selection == 3) DrawExtras();
 
@@ -351,69 +331,63 @@ namespace MalbersAnimations.Weapons
 
         protected void DrawBow()
         {
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            BonesFoldout.boolValue = EditorGUILayout.Foldout(BonesFoldout.boolValue, new GUIContent("Bow Joints", "All References for the Bow Bones"));
+            if (BonesFoldout.boolValue)
             {
-                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(knot, new GUIContent("Knot", "Transform reference for the Bow middle String point"));
+                EditorGUILayout.PropertyField(KnotHandOffset, new GUIContent("Knot Hand Offset", "Offset to Position the Knot to the Hand"));
 
-                BonesFoldout.boolValue = EditorGUILayout.Foldout(BonesFoldout.boolValue, new GUIContent("Bow Joints", "All References for the Bow Bones"));
-                if (BonesFoldout.boolValue)
+                if (knot.objectReferenceValue != null)
                 {
-                    EditorGUILayout.PropertyField(knot, new GUIContent("Knot", "Transform reference for the Bow middle String point"));
-                    EditorGUILayout.PropertyField(KnotHandOffset, new GUIContent("Knot Hand Offset", "Offset to Position the Knot to the Hand"));
+                    EditorGUILayout.BeginHorizontal();
 
-                    if (knot.objectReferenceValue != null)
+
+                    if (!Application.isPlaying) EditorGUILayout.PropertyField(DefaultPosKnot, new GUIContent("Def Knot Pos"));
+
+                    if (GUILayout.Button(new GUIContent("C", "Calculate the default position of the Knot Point"), EditorStyles.miniButton, GUILayout.Width(18)))
                     {
-                        using (new GUILayout.HorizontalScope())
-
-                        {
-                                using (new EditorGUI.DisabledGroupScope(Application.isPlaying))
-                                    EditorGUILayout.PropertyField(DefaultPosKnot, new GUIContent("Def Knot Pos"));
-
-                            if (GUILayout.Button(new GUIContent("D", "Sets the Default position of the Knot Point"), EditorStyles.miniButton, GUILayout.Width(25)))
-                            {
-                                DefaultPosKnot.vector3Value = (knot.objectReferenceValue as Transform).localPosition;
-                            }
-                        }
+                        DefaultPosKnot.vector3Value = (knot.objectReferenceValue as Transform).localPosition;
                     }
-                    using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-                    {
-                        EditorGUILayout.PropertyField(UpperBn, new GUIContent("Upper Chain", "Upper bone chain of the bow"), true);
-                        EditorGUILayout.PropertyField(LowerBn, new GUIContent("Lower Chain", "Lower bone chain of the bow"), true);
-                    }
+                    EditorGUILayout.EndHorizontal();
                 }
-                EditorGUI.indentLevel--;
-
-                if (GUILayout.Button("Store Initial Bow Position|Rotation"))
-                {
-                    mBow.SerializeBow();
-                    EditorUtility.SetDirty(mBow);
-                    serializedObject.ApplyModifiedProperties();
-                }
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.PropertyField(UpperBn, new GUIContent("Upper Chain", "Upper bone chain of the bow"), true);
+                EditorGUILayout.PropertyField(LowerBn, new GUIContent("Lower Chain", "Lower bone chain of the bow"), true);
+                EditorGUILayout.EndVertical();
             }
+            EditorGUI.indentLevel--;
 
-
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            if (GUILayout.Button("Store Initial Bow Position|Rotation"))
             {
-                UpperIndex.intValue = EditorGUILayout.Popup("Upper Rot Axis", UpperIndex.intValue, axis);
-                LowerIndex.intValue = EditorGUILayout.Popup("Lower Rot Axis", LowerIndex.intValue, axis);
+                mBow.SerializeBow();
+                EditorUtility.SetDirty(mBow);
+                serializedObject.ApplyModifiedProperties();
             }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            UpperIndex.intValue = EditorGUILayout.Popup("Upper Rot Axis", UpperIndex.intValue, axis);
+            LowerIndex.intValue = EditorGUILayout.Popup("Lower Rot Axis", LowerIndex.intValue, axis);
+            EditorGUILayout.EndVertical();
 
             RotUpperDir.vector3Value = Axis(UpperIndex.intValue);
             RotLowerDir.vector3Value = Axis(LowerIndex.intValue);
 
             EditorGUI.BeginChangeCheck();
             {
-                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-                {
-                    EditorGUILayout.PropertyField(MaxTension, new GUIContent("Max Tension", "Max Angle that the Bow can Bent"));
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.PropertyField(MaxTension, new GUIContent("Max Tension", "Max Angle that the Bow can Bent"));
 
-                    if (BowIsSet.boolValue)
-                    {
-                        EditorGUILayout.PropertyField(BowTension, new GUIContent("Bow Tension (P)", "Previews the Bow tension"));
-                        if (BowTension.floatValue > 0)
-                            EditorGUILayout.HelpBox("This is for visual purpose only, please return the Bow Tension to 0", MessageType.Warning);
-                    }
+                if (BowIsSet.boolValue)
+                {
+                    EditorGUILayout.PropertyField(BowTension, new GUIContent("Bow Tension (P)", "Previews the Bow tension"));
+                    if (BowTension.floatValue > 0)
+                        EditorGUILayout.HelpBox("This is for visual purpose only, please return the Bow Tension to 0", MessageType.Warning);
                 }
+                EditorGUILayout.EndVertical();
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -424,6 +398,11 @@ namespace MalbersAnimations.Weapons
 
                 EditorUtility.SetDirty(mBow);
             }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(target, "MBow Inspector");
+            }
         }
 
         protected override string CustomEventsHelp()
@@ -432,16 +411,16 @@ namespace MalbersAnimations.Weapons
         }
         Vector3 Axis(int Index)
         {
-            return Index switch
+            switch (Index)
             {
-                0 => Vector3.right,
-                1 => -Vector3.right,
-                2 => Vector3.up,
-                3 => -Vector3.up,
-                4 => Vector3.forward,
-                5 => -Vector3.forward,
-                _ => Vector3.zero,
-            };
+                case 0: return Vector3.right;
+                case 1: return -Vector3.right;
+                case 2: return Vector3.up;
+                case 3: return -Vector3.up;
+                case 4: return Vector3.forward;
+                case 5: return -Vector3.forward;
+                default: return Vector3.zero;
+            }
         }
     }
 

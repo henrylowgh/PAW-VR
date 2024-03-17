@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace MalbersAnimations.Controller.AI
 {
-    [CreateAssetMenu(menuName = "Malbers Animations/Pluggable AI/Decision/Is Target in RuntimeSet", order = 4)]
     public class IsTargetInSetDecision : MAIDecision
     {
         public override string DisplayName => "Runtime Set/Is Target in RuntimeSet";

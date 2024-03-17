@@ -120,10 +120,9 @@ namespace MalbersAnimations
 
             }
 
-            if (StopJoyStick.Value && DragRegistered > 1 && AxisValue != Vector2.zero)
+            if (StopJoyStick.Value && DragRegistered > 1)
             {
                 AxisValue = Vector3.zero;
-                DragRegistered = 0;
             }
         }
 

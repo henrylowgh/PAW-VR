@@ -5,10 +5,9 @@ using UnityEngine;
 namespace MalbersAnimations
 {
     [System.Serializable] //Needs to be Serializable!!!!
-    [AddTypeMenu("Unity/Collider")]
+    [AddTypeMenu("Unity Reactions/Collider")]
     public class ColliderReaction : Reaction
     {
-     
         public override System.Type ReactionType => typeof(Collider); //set the Type of component this Reaction Needs
 
         public enum ColliderOption { Enable = 1, IsTrigger = 2, Material = 4 }

@@ -121,8 +121,6 @@ MonoBehaviour:
   direction: 0
   arcsCount: 12
   LookAtTarget: 1
-  FleeForever: 1
-  StopOnArrive: 1
   debugColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.25}
 --- !u!114 &-2837369975722798056
 MonoBehaviour:
@@ -181,8 +179,6 @@ MonoBehaviour:
   GizmoStateColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
-  TasksIndex: 0
-  DecisionIndex: -1
 --- !u!114 &5873187726266594735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -208,7 +204,6 @@ MonoBehaviour:
   Weapon: {fileID: 0}
   HolsterID: {fileID: 11400000, guid: 8be06e7fc27c57c4e82d4a5cafd76296, type: 2}
   AimValue: 1
-  IgnoreDrawStore: 0
 --- !u!114 &9002399122284257095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -234,4 +229,3 @@ MonoBehaviour:
   Weapon: {fileID: 0}
   HolsterID: {fileID: 0}
   AimValue: 1
-  IgnoreDrawStore: 0

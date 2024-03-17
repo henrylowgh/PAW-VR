@@ -17,39 +17,28 @@ namespace MalbersAnimations.Controller
     [AddComponentMenu("Malbers/Animal Controller/Animal")]
     public partial class MAnimal : MonoBehaviour,
         IAnimatorListener, ICharacterMove, IGravity, IObjectCore,
-        IRandomizer, IMAnimator, ISleepController, IMDamagerSet, ILockCharacter,
-        IAnimatorStateCycle, ICharacterAction, IDeltaRootMotion
+        IRandomizer, IMAnimator, ISleepController, IMDamagerSet,
+        IAnimatorStateCycle, ICharacterAction
     {
         //Animal Variables: All variables
         //Animal Movement:  All Locomotion Logic
         //Animal CallBacks: All public methods and behaviors that it can be called outside the script
 
         #region Editor Show 
-
-        [HideInInspector, SerializeField] private bool ShowOnPlay;
         [HideInInspector, SerializeField] private int PivotPosDir;
+        [HideInInspector, SerializeField] private int SelectedMode;
         [HideInInspector, SerializeField] private int SelectedState;
         [HideInInspector, SerializeField] private int SelectedStance;
 
         [HideInInspector, SerializeField] internal bool ShowStateInInspector = false;
 
-#pragma warning disable 414
         [HideInInspector, SerializeField] private int Editor_Tabs1;
         [HideInInspector, SerializeField] private int Editor_Tabs2;
-
-
-        //Modes
-        [HideInInspector, SerializeField] private int SelectedMode;
         [HideInInspector, SerializeField] private int Mode_Tabs1;
         [HideInInspector, SerializeField] private int Ability_Tabs;
         [HideInInspector, SerializeField] private int Editor_EventTabs;
 
-        //Inspector Variables
         [HideInInspector, SerializeField] private bool showPivots = true;
-        [HideInInspector, SerializeField] private bool showModeList = true;
-        [HideInInspector, SerializeField] private bool showStateList = true;
-#pragma warning restore 414
-        
         [HideInInspector, SerializeField] internal bool debugStates;
         [HideInInspector, SerializeField] internal bool debugStances;
         [HideInInspector, SerializeField] internal bool debugModes;
@@ -60,6 +49,7 @@ namespace MalbersAnimations.Controller
           #endregion
 
 #if UNITY_EDITOR
+
         private void OnValidate()
         {
             if (Anim == null) Anim = GetComponentInParent<Animator>();   //Cache the Animator
@@ -110,9 +100,9 @@ namespace MalbersAnimations.Controller
 
             pivots = new List<MPivots>
             {
-                new("Hip", new Vector3(0,0.7f,-0.7f), 1),
-                new("Chest", new Vector3(0,0.7f,0.7f), 1),
-                new("Water", new Vector3(0,1,0), 0.05f)
+                new MPivots("Hip", new Vector3(0,0.7f,-0.7f), 1),
+                new MPivots("Chest", new Vector3(0,0.7f,0.7f), 1),
+                new MPivots("Water", new Vector3(0,1,0), 0.05f)
             };
 
 
@@ -290,9 +280,6 @@ namespace MalbersAnimations.Controller
                 Debug.Log("<B>" + EventName + "</B> Added to the Event Listeners");
             }
         }
-
-#if MALBERS_DEBUG
-         
         private void OnDrawGizmosSelected()
         {
             if (!debugGizmos) return;
@@ -330,7 +317,7 @@ namespace MalbersAnimations.Controller
 
             if (!debugGizmos) return;
 
-            if (states.Count > 1 && states.Count > SelectedState)
+            if (states.Count > 1)
                 states[SelectedState]?.StateGizmos(this);
 
             if (Application.isPlaying)
@@ -368,19 +355,7 @@ namespace MalbersAnimations.Controller
             }
         }
 #endif
-#endif
     }
 
     [System.Serializable] public class AnimalEvent : UnityEvent<MAnimal> { }
-
-    public enum Stance_Reaction
-    {
-        Set,
-        SetPersistent,
-        Toggle,
-        SetDefault,
-        Reset,
-        ResetPersistent,
-        RestoreDefault,
-    }
 }

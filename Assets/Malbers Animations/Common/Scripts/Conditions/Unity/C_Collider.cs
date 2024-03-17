@@ -42,9 +42,11 @@ namespace MalbersAnimations.Conditions
             return false;
         }
 
-        protected override void _SetTarget(Object target) =>  VerifyTarget(target, ref Target);
-
-
+        public override void SetTarget(Object target)
+        {
+            if (target is Collider) this.Target = target as Collider;
+        }
+         
         private void Reset() => Name = "New Collider Condition";
     }
 

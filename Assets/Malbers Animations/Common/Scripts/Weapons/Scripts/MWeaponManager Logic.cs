@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MalbersAnimations 
+namespace MalbersAnimations
 {
     ///──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     /// LOGIC
@@ -13,7 +13,6 @@ namespace MalbersAnimations
         #region INITIALIZE
         /// <summary>Get all the Animator Parameters the Animal Controller has</summary>
         private List<int> animatorHashParams;
-
         protected virtual void Awake()
         {
             if (Anim == null)
@@ -75,8 +74,6 @@ namespace MalbersAnimations
             IsRiding = MountingDismounting = false;
 
             ResetWeaponManager();
-
-
         }
         private void OnDisable()
         {
@@ -101,9 +98,6 @@ namespace MalbersAnimations
             SetIntParameter -= SetAnimParameter;
             SetFloatParameter -= SetAnimParameter;
             SetTriggerParameter -= SetAnimParameter;
-
-            StopAllCoroutines();
-            IStoreAfter = null;
         }
 
 
@@ -113,11 +107,9 @@ namespace MalbersAnimations
         public virtual void ResetCombat()
         {
             WeaponType = 0;
-            Weapon?.ResetWeapon();
             WeaponAction = Weapon_Action.None;
-
-            CombatMode = false;
-            Aim = false;
+            Weapon?.ResetWeapon();
+            CombatMode = Aim = false;
             OnCanAim.Invoke(false);
             ExitAim();
             // UnEquip_Fast();
@@ -134,20 +126,20 @@ namespace MalbersAnimations
 
             if (startWeapon.Value != null)
             {
-                if (!startWeapon.Value.TryGetComponent<MWeapon>(out var StartWComponent))
+                var StartWComponent = startWeapon.Value.GetComponent<MWeapon>();
+
+                if (StartWComponent == null)
                 {
                     Debug.LogWarning("The Start Weapon does not contain a MWeapon Component. Equiping weapon on start will be ignored.");
                     return;
                 }
 
-                if (StartWComponent.gameObject.IsPrefab())
+                if (startWeapon.Value.IsPrefab())
                 {
                     Weapon = GameObject.Instantiate(StartWComponent);
                     Weapon.name = Weapon.name.Replace("(Clone)", "");
 
-                    Debugging($"[Start Weapon Instantiated - {Weapon.name}]", "orange");
-                  //  Debug.Log($"[Start Weapon Instantiated - {Weapon.name}]");
-
+                    Debugging("[Start Weapon Instantiated]", "orange");
                 }
                 else
                 {
@@ -159,7 +151,7 @@ namespace MalbersAnimations
                 {
                     Holster_SetActive(Weapon.HolsterID); //Set the Active Holster the Weapon One
 
-                    if (ActiveHolster != null)
+                    if (ActiveHolster != null) 
                         Holster_AddWeapon(ActiveHolster, Weapon);
 
                     Equip_Fast();
@@ -203,7 +195,6 @@ namespace MalbersAnimations
                 DrawMode = animal.Mode_Get(DrawWeaponModeID);
                 StoreMode = animal.Mode_Get(StoreWeaponModeID);
                 UnArmedMode = animal.Mode_Get(UnarmedModeID);
-                animal.IsPreparingMode = false;
             }
             else comboManager = null; //Safe remove the Combo Manager too if there's no animal
         }
@@ -224,7 +215,7 @@ namespace MalbersAnimations
             WeaponCharged(Time.fixedDeltaTime);
         }
 
-
+     
         #endregion
 
         #region Rider
@@ -318,10 +309,10 @@ namespace MalbersAnimations
 
         void LateUpdate()
         {
-            if (/*CombatMode && */WeaponIsActive)
+            if (CombatMode && WeaponIsActive)
             {
                 Weapon.Weapon_LateUpdate(this);         //If there's an Active Ability do the Late Ability thingy
-                                                        //  if (Anim.isHuman) Do_2Hands_IK();
+             //  if (Anim.isHuman) Do_2Hands_IK();
             }
         }
 
@@ -339,10 +330,10 @@ namespace MalbersAnimations
 
         private void Do_Aim_IK()
         {
-            if (Weapon.AimIK)
+            if (Weapon.AimI)
             {
                 if (Hash_IKAim != 0) IKAimWeight = Anim.GetFloat(Hash_IKAim);
-                if (IKAimWeight != 0) Weapon.AimIK.ApplyOffsets(Anim, Aimer.AimOrigin.position, AimDirection, IKAimWeight);
+                if (IKAimWeight != 0) Weapon.AimI.ApplyOffsets(Anim, Aimer.AimOrigin.position, AimDirection, IKAimWeight);
             }
         }
 
@@ -390,6 +381,7 @@ namespace MalbersAnimations
                     // Debugging($"Aim → [{aim.Value}]", "gray");
 
                     SetAimLogic(value);
+                    Weapon.IsAiming = value;    //Update the Aim Value on the Weapon to the active weapon  that the Rider is/isn't aiming
                 }
             }
             get => aim.Value;
@@ -427,7 +419,8 @@ namespace MalbersAnimations
 
 
                 //if We are not Reloading then we can set the Action Aim
-                if (WeaponAction != Weapon_Action.Reload) WeaponAction = Weapon_Action.Aim;
+                if (WeaponAction != Weapon_Action.Reload)
+                    WeaponAction = Weapon_Action.Aim;
 
                 Aimer.Active = true;                                //Activate the Aimer (Invoke the Side Events)
             }
@@ -455,8 +448,7 @@ namespace MalbersAnimations
         public virtual void ExitAim()
         {
             //Disable Straffing
-            if (HasAnimal && Weapon && Weapon.StrafeOnAim && !WasStrafing && !ExitByMode)
-                animal.Strafe = false;
+            if (HasAnimal && Weapon && Weapon.StrafeOnAim && !WasStrafing) animal.Strafe = false;
 
             this.MInput?.ResetInput(m_AimInput.Value); //Reset Input for Toggle
 
@@ -480,13 +472,13 @@ namespace MalbersAnimations
             get => weaponAction;
             set
             {
-                var OldAction = weaponAction;
-
-                //Do it only when the value is different , Do not inlcude the Attack, since you can override an attack with another attack
-                if (weaponAction != value || value == Weapon_Action.Attack)
+                // if (weaponAction != value) //Do it only when the value is different (Maybe there's) a problem with the attacks I think?
                 {
+                    // lastWeaponAction = weaponAction; //Store the last weapon action
+                    //if (JustChangedAction) return; //THIS WILL BREAK ASSASIN CREED STYLE (EQUIP AND ATTACK AT THE SAME TIME)
                     weaponAction = value;
-                    Debugging($"[Weapon Action] -> [{value}] - [{(int)value}]", "yellow");
+                    Debugging($"[Weapon Action] -> [{value}] - [{(int)value}]", "green");
+
 
                     JustChangedAction = true;
                     this.Delay_Action(() => JustChangedAction = false); //reset it the next frame
@@ -510,9 +502,7 @@ namespace MalbersAnimations
                             TryStoreWeaponAnims();
                             break;
                         case Weapon_Action.Aim:
-                            if (WeaponIsActive) Weapon.IsAiming = true;
-                            if (OldAction != value) //Do different Aim Animations if the old action was NOT AIMIN
-                            { DoAimAnimations(); }
+                            DoAimAnimations();
                             break;
                         case Weapon_Action.Reload:
                             DoReloadAnimations();
@@ -523,14 +513,13 @@ namespace MalbersAnimations
 
                     OnWeaponAction.Invoke((int)weaponAction);
 
-                    if (StoreAfter.Value > 0 && enabled && gameObject.activeInHierarchy)
+                    if (StoreAfter.Value > 0)
                     {
                         if (IStoreAfter != null) StopCoroutine(IStoreAfter);
-                        if (weaponAction == Weapon_Action.Idle)
-                            IStoreAfter = StartCoroutine(C_StoreAfter());
+                        if (weaponAction == Weapon_Action.Idle) IStoreAfter = StartCoroutine(C_StoreAfter());
                     }
 
-                    if (weaponAction == Weapon_Action.None) GrabReinsBothHands(); //THIS?!?!?!?!?!?!? Maybe is for the horse riding animations
+                    if (weaponAction == Weapon_Action.None) GrabReinsBothHands(); //THIS?!?!?!?!?!?!? test atfter
                 }
             }
         }
@@ -539,8 +528,7 @@ namespace MalbersAnimations
         /// <summary>  RECHECK THIS I BELIEVE I NEED TO DO MORE ?!?! </summary>
         private void DoIdleWeaponAnims()
         {
-            //NOT NEEDED
-            // Weapon.IsReloading = false; //Reset The Reloading since is on the Idle
+            Weapon.IsReloading = false; //Reset The Reloading since is on the Idle
 
             if (!HasAnimal) //If we are not using an animal ?
             {
@@ -548,12 +536,10 @@ namespace MalbersAnimations
             }
             else if (WeaponMode != null)
             {
-                if (Weapon)
-                {
-                    if (WeaponMode == animal.ActiveMode)
-                        animal.Mode_Stop();
-                    WeaponMode.InputValue = false; //Make sure the Input value is set to false
-                }
+                // Debug.Log("IDLE = " + WeaponMode.Name);
+                //animal.Mode_Interrupt();
+                animal.Mode_Stop();
+                WeaponMode.InputValue = false; //Make sure the Input value is set to false
             }
         }
 
@@ -571,7 +557,6 @@ namespace MalbersAnimations
                 {
                     CustomWeaponAction(Weapon.WeaponType.ID, (int)Weapon_Action.Aim);
                 }
-                //Weapon.IsAiming = true;
             }
         }
 
@@ -579,11 +564,15 @@ namespace MalbersAnimations
         {
             if (HigherPriorityMode) return; //Avoid Forcing a new Mode if the Animal is Rolling or Dodging.... Doing a Higher Mode.
 
-            if (!Weapon.IsReloading)
+            if (!IsReloading)
             {
                 if (HasAnimal)
                 {
-                    WeaponMode.ForceActivate((int)Weapon_Action.Reload); //Play Reload Animation
+                    if (WeaponMode.ForceActivate((int)Weapon_Action.Reload))
+                    {
+                        //Debug.Log("FORCE RELOAD ANIMATION" + WeaponMode.Name);
+                        Weapon.IsReloading = true;
+                    }
                 }
                 else
                 {
@@ -613,8 +602,6 @@ namespace MalbersAnimations
         {
             if (HasAnimal)
             {
-                StoreWeapon = true;   //Meaning the weapon called the store animations
-
                 if (StoreMode != null)
                     StoreMode.ForceActivate(Weapon.HolsterAnim);
                 else
@@ -652,14 +639,11 @@ namespace MalbersAnimations
         /// <summary> If Auto Store weapon is enabled... do it</summary>
         protected virtual void AutoStoreWeapon()
         {
+            if (StoreAfter <= 0 || !enabled) return; //Ignore is Store After is 0
 
-            if (StoreAfter <= 0 || !gameObject.activeInHierarchy) return; //Ignore is Store After is 0
-
-            if (IStoreAfter != null)
-            {
-                StopCoroutine(IStoreAfter);
-                IStoreAfter = StartCoroutine(C_StoreAfter()); //Start Coroutine Store After
-            }
+            if (IStoreAfter != null) StopCoroutine(IStoreAfter);
+            IStoreAfter = null;
+            IStoreAfter = StartCoroutine(C_StoreAfter()); //Start Coroutine Store After
         }
 
         protected virtual void DoWeaponAttackAnims()
@@ -671,16 +655,17 @@ namespace MalbersAnimations
                 //Check if the weapon can play a Combo 
                 if (comboManager && comboManager.ActiveCombo != null)
                 {
+                    Debugging($"[Melee Attack] → [{Weapon.name} <AC>]. Combo[{comboManager.ActiveCombo.Name}] Branch: [{comboManager.Branch}]", "orange");
+
                     if (comboManager.TryPlay())
                     {
-                        Debugging($"[Melee Attack] → [{Weapon.name} <AC>]. Combo[{comboManager.ActiveCombo.Name}] Branch: [{comboManager.Branch}]", "orange");
                         Weapon.CanAttack = true; //Reset the Attack Rate... don't use Default Attack Rate
                     }
-                    //else
-                    //{
-                    //    Debugging($"[Melee Attack] → [{Weapon.name} <AC>] <COMBO FAILED>", "red");
-                    //    //Action((int)Weapon_Action.Idle); //Combo Failed
-                    //}
+                    else
+                    {
+                        Debugging($"[Melee Attack] → [{Weapon.name} <AC>] <COMBO FAILED>", "red");
+                        Action((int)Weapon_Action.Idle); //Combo Failed
+                    }
                 }
                 else
                 {
@@ -734,7 +719,7 @@ namespace MalbersAnimations
                 if (HasAnimal)
                 {
                     WeaponMode.ForceActivate((int)Weapon_Action.Attack); //DO the Weapon Attack Animation
-                    Debugging($"[Fire Projectile] [AC] → [{Weapon.name}]", "orange");
+                    Debugging($"[Fire Projectile] [AC] → [{Weapon.name} <with AC>]", "orange");
                 }
                 else
                 {
@@ -775,49 +760,17 @@ namespace MalbersAnimations
 
                 ExitByState = false;
             }
-        }
-
-        public void ExitByAnimation(bool value)
-        {
-            if (CombatMode && value)
-            {
-                // ExitByAnim = true;
-
-                if (UseHolsters)
-                {
-                    UnEquip_Fast();
-                }
-                else
-                {
-                    Weapon.gameObject.SetActive(false);
-                }
-            }
-            else
-            {
-                if (UseHolsters)
-                {
-                    Weapon = ActiveHolster.Weapon;  //Get the new Weapon from the Holster
-                    Equip_Fast();
-
-                }
-                else
-                {
-                   if (Weapon!= null) 
-                        Weapon.gameObject.SetActive(true);
-                }
-            }
 
         }
 
         private bool ExitByState;
-        public bool ExitByMode;
-        // private bool ExitByAnim;
+        private bool ExitByMode;
 
 
         private void AnimalModeStart(int ModeID, int ablility)
         {
             if (CombatMode)
-            {
+            {  
                 //Store& unequip Weapon if the animal is on any of these states.
                 if (ExitOnModes.Contains(animal.ActiveMode.ID))
                 {
@@ -829,7 +782,7 @@ namespace MalbersAnimations
                     }
                     else
                     {
-                        Weapon.gameObject.SetActive(false);
+                        Weapon.gameObject.SetActive(false); 
                     }
                 }
                 else
@@ -841,13 +794,13 @@ namespace MalbersAnimations
 
         private MWeapon HoldWeapon { get; set; }
 
-        /// <summary>Listen to the Animal Making Modes</summary>
         private void AnimalModeEnd(int ModeID, int ablility)
         {
             if (animal.IsPreparingMode) return; //Do not change if we are already Doing a Mode
             if (JustChangedAction) return;      //Do not change back to Aim until attack finishes
 
-            if (Weapon) Weapon.AnimalModeEnd(ModeID, ablility);
+            if (animal.ActiveMode != WeaponMode) //Meaning is other Mode not the Weapon Mode so check if we were Aiming?
+                CheckAim();
 
             if (ExitByMode/* && !ExitOnModes.Exists(x => x.ID == ModeID)*/)
             {
@@ -862,13 +815,8 @@ namespace MalbersAnimations
                     Weapon.gameObject.SetActive(true);
                 }
 
-                if (animal.IsPlayingMode && animal.ActiveMode != WeaponMode) //Meaning is other Mode not the Weapon Mode so check if we were Aiming?
-                    CheckAim();
-
                 ExitByMode = false;
             }
-
-            if (!animal.IsPlayingMode) CheckAim();
         }
 
 
@@ -897,11 +845,10 @@ namespace MalbersAnimations
                 return;
             }
 
-            Weapon.StopAllCoroutines(); //Important! do not leave any pending works!!
-
-            DrawWeapon = false;
 
             Debugging($"EQUIP → [{Weapon.name}] T:{Time.time:F2}", "orange");
+
+            // ExitAim();
 
             Equip_Weapon_Data_Ground_Riding();
             EquipWeapon_AnimalController();
@@ -911,19 +858,7 @@ namespace MalbersAnimations
             Weapon.Equip(this);
             OnEquipWeapon.Invoke(Weapon.gameObject);                    //Let everybody know that the weapon is equipped
 
-            //Override the Weapon Layer if is NOT set to none
-            if (OverrideWeaponLayer != 0)
-            {
-               // Debug.Log("override!!!!",Weapon);
-                Weapon.m_hitLayer = OverrideWeaponLayer;
-            }
-
-            //Auto Aiming HACK!!
-            if (Weapon is MShootable && (Weapon as MShootable).aimAction == MShootable.AimingAction.Automatic)
-                Aim_Set(true);
-
             CheckAim();
-
             OnCanAim.Invoke(Weapon.CanAim);
 
             Weapon.PlaySound(WSound.Equip);                             //Play Equip Sound
@@ -1012,8 +947,6 @@ namespace MalbersAnimations
                     Debug.LogWarning("The Animal Controller does not have a mode for the Equipped Weapon!!");
                     Weapon.Enabled = false; //Disable the weapon... it cannot be used!!!
                 }
-
-                if (Weapon.StrafeOnEquip) animal.Strafe = true;
             }
         }
 
@@ -1038,23 +971,8 @@ namespace MalbersAnimations
                     animal.Mode_Enable(m);
                 }
 
-
-                if (WeaponMode != null)
-                { 
-                    //Important! the weapon before unequipping was playing a mode.. E.g. Aiming you need to stop it!!!
-                    if (WeaponMode.PlayingMode)
-                    {
-                        animal.Mode_Stop();
-                    }
-
-                 //   if (WasStrafing)
-
-                    animal.Strafe = Weapon.StrafeOnUnequip;
-
-                    WeaponMode.SetActive(false); //Disable Weapon Mode
-                    WeaponMode = null;
-                }
-
+                WeaponMode?.SetActive(false); //Disable Weapon Mode
+                WeaponMode = null;
             }
         }
 
@@ -1087,9 +1005,6 @@ namespace MalbersAnimations
             if (Weapon == null) return;
             Debugging($"UNEQUIP → [{Weapon.name}] T:{Time.time:F2}", "orange");  //Debug
 
-
-            StoreWeapon = false;
-
             //Has_IKAim = false;
             IKAimWeight = 0;
             WeaponType = 0;                                                  //Set the weapon ID to None (For the correct Animations)
@@ -1119,8 +1034,6 @@ namespace MalbersAnimations
             UnequipWeapon_AnimalController();
 
             Weapon = null;     //IMPORTANT
-
-            WeaponAction = Weapon_Action.None;
         }
 
         /// <summary>Ignores the Draw and Store Animations</summary>
@@ -1158,8 +1071,6 @@ namespace MalbersAnimations
             //DO NOT Equip is the Active state does not allow it
             if (HasAnimal && ExitOnState.Contains(animal.ActiveStateID)) return;
 
-            DrawWeapon = true;
-
             ExitAim(); //DO NOT AIM WHEN DRAWING WEAPONS
 
             //If is using External Equip
@@ -1193,13 +1104,8 @@ namespace MalbersAnimations
         public virtual void Store_Weapon()
         {
             if (Weapon == null) return;                    //Skip if there's no Active Weapon or is not inCombatMode, meaning there's an active weapon
-            if (!Weapon.CanUnequip) return;                //Skip if there's no Active Weapon or is not inCombatMode, meaning there's an active weapon
 
             ExitAim();
-
-
-            Weapon.StopAllCoroutines(); //Important! do not leave any pending works!!
-            FreeHandRelease(); //Release the Hand
 
             if (Weapon.IgnoreStore || IgnoreStore)
             {
@@ -1207,11 +1113,7 @@ namespace MalbersAnimations
                 return;
             }
 
-            StoreWeapon = true;
-
             WeaponAction = Weapon_Action.Store;                 //Set the  Weapon Action to Store Weapons 
-
-            Weapon.StoringWeapon();
 
             Debugging($"[Store → {(Weapon.IsRightHanded ? "Right Hand" : "Left Hand")}] → [{Weapon.Holster.name}] → [{Weapon.name}]", "cyan");  //Debug
         }
@@ -1228,13 +1130,12 @@ namespace MalbersAnimations
             LastAttackTriggerHash = hash;
         }
 
-        public virtual void DamagerAnimationEnd(int hash)//??????
+        public virtual void DamagerAnimationEnd(int hash)
         {
             //Go to Idle because we are finishing in the same animations. if not is doing another attack before finishing the one that we have
             if (!HasAnimal && LastAttackTriggerHash == hash)
             {
                 WeaponAction = Weapon_Action.Idle;
-                //Debug.Log("WEAPONMANAGER TO IDLE");
             }
         }
 

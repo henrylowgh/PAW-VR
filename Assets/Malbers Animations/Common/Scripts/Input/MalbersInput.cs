@@ -14,9 +14,9 @@ namespace MalbersAnimations
         #region Variables
         private ICharacterMove mCharacterMove;
 
-        public InputAxis Horizontal = new("Horizontal", true, true);
-        public InputAxis Vertical = new("Vertical", true, true);
-        public InputAxis UpDown = new("UpDown", false, true);
+        public InputAxis Horizontal = new InputAxis("Horizontal", true, true);
+        public InputAxis Vertical = new InputAxis("Vertical", true, true);
+        public InputAxis UpDown = new InputAxis("UpDown", false, true);
         //   protected IAIControl AI;  //Referece for AI Input Sources
 
 
@@ -24,7 +24,7 @@ namespace MalbersAnimations
         public float vertical;          //Vertical   Forward & Back Axis Z
         public float upDown;            //Up Down value    
 
-        public Vector3Event MovementEvent = new();
+        public Vector3Event MovementEvent = new Vector3Event();
 
         #endregion
 
@@ -130,7 +130,10 @@ namespace MalbersAnimations
             MovementEvent.Invoke(m_InputAxis); //Invoke the Event for the Movement AXis
 
 
-            mCharacterMove?.SetInputAxis(MoveCharacter ? m_InputAxis : Vector3.zero);
+            if (mCharacterMove != null)
+            {
+                mCharacterMove.SetInputAxis(MoveCharacter ? m_InputAxis : Vector3.zero);
+            }
 
             base.SetInput();
         }

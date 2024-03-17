@@ -20,10 +20,10 @@ namespace MalbersAnimations.Controller.AI
         [RequiredField] public GameObjectVar TargetG;
         [RequiredField] public RuntimeGameObjects TargetRG;
         
-        public RuntimeSetTypeGameObject rtype = RuntimeSetTypeGameObject.Random;
+        public GetRuntimeGameObjects.RuntimeSetTypeGameObject rtype = GetRuntimeGameObjects.RuntimeSetTypeGameObject.Random;
 
-        public IntReference RTIndex = new();
-        public StringReference RTName = new();
+        public IntReference RTIndex = new IntReference();
+        public StringReference RTName = new StringReference();
 
         [Tooltip("When a new target is assinged it also sets that the Animal should move to that target")]
         public bool MoveToTarget = true;
@@ -37,10 +37,10 @@ namespace MalbersAnimations.Controller.AI
             switch (targetType)
             {
                 case DestinationType.Transform:
-
+                  
                     if (TargetT == null)
                     { Debug.LogError("Set Destination Task is missing the Transform Hook", this); return; }
-
+                    
                     brain.AIControl.SetDestination(TargetT.Value.position, true);
                     break;
                 case DestinationType.GameObject:
@@ -51,13 +51,30 @@ namespace MalbersAnimations.Controller.AI
                     brain.AIControl.SetDestination(TargetG.Value.transform.position, true);
                     break;
                 case DestinationType.RuntimeGameObjects:
-
+                   
                     if (TargetRG == null)
                     { Debug.LogError("Set Destination Task is missing the RuntimeSet", this); return; }
 
-                    var go = TargetRG.GetItem(rtype, RTIndex, RTName, brain.Animal.gameObject);
-                    if (go != null) brain.AIControl.SetDestination(go.transform.position, true);
-
+                    switch (rtype)
+                    {
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.First:
+                            brain.AIControl.SetDestination(TargetRG.Item_GetFirst().transform.position, true);
+                            break;
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Random:
+                            brain.AIControl.SetDestination(TargetRG.Item_GetRandom().transform.position, true);
+                            break;
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Index:
+                            brain.AIControl.SetDestination(TargetRG.Item_Get(RTIndex).transform.position, true);
+                            break;
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.ByName:
+                            brain.AIControl.SetDestination(TargetRG.Item_Get(RTName).transform.position, true);
+                            break;
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Closest:
+                            brain.AIControl.SetDestination(TargetRG.Item_GetClosest(brain.Animal.gameObject).transform.position, true);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case DestinationType.Vector3:
                     if (Destination == null)
@@ -74,7 +91,7 @@ namespace MalbersAnimations.Controller.AI
                     }
                     else
                     {
-                        Debug.LogError("Using SetTarget.ByName() but there's no Gameobject with that name", this);
+                        Debug.LogError("Using SetTarget.ByName() but there's no Gameobject with that name",this);
                     }
                     break;
                 default:
@@ -137,13 +154,13 @@ namespace MalbersAnimations.Controller.AI
                     UnityEditor.EditorGUILayout.PropertyField(TargetRG, new GUIContent("Runtime Set"));
                     UnityEditor.EditorGUILayout.PropertyField(rtype, new GUIContent("Selection"));
 
-                    var Sel = (RuntimeSetTypeGameObject)rtype.intValue;
+                    var Sel = (GetRuntimeGameObjects.RuntimeSetTypeGameObject)rtype.intValue;
                     switch (Sel)
                     {
-                        case RuntimeSetTypeGameObject.Index:
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.Index:
                             UnityEditor.EditorGUILayout.PropertyField(RTIndex, new GUIContent("Element Index"));
                             break;
-                        case RuntimeSetTypeGameObject.ByName:
+                        case GetRuntimeGameObjects.RuntimeSetTypeGameObject.ByName:
                             UnityEditor.EditorGUILayout.PropertyField(RTName, new GUIContent("Element Name"));
                             break;
                         default:

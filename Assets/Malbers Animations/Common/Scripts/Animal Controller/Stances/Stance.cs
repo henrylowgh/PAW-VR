@@ -12,41 +12,41 @@ namespace MalbersAnimations.Controller
         public StanceID ID;
 
         [Tooltip("Enable Disable the Stance")]
-        public BoolReference enabled = new(true);
+        public BoolReference enabled = new BoolReference(true);
 
         [Tooltip("Unique Input to play for each Ability")]
         public StringReference Input;
 
         [Tooltip("Lock the Stance if its Active. No other Stances can be enabled.")]
-        public BoolReference persistent = new();
+        public BoolReference persistent = new BoolReference();
 
         [Tooltip("When this stance is active, no other stance can be activated, except the Default Stance." +
             " Use this when you dont want other stances to interrupt ")]
-        public BoolReference activeOnly = new();
+        public BoolReference activeOnly = new BoolReference();
 
         [Tooltip("Does this Stance allows Straffing?")]
-        public BoolReference CanStrafe = new();
+        public BoolReference CanStrafe = new BoolReference();
 
         [Tooltip("After the Stance has exited, it cannot be activated again after the cooldown has passed")]
-        public FloatReference CoolDown = new(0);
+        public FloatReference CoolDown = new FloatReference(0);
 
         [Tooltip("If this Stance was activated, it cannot be Exit until the Exit cooldown has passed")]
-        public FloatReference ExitAfter = new(0);
+        public FloatReference ExitAfter = new FloatReference(0);
 
         [Tooltip("Is/Is NOT active State on this list")]
         public bool Include = true;
 
         [Tooltip("Include/Exclude the States on this list that can be used with the Stance")]
-        public List<StateID> states = new();
+        public List<StateID> states = new List<StateID>();
 
         /// <summary>Does the states list is not empty??</summary>
         public bool HasStates => states.Count > 0;
 
         [Tooltip("What States can queue the activation of this Stance")]
-        public List<StateID> StateQueue = new();
+        public List<StateID> StateQueue = new List<StateID>();
 
         [Tooltip("Stances to Block while this stance is active")]
-        public List<StanceID> DisableStances = new();
+        public List<StanceID> DisableStances = new List<StanceID>();
 
         /// <summary> Current Stored Input Value </summary>
         public bool InputValue { get; set; }
@@ -67,22 +67,12 @@ namespace MalbersAnimations.Controller
             set
             {
                 persistent.Value = value;
-                 //Debug.Log($" Persistent [{ID.name} ] {value}");
+              //  Debug.Log($" Persistent [{ID.name} ]" + value);
             }
         }
 
         /// <summary>Current Activated Stance on the Animal</summary>
-        public bool Active  { get; set; }
-        //{
-        //    get => acti;
-        //    set
-        //    {
-        //        acti = value;
-        //        Debug.Log($" acti: " + value);
-        //    }
-        //}
-        //bool acti;
-
+        public bool Active { get; set; }
 
         /// <summary>The State try to be activated but a state did not allowed. That State is on the QeueList so Lets queue it</summary>
         public bool Queued { get; set; }
@@ -191,20 +181,17 @@ namespace MalbersAnimations.Controller
             if (!Animal.enabled) { Debugging("Failed. Animal disabled"); return false; }
             if (DisableTemp) { Debugging($"Failed. Disable by External [{DisableValue}]"); return false; }
 
-
+          
             //Only Activates the default one
-            if (Animal.ActiveStance != null)
+            if (Animal.ActiveStance.ActiveOnly && Animal.DefaultStanceID != ID) 
+            { Debugging($"Ignored. Active Stance [{Animal.ActiveStance.ID.name}] Is Active Only"); return false; }
+            
+            if (Animal.ActiveStance.Persistent) { Debugging($"Ignored. Active Stance [{Animal.ActiveStance.ID.name}] is Persistent"); return false; }
+            if (InCoolDown) { Debugging($"Failed. Stance in CoolDown. Time left {CoolDownLeft:F2}"); return false; }
+            if (!Animal.ActiveStance.CanExit)
             {
-                if (Animal.ActiveStance.ActiveOnly && Animal.DefaultStanceID != ID)
-                { Debugging($"Ignored. Active Stance [{Animal.ActiveStance.ID.name}] Is Active Only"); return false; }
-
-                if (Animal.ActiveStance.Persistent) { Debugging($"Ignored. Active Stance [{Animal.ActiveStance.ID.name}] is Persistent"); return false; }
-                if (InCoolDown) { Debugging($"Failed. Stance in CoolDown. Time left {CoolDownLeft:F2}"); return false; }
-                if (!Animal.ActiveStance.CanExit)
-                {
-                    Debugging($"Failed. Active Stance [{Animal.ActiveStance.ID.name}] can't exit yet. Exit After {(Animal.ActiveStance.CanExitTimeLeft):F2}");
-                    return false;
-                }
+                Debugging($"Failed. Active Stance [{Animal.ActiveStance.ID.name}] can't exit yet. Exit After {(Animal.ActiveStance.CanExitTimeLeft):F2}");
+                return false;
             }
 
             if (HasStates)

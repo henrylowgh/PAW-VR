@@ -6,7 +6,6 @@ using MalbersAnimations.Scriptables;
 using Object = UnityEngine.Object;
 
 
-
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -18,7 +17,7 @@ namespace MalbersAnimations.Controller.AI
     public class MAIState : ScriptableObject
     {
         [Tooltip("ID of the AI State. This is used on the AI Brain On AIStateChanged Event")]
-        public IntReference ID = new();
+        public IntReference ID = new IntReference();
 
         public MTask this[int index]
         {
@@ -32,13 +31,6 @@ namespace MalbersAnimations.Controller.AI
 
         [HideInInspector] public bool CreateTaskAsset = true;
         [HideInInspector] public bool CreateDecisionAsset = true;
-
-
-#pragma warning disable 414
-        //Inspector Variables
-        [HideInInspector, SerializeField] private int TasksIndex = -1;
-        [HideInInspector, SerializeField] private int DecisionIndex = -1;
-#pragma warning restore 414
 
 
         private void Reset()
@@ -60,7 +52,7 @@ namespace MalbersAnimations.Controller.AI
         {
             for (int i = 0; i < transitions.Length; i++)
             {
-                if (this != brain.currentState) return; //BUG BUG BUG FIXED
+                if (this != brain.currentState) return; //BUG BUG BUG FIXed
 
                 var transition = transitions[i];
                 var decision = transition.decision;
@@ -169,8 +161,6 @@ namespace MalbersAnimations.Controller.AI
         {
             for (int i = 0; i < tasks.Length; i++)
             {
-                if (this != brain.currentState) return; //BUG when a Task call another AI STATE
-                
                 if (brain.TasksStarted[i] && !brain.TasksDone[i] && tasks[i].active)
                 {
                     tasks[i].InternalUpdateTask(brain, i);
@@ -283,7 +273,7 @@ namespace MalbersAnimations.Controller.AI
     public class MAIStateEditor : Editor
     {
         MAIState m;
-        private SerializedProperty tasks, transitions, GizmoStateColor, ID, TasksIndex, DecisionIndex;
+        private SerializedProperty tasks, transitions, GizmoStateColor, ID;
         private ReorderableList Reo_List_Tasks, Reo_List_Transitions;
 
 
@@ -300,10 +290,7 @@ namespace MalbersAnimations.Controller.AI
 
         private void OnEnable()
         {
-            if (plus == null)
-                plus = EditorGUIUtility.IconContent("d_Toolbar Plus");
-
-
+            if (plus == null) plus = EditorGUIUtility.IconContent("d_Toolbar Plus");
             if (rename == null)
             {
                 rename = EditorGUIUtility.IconContent("d_editicon.sml");
@@ -322,19 +309,12 @@ namespace MalbersAnimations.Controller.AI
             ID = serializedObject.FindProperty("ID");
             GizmoStateColor = serializedObject.FindProperty("GizmoStateColor");
 
-
-            TasksIndex = serializedObject.FindProperty("TasksIndex");
-            DecisionIndex = serializedObject.FindProperty("DecisionIndex");
-
             TasksType = MTools.GetAllTypes<MTask>();
             DecisionType = MTools.GetAllTypes<MAIDecision>();
 
             TasksList();
 
             TransitionList();
-
-            Reo_List_Tasks.index = TasksIndex.intValue;
-            Reo_List_Transitions.index = DecisionIndex.intValue;
         }
 
 
@@ -372,9 +352,6 @@ namespace MalbersAnimations.Controller.AI
             AssetDatabase.AddObjectToAsset(task, AssetDatabase.GetAssetPath(target));
 
             m.tasks[index] = task; //the other way was not working
-                                   // TasksIndex.intValue = index;
-                                   // DecisionIndex.intValue = -1;
-
             Reo_List_Tasks.index = index;
             Reo_List_Transitions.index = -1;
 
@@ -389,11 +366,9 @@ namespace MalbersAnimations.Controller.AI
         {
             Reo_List_Tasks = new ReorderableList(serializedObject, tasks, true, true, true, true)
             {
-                onSelectCallback = (list) =>
+                onSelectCallback = (index) =>
                 {
-                    //Do not select the Tasks when selecting the transitions
-                    Reo_List_Transitions.index = DecisionIndex.intValue = -1;
-                    TasksIndex.intValue = list.index;
+                    Reo_List_Transitions.index = -1; //Do not select the Tasks when selecting the transitions
                 },
 
                 drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -401,12 +376,12 @@ namespace MalbersAnimations.Controller.AI
                     var element = tasks.GetArrayElementAtIndex(index);
 
 
-                    var indexR = 38;
+                    var indexR =38;
 
                     var r = new Rect(rect) { x = rect.x + indexR, y = rect.y + 2, height = EditorGUIUtility.singleLineHeight, width = rect.width - indexR };
 
 
-                    var indRect = new Rect(rect) { x = rect.x - 3, y = rect.y + 2, height = EditorGUIUtility.singleLineHeight, width = indexR };
+                    var indRect = new Rect(rect) { x = rect.x-3, y = rect.y + 2, height = EditorGUIUtility.singleLineHeight, width = indexR };
 
                     bool isWaiting = element.objectReferenceValue != null && (element.objectReferenceValue as MTask).WaitForPreviousTask;
 
@@ -416,12 +391,10 @@ namespace MalbersAnimations.Controller.AI
 
                     EditorGUI.LabelField(indRect, $"[{index}]");
 
+                    string Path = AssetDatabase.GetAssetPath(element.objectReferenceValue);
 
                     var dC = GUI.contentColor;
-
-                    string Path = AssetDatabase.GetAssetPath(element.objectReferenceValue);
-                    //mean it was created inside the AI STATE
-                    if (element.objectReferenceValue != null & Path != AssetDatabase.GetAssetPath(target))
+                    if (element.objectReferenceValue != null & Path != AssetDatabase.GetAssetPath(target)) //mean it was created inside the AI STATE
                     {
                         GUI.contentColor = new Color(0.7f, 0.8f, 1);
                     }
@@ -439,7 +412,7 @@ namespace MalbersAnimations.Controller.AI
                             task.active = EditorGUI.Toggle(activeRect, GUIContent.none, task.active);
                             if (cc.changed)
                             {
-                                Reo_List_Transitions.index = DecisionIndex.intValue = -1;
+                                Reo_List_Transitions.index = -1;
                                 element.serializedObject.ApplyModifiedProperties();
                             }
                         }
@@ -499,33 +472,17 @@ namespace MalbersAnimations.Controller.AI
                         {
                             string Path = AssetDatabase.GetAssetPath(task.objectReferenceValue);
 
-                            //mean it was created inside the AI STATE
-                            if (Path == AssetDatabase.GetAssetPath(target))
+                            if (Path == AssetDatabase.GetAssetPath(target)) //mean it was created inside the AI STATE
                             {
-                                TasksIndex.intValue = -1;
-
-                                var asset = task.objectReferenceValue;
-
-                                //task.objectReferenceValue = null;
+                                DestroyImmediate(task.objectReferenceValue, true); //Delete the internal asset!
+                                task.objectReferenceValue = null;
                                 tasks.DeleteArrayElementAtIndex(list.index); //Double Hack
-                                tasks.serializedObject.ApplyModifiedProperties();
-
-                                Reo_List_Transitions.index = -1;
-                                Reo_List_Tasks.index = -1;
-
-                                DestroyImmediate(asset, true); //Delete the internal asset!
                                 AssetDatabase.SaveAssets();
-
                             }
                             else // is an Outside Element
                             {
-                                TasksIndex.intValue = -1;
                                 tasks.DeleteArrayElementAtIndex(list.index);
-                                tasks.serializedObject.ApplyModifiedProperties();
-
                             }
-
-                            GUIUtility.ExitGUI();
                         }
                     }
                     else
@@ -533,8 +490,7 @@ namespace MalbersAnimations.Controller.AI
                         tasks.DeleteArrayElementAtIndex(list.index);
                     }
 
-                    if (tasks != null && task.serializedObject != null)
-                        tasks.serializedObject.ApplyModifiedProperties();
+                    tasks.serializedObject.ApplyModifiedProperties();
 
                     //Reset the selection on Remove
                     Reo_List_Transitions.index = -1;
@@ -553,10 +509,9 @@ namespace MalbersAnimations.Controller.AI
         {
             Reo_List_Transitions = new ReorderableList(serializedObject, transitions, true, true, true, true)
             {
-                onSelectCallback = (list) =>
+                onSelectCallback = (index) =>
                {
-                   Reo_List_Tasks.index = TasksIndex.intValue = -1; //Do not select the Tasks when selecting the transitions
-                   DecisionIndex.intValue = list.index;
+                   Reo_List_Tasks.index = -1; //Do not select the Tasks when selecting the transitions
                },
 
                 drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -571,6 +526,8 @@ namespace MalbersAnimations.Controller.AI
                     var decision = element.FindPropertyRelative("decision");
                     var TrueState = element.FindPropertyRelative("trueState");
                     var FalseState = element.FindPropertyRelative("falseState");
+
+
 
                     string Path = AssetDatabase.GetAssetPath(decision.objectReferenceValue);
 
@@ -594,7 +551,7 @@ namespace MalbersAnimations.Controller.AI
                             des.active = EditorGUI.Toggle(activeRect, GUIContent.none, des.active);
                             if (cc.changed)
                             {
-                                Reo_List_Tasks.index = TasksIndex.intValue = -1;
+                                Reo_List_Tasks.index = -1;
                                 element.serializedObject.ApplyModifiedProperties();
                             }
                         }
@@ -626,18 +583,8 @@ namespace MalbersAnimations.Controller.AI
                         { x = rect.width + 18, width = 20, height = EditorGUIUtility.singleLineHeight };
 
                         if (GUI.Button(AddButtonRect, plus, EditorStyles.helpBox))
-                        {
-                            var NewAsset = MTools.CreateAssetWithSavePrompt(typeof(MAIState), MTools.GetSelectedPathOrFallback());
-                            EditorUtility.SetDirty(NewAsset);
-
-                            m.transitions[index].trueState = NewAsset as MAIState;
-
-                            // TrueState.serializedObject.ApplyModifiedProperties();
-
-                            // serializedObject.ApplyModifiedProperties();
-                            EditorUtility.SetDirty(target);
-                            GUIUtility.ExitGUI();
-                        }
+                            MTools.CreateScriptableAsset(TrueState, typeof(MAIState),
+                                MTools.GetSelectedPathOrFallback());
                     }
 
 
@@ -656,20 +603,14 @@ namespace MalbersAnimations.Controller.AI
                         { x = rect.width + 18, width = 20, height = EditorGUIUtility.singleLineHeight };
 
                         if (GUI.Button(AddButtonRect, plus, EditorStyles.helpBox))
-                        {
-                            var NewAsset = MTools.CreateAssetWithSavePrompt(typeof(MAIState), MTools.GetSelectedPathOrFallback());
-                            EditorUtility.SetDirty(NewAsset);
-                            m.transitions[index].falseState = NewAsset as MAIState;
-                            EditorUtility.SetDirty(target);
-                            GUIUtility.ExitGUI();
-                        }
+                            MTools.CreateScriptableAsset(FalseState, typeof(MAIState),
+                                MTools.GetSelectedPathOrFallback());
                     }
                 },
 
                 drawHeaderCallback = rect =>
                     EditorGUI.LabelField(rect, new GUIContent("   Decisions", "Transitions for other States")),
 
-                //ADD
                 onAddCallback = list => OnAddCallback_Decision(),
 
                 onRemoveCallback = list =>
@@ -684,8 +625,6 @@ namespace MalbersAnimations.Controller.AI
 
                             if (Path == AssetDatabase.GetAssetPath(target)) //mean it was created inside the AI STATE
                             {
-                                DecisionIndex.intValue = -1;
-
                                 DestroyImmediate(decision, true); //Delete the internal asset!
                                 m.transitions[list.index].decision = null;
                                 transitions.DeleteArrayElementAtIndex(list.index);
@@ -753,17 +692,20 @@ namespace MalbersAnimations.Controller.AI
             MAIDecision des = (MAIDecision)CreateInstance(desicion);
             des.hideFlags = HideFlags.None;
             des.name = "D_" + desicion.Name;
-
             AssetDatabase.AddObjectToAsset(des, AssetDatabase.GetAssetPath(target));
             AssetDatabase.SaveAssets();
 
-            m.transitions[index].decision = des; //the other way was not working
 
-            m.transitions[index].trueState = null;
-            m.transitions[index].falseState = null;
+            m.transitions[index].decision = des; //the other way was not working
 
             EditorUtility.SetDirty(des);
             EditorUtility.SetDirty(target);
+
+            transitions.serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
+
+            Reo_List_Transitions.index = index;
+            Reo_List_Tasks.index = -1;
         }
 
         private void ResizeTasks()
@@ -804,14 +746,6 @@ namespace MalbersAnimations.Controller.AI
             //EditorGUILayout.PropertyField(internalData);
             EditorGUILayout.Space();
 
-            Reo_List_Tasks.DoLayoutList();
-            Reo_List_Transitions.DoLayoutList();
-
-            Reo_List_Tasks.index = TasksIndex.intValue;
-            Reo_List_Transitions.index = DecisionIndex.intValue;
-
-            //  if (Reo_List_Tasks.index != -1) Reo_List_Transitions.index = -1;
-
             if (m.tasks != null)
 
                 foreach (var t in m.tasks)
@@ -823,45 +757,40 @@ namespace MalbersAnimations.Controller.AI
                     }
                 }
 
+            Reo_List_Tasks.DoLayoutList();
+
+            //  if (Reo_List_Tasks.index != -1) Reo_List_Transitions.index = -1;
+
+
             if (m.transitions != null)
                 foreach (var t in m.transitions)
                 {
-                    if (t != null && t.decision == null)
+                    if (t.decision == null)
                     {
                         EditorGUILayout.HelpBox("The Brain cannot contain empty Decisions. Set the missing decisions", MessageType.Error);
                         break;
                     }
                 }
 
-            //  if (Reo_List_Transitions.index != -1) Reo_List_Tasks.index = -1;
+            Reo_List_Transitions.DoLayoutList();
 
-            // Debug.Log($"Reo_List_Tasks {Reo_List_Tasks.index} , Reo_List_Transitions: {Reo_List_Transitions.index}");
+            //if (Reo_List_Transitions.index != -1) Reo_List_Tasks.index = -1;
 
-            string targetPath = AssetDatabase.GetAssetPath(target);
 
             var indexTasks = Reo_List_Tasks.index;
             var indexTrans = Reo_List_Transitions.index;
 
-            if (indexTasks != -1 && tasks.arraySize > indexTasks)
+            if (indexTasks != -1)
             {
                 var element = tasks.GetArrayElementAtIndex(indexTasks);
 
                 if (element != null && element.objectReferenceValue != null)
                 {
+                    var asset = element.objectReferenceValue;
+
                     using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                     {
-                        var asset = element.objectReferenceValue;
-
-
-                        var tasks = GUI.backgroundColor;
-                        GUI.backgroundColor = new Color(0.4f, 0.5f, 2f, 1);
-                        using (new GUILayout.VerticalScope(EditorStyles.selectionRect))
-                        {
-                            EditorGUILayout.LabelField("Task: " + asset.name, EditorStyles.boldLabel);
-                            //EditorGUILayout.Space();
-                        }
-                        GUI.backgroundColor = tasks;
-
+                        EditorGUILayout.LabelField("Task: " + asset.name, EditorStyles.boldLabel);
 
                         string Path = AssetDatabase.GetAssetPath(element.objectReferenceValue);
                         if (Path != AssetDatabase.GetAssetPath(target)) //mean it was created inside the AI STATE
@@ -875,12 +804,10 @@ namespace MalbersAnimations.Controller.AI
                             element.serializedObject.ApplyModifiedProperties();
                             EditorUtility.SetDirty(asset);
 
-                            string taskPath = AssetDatabase.GetAssetPath(asset);
-
-
                             if (GUILayout.Button(rename, GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
                             {
-
+                                string taskPath = AssetDatabase.GetAssetPath(asset);
+                                string targetPath = AssetDatabase.GetAssetPath(target);
 
                                 // Check if the asset itself is external or internal to the target
                                 if (taskPath != targetPath)
@@ -888,23 +815,13 @@ namespace MalbersAnimations.Controller.AI
 
                                 AssetDatabase.SaveAssets();
                                 EditorGUIUtility.PingObject(asset); //Final way of changing the name of the asset... dirty but it works
-
-                                Reo_List_Tasks.index = indexTasks;
-                                Reo_List_Transitions.index = -1;
-
-                                serializedObject.ApplyModifiedProperties();
-                                //  GUIUtility.ExitGUI();
-                                return;
                             }
 
-                            using (new EditorGUI.DisabledGroupScope(taskPath != targetPath))
+
+                            if (GUILayout.Button(extract,GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
                             {
-                                if (GUILayout.Button(extract, GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
-                                {
-                                    ExtractTaskFromList(asset, element, indexTasks);
-                                    GUIUtility.ExitGUI();
-                                    return;
-                                }
+                                ExtractTaskFromList(asset, element, indexTasks);
+                                GUIUtility.ExitGUI();
                             }
                         }
                         MTools.DrawObjectReferenceInspector(element);
@@ -912,7 +829,7 @@ namespace MalbersAnimations.Controller.AI
                 }
             }
 
-            if (indexTrans != -1 && transitions.arraySize > indexTrans)
+            if (indexTrans != -1)
             {
                 var element = transitions.GetArrayElementAtIndex(indexTrans);
                 var decision = element.FindPropertyRelative("decision");
@@ -921,27 +838,17 @@ namespace MalbersAnimations.Controller.AI
                 {
                     using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                     {
-                        var tasks = GUI.backgroundColor;
-                        GUI.backgroundColor = Color.red + Color.yellow * 0.5f;
-                        using (new GUILayout.VerticalScope(EditorStyles.selectionRect))
-                        {
-                            EditorGUILayout.LabelField("Decision: " + decision.objectReferenceValue.name, EditorStyles.boldLabel);
-                            //EditorGUILayout.Space();
-                        }
-                        GUI.backgroundColor = tasks;
+                        EditorGUILayout.LabelField("Decision: " + decision.objectReferenceValue.name, EditorStyles.boldLabel);
+
 
                         string Path = AssetDatabase.GetAssetPath(decision.objectReferenceValue);
-
-                        if (Path != targetPath) //mean it was created inside the AI STATE
+                        if (Path != AssetDatabase.GetAssetPath(target)) //mean it was created inside the AI STATE
                         {
                             EditorGUILayout.HelpBox("This Decision is shared with other AI States", MessageType.Info);
                         }
 
+
                         var asset = decision.objectReferenceValue;
-
-                        string taskPath = AssetDatabase.GetAssetPath(asset);
-
-
 
                         using (new GUILayout.HorizontalScope())
                         {
@@ -951,7 +858,8 @@ namespace MalbersAnimations.Controller.AI
 
                             if (GUILayout.Button(rename, GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
                             {
-                                // string taskPath = AssetDatabase.GetAssetPath(asset);
+                                string taskPath = AssetDatabase.GetAssetPath(asset);
+                                string targetPath = AssetDatabase.GetAssetPath(target);
 
                                 // Check if the asset itself is external or internal to the target
                                 if (taskPath != targetPath)
@@ -959,18 +867,11 @@ namespace MalbersAnimations.Controller.AI
 
                                 AssetDatabase.SaveAssets();
                                 EditorGUIUtility.PingObject(asset); //Final way of changing the name of the asset... dirty but it works
-
-                                GUIUtility.ExitGUI();
-                                return;
                             }
 
-
-                            using (new EditorGUI.DisabledGroupScope(taskPath != targetPath))
+                            if (GUILayout.Button(extract, GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
                             {
-                                if (GUILayout.Button(extract, GUILayout.Width(IconWidth), GUILayout.Height(IconHeight)))
-                                {
-                                    ExtractDecisionFromList(asset, indexTrans);
-                                }
+                                ExtractDecisionFromList(asset, element, indexTrans);
                             }
                         }
 
@@ -984,38 +885,67 @@ namespace MalbersAnimations.Controller.AI
 
         private void ExtractTaskFromList(Object asset, SerializedProperty element, int index)
         {
-            Object clone = MTools.ExtractObject(asset, index);
-            if (!clone) return;
+            string taskPath = AssetDatabase.GetAssetPath(asset);
+            string targetPath = AssetDatabase.GetAssetPath(target);
+            if (taskPath == targetPath)
+            {
+                Object clone = MTools.ExtractObject(asset, index);
+                if (!clone) return;
 
-            m.tasks[index] = clone as MTask;
 
-            serializedObject.ApplyModifiedProperties();
-            EditorUtility.SetDirty(target);
-            EditorGUIUtility.PingObject(clone);
+                DestroyImmediate(asset, true); //Remove all version
 
-            DestroyImmediate(asset, true); //Remove old version
-            AssetDatabase.SaveAssets();
+                element.objectReferenceValue = clone; //Use the new extracted one
+                Reo_List_Tasks.index = index;
+                Reo_List_Transitions.index = -1;
+                EditorUtility.SetDirty(target);
+                serializedObject.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
 
-            GUIUtility.ExitGUI();
+                EditorGUIUtility.PingObject(clone);
+            }
+            else
+            {
+                // Checking this beforehand is quite in-efficient as the AssetDatabase.GetAssetPath() is slow
+                // If there is a better way to check whether it's an internal or external asset then that could be used
+                Debug.LogWarning("Cannot extract already extracted task");
+            }
         }
 
-        private void ExtractDecisionFromList(Object asset, int index)
+        private void ExtractDecisionFromList(Object asset, SerializedProperty element, int index)
         {
-            Object clone = MTools.ExtractObject(asset, index);
-            if (!clone) return;
+            string taskPath = AssetDatabase.GetAssetPath(asset);
+            string targetPath = AssetDatabase.GetAssetPath(target);
 
-            m.transitions[index].decision = clone as MAIDecision;
+            if (taskPath == targetPath)
+            {
+                Object clone = MTools.ExtractObject(asset, index);
+                if (!clone) return;
 
-            EditorUtility.SetDirty(target);
-            serializedObject.ApplyModifiedProperties();
-            EditorGUIUtility.PingObject(clone);
+                // Remove from list
+                DestroyImmediate(asset, true);
 
-            // Remove from list
-            DestroyImmediate(asset, true);
-            AssetDatabase.SaveAssets();
+                // Add as external decision
+                SerializedProperty decision = element.FindPropertyRelative("decision");
+                decision.objectReferenceValue = clone;
 
-            GUIUtility.ExitGUI();
+                Reo_List_Tasks.index = -1;
+                Reo_List_Transitions.index = index;
+
+                EditorUtility.SetDirty(target);
+                serializedObject.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
+
+                EditorGUIUtility.PingObject(clone);
+            }
+            else
+            {
+                // Checking this beforehand is quite in-efficient as the AssetDatabase.GetAssetPath() is slow
+                // If there is a better way to check whether it's an internal or external asset then that could be used
+                Debug.LogWarning("Cannot extract already extracted decision");
+            }
         }
+
     }
 #endif
 }

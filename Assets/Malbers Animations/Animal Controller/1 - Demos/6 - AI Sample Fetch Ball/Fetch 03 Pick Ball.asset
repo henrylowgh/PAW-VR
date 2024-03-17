@@ -58,8 +58,6 @@ MonoBehaviour:
   GizmoStateColor: {r: 0, g: 0.65917397, b: 1, a: 1}
   CreateTaskAsset: 1
   CreateDecisionAsset: 1
-  TasksIndex: -1
-  DecisionIndex: 0
 --- !u!114 &4302319481303826133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85,7 +83,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   WaitForAllTasks: 0
   waitForTask: -1
-  list_index: 1
+  list_index: 0
   decisions:
   - {fileID: -1831135762924368934}
   - {fileID: 4480350964151212690, guid: 2294f87c65fdbf343ab4e8316acca518, type: 2}

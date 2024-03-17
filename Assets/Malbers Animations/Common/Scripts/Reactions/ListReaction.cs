@@ -23,12 +23,7 @@ namespace MalbersAnimations.Reactions
 
                 foreach (var r in reactions)
                 {
-                    var verify = r.VerifyComponent(component); //Get the real component in the list
-
-                    if (verify != null)
-                    {
-                        TryResult = TryResult && r.TryReact(verify);
-                    }
+                    TryResult = TryResult && r.TryReact(component);
                 }
 
                 return TryResult;

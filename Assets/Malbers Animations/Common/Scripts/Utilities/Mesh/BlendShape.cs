@@ -10,16 +10,13 @@ namespace MalbersAnimations.Utilities
     {
         [CreateScriptableAsset]
         public BlendShapePreset preset;
+        public bool LoadPresetOnStart = true;
         [RequiredField]
         public SkinnedMeshRenderer mesh;
         public SkinnedMeshRenderer[] LODs;
-         
-        public float[] blendShapes;                    //Value of the Blend Shape
 
-        [Tooltip("Min Value to use on the blendshapes")]
-        public float Min = -100;
-        [Tooltip("Max Value to use on the blendshapes")]
-        public float Max = 100;
+        [Range(0, 100)]
+        public float[] blendShapes;                    //Value of the Blend Shape
 
         public bool random;
         public int PinnedShape;
@@ -30,7 +27,7 @@ namespace MalbersAnimations.Utilities
 
         private void Start()
         {
-            if (preset)
+            if (LoadPresetOnStart)
                 LoadPreset();
             else if (random)
                 Randomize();

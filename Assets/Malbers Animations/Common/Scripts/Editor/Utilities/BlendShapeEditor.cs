@@ -1,7 +1,10 @@
 ﻿
 #if UNITY_EDITOR
-using UnityEditor;
+
 using UnityEngine;
+using System.Collections;
+using UnityEditor;
+using UnityEditorInternal;
 
 namespace MalbersAnimations.Utilities
 {
@@ -9,23 +12,20 @@ namespace MalbersAnimations.Utilities
     public class BlendShapeEditor : Editor
     {
         BlendShape M;
-        // private MonoScript script;
+       // private MonoScript script;
         protected int index = 0;
-        SerializedProperty blendShapes, preset, LODs, mesh, random,   PinnedShape, Min, Max;
+        SerializedProperty blendShapes, preset, LODs, mesh, random, LoadPresetOnStart;
 
         private void OnEnable()
         {
             M = (BlendShape)target;
-            // script = MonoScript.FromMonoBehaviour(M);
+           // script = MonoScript.FromMonoBehaviour(M);
             blendShapes = serializedObject.FindProperty("blendShapes");
             preset = serializedObject.FindProperty("preset");
             LODs = serializedObject.FindProperty("LODs");
             mesh = serializedObject.FindProperty("mesh");
             random = serializedObject.FindProperty("random");
-            
-            Min = serializedObject.FindProperty("Min");
-            Max = serializedObject.FindProperty("Max");
-            PinnedShape = serializedObject.FindProperty("PinnedShape");
+            LoadPresetOnStart = serializedObject.FindProperty("LoadPresetOnStart");
         }
 
         public override void OnInspectorGUI()
@@ -36,40 +36,14 @@ namespace MalbersAnimations.Utilities
 
             EditorGUI.BeginChangeCheck();
             {
-                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+              //  using (new GUILayout.VerticalScope(MalbersEditor.StyleGray))
                 {
+                    using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
 
-                    int Length = 0;
-                    if (mesh.objectReferenceValue != null)
-                    {
-                        Length = blendShapes.arraySize;
-                    }
-                    using (var cc = new EditorGUI.ChangeCheckScope())
-                    {
-                        using (new GUILayout.HorizontalScope())
+                        using (var cc = new EditorGUI.ChangeCheckScope())
                         {
                             EditorGUILayout.PropertyField(mesh);
-
-                            if (mesh.objectReferenceValue != null)
-                            {
-                                if (GUILayout.Button(new GUIContent("⁇", "Randomize Blend shapes"), GUILayout.Width(30)))
-                                {
-                                    for (int i = 0; i < Length; i++)
-                                    {
-                                        blendShapes.GetArrayElementAtIndex(i).floatValue = Random.Range(Min.floatValue, Max.floatValue);
-                                    }
-                                    blendShapes.serializedObject.ApplyModifiedProperties();
-                                }
-                                if (GUILayout.Button(new GUIContent("↺", "Reset Blend Shapes to Zero"), GUILayout.Width(30)))
-                                {
-                                    for (int i = 0; i < Length; i++)
-                                    {
-                                        blendShapes.GetArrayElementAtIndex(i).floatValue = 0;
-                                    }
-                                    blendShapes.serializedObject.ApplyModifiedProperties();
-                                }
-                            }
-
                             if (cc.changed)
                             {
                                 serializedObject.ApplyModifiedProperties();
@@ -77,141 +51,118 @@ namespace MalbersAnimations.Utilities
                                 EditorUtility.SetDirty(target);
                             }
                         }
-                    }
-
-                    if (mesh.objectReferenceValue != null)
-                    {
 
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(LODs, new GUIContent("LODs", "Other meshes with Blend Shapes to change"));
                         EditorGUI.indentLevel--;
+                    }
 
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            //if (GUILayout.Button(new GUIContent("⁇", "Randomize Blend shapes"), GUILayout.Width(25)))
-                            //{
-                            //    for (int i = 0; i < Length; i++)
-                            //    {
-                            //        blendShapes.GetArrayElementAtIndex(i).floatValue = Random.Range(Min.floatValue, Max.floatValue);
-                            //    }
-                            //    blendShapes.serializedObject.ApplyModifiedProperties();
-                            //}
-                            //if (GUILayout.Button( new GUIContent("↺","Reset Blend Shapes to Zero"), GUILayout.Width(22)))
-                            //{
-                            //    for (int i = 0; i < Length; i++)
-                            //    {
-                            //        blendShapes.GetArrayElementAtIndex(i).floatValue = 0;
-                            //    }
-                            //    blendShapes.serializedObject.ApplyModifiedProperties();
-                            //}
-                        }
+                    int Length = 0;
+                    if (mesh.objectReferenceValue != null)
+                        Length = blendShapes.arraySize;
 
-
+                    using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
                         using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                         {
-                            PinnedShape.isExpanded = MalbersEditor.Foldout(PinnedShape.isExpanded, "Blend Shapes");
-
-                            if (PinnedShape.isExpanded)
+                            if (Length > 0)
                             {
-
-                                using (new GUILayout.HorizontalScope())
-                                {
-                                    EditorGUIUtility.labelWidth = 40;
-                                    EditorGUILayout.PropertyField(Min);
-                                    EditorGUILayout.PropertyField(Max);
-                                    EditorGUIUtility.labelWidth = 00;
-                                }
-
-                                using (new GUILayout.HorizontalScope())
-                                {
-
-                                    if (Length > 0)
-                                    {
-                                        int pin = PinnedShape.intValue;
-                                        EditorGUILayout.LabelField(new GUIContent("Pin Shape:              (" + pin + ") |" + M.mesh.sharedMesh.GetBlendShapeName(pin) + "|", "Current Shape Store to modigy When accesing public methods from other scripts"));
-                                    }
-
-                                    using (new EditorGUI.DisabledGroupScope(preset.objectReferenceValue != null))
-                                    {
-                                        random.boolValue = GUILayout.Toggle(random.boolValue,
-                                            new GUIContent("R", "Make Randoms Blend Shapes at Start"), EditorStyles.miniButton, GUILayout.Width(30));
-                                    }
-                                }
-
-                                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-                                {
-                                    if (Length > 0)
-                                    {
-                                        if (M.blendShapes == null)
-                                        {
-                                            M.blendShapes = M.GetBlendShapeValues();
-                                            serializedObject.ApplyModifiedProperties();
-                                        }
-
-                                        for (int i = 0; i < Length; i++)
-                                        {
-                                            if (i >= M.mesh.sharedMesh.blendShapeCount) continue;
-
-                                            var bs = blendShapes.GetArrayElementAtIndex(i);
-                                            if (bs != null && M.mesh.sharedMesh != null)
-                                            {
-
-                                                bs.floatValue =
-                                                    EditorGUILayout.Slider("(" + i.ToString("D2") + ") " + M.mesh.sharedMesh.GetBlendShapeName(i),
-                                                    bs.floatValue, Min.floatValue, Max.floatValue);
-                                            }
-                                        }
-                                    }
-                                }
+                                int pin = serializedObject.FindProperty("PinnedShape").intValue;
+                                EditorGUILayout.LabelField(new GUIContent("Pin Shape:              (" + pin + ") |" + M.mesh.sharedMesh.GetBlendShapeName(pin) + "|", "Current Shape Store to modigy When accesing public methods from other scripts"));
                             }
                         }
-
-                        using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                        
+                         
+                        if (Length > 0)
                         {
-                            preset.isExpanded = MalbersEditor.Foldout(preset.isExpanded, "Presets");
+                            if (M.blendShapes == null)
+                            {
+                                M.blendShapes = M.GetBlendShapeValues();
+                                serializedObject.ApplyModifiedProperties();
+                            }
 
-                            if (preset.isExpanded)
+                            for (int i = 0; i < Length; i++)
+                            {
+                                if (i >= M.mesh.sharedMesh.blendShapeCount) continue;
+
+                                var bs = blendShapes.GetArrayElementAtIndex(i);
+                                if (bs != null && M.mesh.sharedMesh != null)
+                                {
+
+                                    bs.floatValue = EditorGUILayout.Slider("(" + i.ToString("D2") + ") " + M.mesh.sharedMesh.GetBlendShapeName(i), bs.floatValue, 0, 100);
+                                }
+                                //EditorUtility.SetDirty(M.mesh);
+                            }
+
+                            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
                             {
                                 EditorGUILayout.PropertyField(preset, new GUIContent("Preset", "Saves the Blend Shapes values to a scriptable Asset"));
+                            }
 
-                                if (preset.objectReferenceValue != null)
+
+                            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                            {
+                                EditorGUILayout.LabelField("On Start", EditorStyles.boldLabel);
+                                EditorGUI.BeginDisabledGroup(preset.objectReferenceValue == null);
+                                EditorGUILayout.PropertyField(LoadPresetOnStart, new GUIContent("Load Preset", "Load a  Blend Shape Preset on Start"));
+                                EditorGUI.EndDisabledGroup();
+
+                                EditorGUI.BeginDisabledGroup(preset.objectReferenceValue != null && LoadPresetOnStart.boolValue);
+                                EditorGUILayout.PropertyField(random, new GUIContent("Random", "Make Randoms Blend Shapes at start"));
+                                EditorGUI.EndDisabledGroup();
+
+                            }
+
+
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                if (GUILayout.Button("Reset"))
                                 {
-                                    EditorGUILayout.HelpBox("The Preset will be loaded on Start", MessageType.Info);
-                                }
-                                using (new GUILayout.HorizontalScope())
-                                {
-                                    if (GUILayout.Button("Save"))
+                                     for (int i = 0; i < Length; i++)
                                     {
-                                        if (preset.objectReferenceValue == null)
+                                        blendShapes.GetArrayElementAtIndex(i).floatValue = 0; 
+                                    }
+                                
+                                }
+                                if (GUILayout.Button("Randomize"))
+                                { 
+                                    for (int i = 0; i < Length; i++)
+                                    {
+                                        blendShapes.GetArrayElementAtIndex(i).floatValue = Random.Range(0, 100);
+                                    } 
+                                }
+                                if (GUILayout.Button("Save"))
+                                {
+                                    if (preset.objectReferenceValue == null)
+                                    {
+                                        string newBonePath = EditorUtility.SaveFilePanelInProject("Create New Blend Preset", "BlendShape preset", "asset", "Message");
+
+                                        BlendShapePreset bsPreset = CreateInstance<BlendShapePreset>();
+
+                                        AssetDatabase.CreateAsset(bsPreset, newBonePath);
+
+                                        preset.objectReferenceValue = bsPreset;
+                                        serializedObject.ApplyModifiedProperties();
+
+                                        Debug.Log("New Blend Shape Preset Created");
+                                        M.SavePreset();
+
+                                    }
+                                    else
+                                    {
+                                        if (EditorUtility.DisplayDialog("Overwrite Blend Shape Preset", "Are you sure to overwrite the preset?", "Yes", "No"))
                                         {
-                                            string newBonePath =
-                                                EditorUtility.SaveFilePanelInProject("Create New Blend Preset", "BlendShape preset", "asset", "Message");
-
-                                            BlendShapePreset bsPreset = CreateInstance<BlendShapePreset>();
-
-                                            AssetDatabase.CreateAsset(bsPreset, newBonePath);
-
-                                            preset.objectReferenceValue = bsPreset;
-                                            serializedObject.ApplyModifiedProperties();
-
-                                            Debug.Log("New Blend Shape Preset Created");
                                             M.SavePreset();
-
-                                        }
-                                        else
-                                        {
-                                            if (EditorUtility.DisplayDialog("Overwrite Blend Shape Preset",
-                                                "Are you sure to overwrite the preset?", "Yes", "No"))
-                                            {
-                                                M.SavePreset();
-                                                GUIUtility.ExitGUI();
-                                            }
+                                            GUIUtility.ExitGUI();
                                         }
                                     }
+                                }
 
-                                    using (new EditorGUI.DisabledGroupScope(preset.objectReferenceValue == null))
+                                using (new EditorGUI.DisabledGroupScope(preset.objectReferenceValue == null))
+                                {
+                                    if (GUILayout.Button("Load"))
                                     {
-                                        if (GUILayout.Button("Load") && preset.objectReferenceValue != null)
+                                        if (preset.objectReferenceValue != null)
                                         {
                                             if (M.preset.blendShapes == null || M.preset.blendShapes.Length == 0)
                                                 Debug.LogWarning("The preset " + M.preset.name + " is empty, Please use a Valid Preset");
@@ -221,18 +172,17 @@ namespace MalbersAnimations.Utilities
                                                 EditorUtility.SetDirty(target);
                                             }
                                         }
-                                    }
+                                    } 
                                 }
                             }
                         }
                     }
-                    
-                }
+                } 
             }
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(target, "Blend Shapes Changed");
-                if (M.mesh) Undo.RecordObject(M.mesh, "Blend Shapes Changed");
+                if (M.mesh)  Undo.RecordObject(M.mesh, "Blend Shapes Changed");
 
                 M.UpdateBlendShapes();
             }

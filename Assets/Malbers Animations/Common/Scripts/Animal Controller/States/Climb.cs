@@ -1,8 +1,9 @@
 ﻿using MalbersAnimations.Scriptables;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine; 
+using System.Collections.Generic; 
+using UnityEngine;
+using UnityEngine.Serialization;
+//using Physics = RotaryHeart.Lib.PhysicsExtension.Physics;
 
 namespace MalbersAnimations.Controller
 {
@@ -10,33 +11,18 @@ namespace MalbersAnimations.Controller
     /// <summary>Climb Logic </summary>
     public class Climb : State
     {
-        [System.Serializable]
-        public struct ClimbRayOverride
-        {
-            public StateID state;
-            public float length;
-            public float sprintLength;
-        }
-
         public override string StateName => "Climb/Free Climb";
-        public override string StateIDName => "Climb";
 
         /// <summary>Air Resistance while falling</summary>
         [Header("Climb Parameters"), Space]
         [Tooltip("Layer to identify climbable surfaces")]
-        public LayerReference ClimbLayer = new (1);
+        public LayerReference ClimbLayer = new LayerReference(1);
 
         //[Tooltip("Tag used to identify climbable surfaces. Default: [Climb]")]
         //public StringReference SurfaceTag =  new StringReference("Climb");
         public PhysicMaterial Surface;
         [Tooltip("Climb automatically when is near a climbable surface")]
-        public BoolReference automatic = new();
-
-        [Tooltip("Disable the Main Collider while the state is active (Main Collider can Interfiere with the animation)")]
-        public BoolReference DisableMainCollider = new(true);
-
-        [Tooltip("Disable Moving on Left and Right while climbing")]
-        public BoolReference NoHorizontal  = new();
+        public BoolReference automatic = new BoolReference();
 
         /// <summary>Air Resistance while falling</summary>
         [Header("Climb Pivot"), Space]
@@ -47,18 +33,6 @@ namespace MalbersAnimations.Controller
         public Vector3 ClimbHip = Vector3.zero;
         [Tooltip("Distance of the Climb Point Ray")]
         public float ClimbRayLength = 1f;
-        [Tooltip("Distance of the Climb Point Ray when sprinting")]
-        public float SprintClimbRayLength = 2f;
-
-
-        [Tooltip("LedgeGrab will be set automatic if any of these state are playing")]
-        public List<StateID> automaticByState = new();
-        public bool Automatic_By_State { get; private set; }
-        [Tooltip("Changes the Ray Lenght depending the current active state")]
-        public List<ClimbRayOverride> ClimbRayLengthOverride = new();
-
-        protected float CurrentRayLength;
-        protected float CurrentRayLengthSprint;
 
         [Tooltip("Disable the pivot chest to calculate Falling from Pivot Hip instead")]
         public bool DisablePivotChest = true;
@@ -75,37 +49,26 @@ namespace MalbersAnimations.Controller
         public float GroundDistance = 0.5f;
         [Tooltip("Length of the Horizontal Rays to detect Inner Corners")]
         [Min(0)] public float InnerCorner = 0.4f;
-        [Min(0)] public float InnerCornerLerp = 5f;
         [Tooltip("Speed Multiplier to move faster around outter corners")]
         [Min(0)] public float OuterCornerSpeed = 0.4f;
         [Range(0, 90)] public float ExitSlope = 30f;
 
-        [Tooltip("Transform Created to Store the Hit Position of the Climb Rays. Use it to show UI When a WAll ")]
+        [Tooltip("Transform Created to Store the Hit Position of the Climb Rays")]
         public string HitTransform = "ClimbHit";
 
 
         [Header("Ledge Detection (Exit Status: Climb Ledge)")]
-        [Tooltip("Checks On top of the Climb to Exit\nDisable this if your Animal has the <[Grab Ledge]> State")]
+        [Tooltip("Checks On top of the Climb to Exit, Disable this if your Animal has the Grab Ledge State")]
         public bool UseLedgeDetection = true;
-
-        [Hide("UseLedgeDetection",false)] 
-        public string LedgeTag = "ClimbEdge";
-        private int LedgeHash;
-
         [Tooltip("Offset Position to Cast the First Ray on top on the animal to find the ledge")]
-        [Hide("UseLedgeDetection",false)] 
         public Vector3 RayLedgeOffset = Vector3.up;
-
         [Tooltip("Length of the Ledge Ray")]
-        [Hide("UseLedgeDetection", false)]
         [Min(0)] public float RayLedgeLength = 0.4f;
-
         [Tooltip("MinDistance to exit Climb over a ledge")]
-        [Hide("UseLedgeDetection", false)]
+        [FormerlySerializedAs("LedgeMinExit")]
         [Min(0)] public float LedgeExitDistance = 0.175f;
 
         [Tooltip("Minimun Ledge Angle ")]
-        [Hide("UseLedgeDetection", false)]
         [Min(0)] public float MinLedgeAngle = 65f;
 
         [Header("Exit State Status")]
@@ -125,7 +88,9 @@ namespace MalbersAnimations.Controller
 
         /// <summary> The Animal is on an Inner Corner</summary>
         private bool InInnerCorner;
-        
+        ///// <summary> The Animal is on an Outer Corner</summary>
+        //private bool InOuterCorner; 
+
         private readonly RaycastHit[] EdgeHit = new RaycastHit[1];
 
         private RaycastHit HitChest;
@@ -147,65 +112,20 @@ namespace MalbersAnimations.Controller
         public Vector3 AverageNormal { get; private set; }
 
         /// <summary>Check if the Current Wall its a valid wall</summary>
-        public Transform ValidWall// {get; private set; }
-        {
-            get => validwall;
-            set
-            {
-                validwall = value;
-             //   Debug.Log($"ValidWall [{value}]");
-            }
-        }
-        Transform validwall;
-        /// <summary>LastClimbableWall</summary>
-        public Transform LastWall {get; private set; }
+        public bool ValidWall { get; private set; }
 
         /// <summary>Valid Exit on Ledge</summary>
         public bool ExitOnLedge { get; private set; }
 
-        /// <summary> Angle From the Up Vector and the Wall Normal</summary>
+        /// <summary> Angle From the Gravity and the Wall Normal</summary>
         public float WallAngle { get; private set; }
-
-        /// <summary> Check the states that will make the state automatic </summary>
-        /// <param name="newState"></param>
-        public override void NewActiveState(StateID newState)
-        {
-            if (newState == ID) return; //Do nothing if we are on the same state
-
-
-            //Automatic By State!
-            Automatic_By_State = false;
-            if (automaticByState.Count > 0)
-                Automatic_By_State = automaticByState.Contains(newState);
-
-            if (ClimbRayLengthOverride.Count > 0)
-            {
-                CurrentRayLength = ClimbRayLength;
-                CurrentRayLengthSprint = SprintClimbRayLength;
-
-                var newOverride = ClimbRayLengthOverride.FirstOrDefault(x => x.state == newState);
-
-                if (newOverride.state != null)
-                {
-                    CurrentRayLength = newOverride.length;
-                    CurrentRayLengthSprint = newOverride.sprintLength;
-                }
-            }
-
-            base.NewActiveState(newState);
-        }
-
 
         public override void AwakeState()
         {
             //DefaultCameraInput = animal.UseCameraInput; //Store the Animal Current CameraInput
             base.AwakeState();
 
-            CurrentRayLength = ClimbRayLength;
-            CurrentRayLengthSprint = SprintClimbRayLength;
-
-
-            m_HitTransform = animal.transform.FindGrandChild(HitTransform);
+            m_HitTransform = animal.transform.Find(HitTransform);
 
             if (m_HitTransform == null)
             {
@@ -214,18 +134,13 @@ namespace MalbersAnimations.Controller
                 m_HitTransform.ResetLocal();
             }
 
-            LedgeHash = Animator.StringToHash(LedgeTag);
-
             EnableHitTransform(false);
         }
 
-
         public override void StatebyInput()
         {
-            ValidWall = null; //Reset Valid Wall Always when the state uses Input
-
             // Debug.Log($"StatebyInput InputValue {InputValue} ExitInputValue{ExitInputValue} {CheckClimbRay()}");
-            if (InputValue && CheckClimbRay())
+            if (InputValue && /*!ExitInputValue &&*/ CheckClimbRay())
             {
                 Activate();
             }
@@ -239,9 +154,7 @@ namespace MalbersAnimations.Controller
 
         public override void Activate()
         {
-            ValidWall = CheckClimbRay();
-
-            if (ValidWall) //it cannot be activated there's no Wall to Climb
+            if (CheckClimbRay()) //it cannot be activated there's no Wall to Climb
             {
                 base.Activate();
                 animal.UseCameraInput = false;       //Climb cannot use Camera Input
@@ -250,53 +163,36 @@ namespace MalbersAnimations.Controller
                 InInnerCorner = /*InOuterCorner =*/ false;
 
                 EnableHitTransform(false);
-
-                animal.Reset_Movement(); //Remove all Input stuff
-                animal.Force_Remove(); //Remove all forces when grabbing a ledge
-
-                //Disable the Main Collider while is doing the state
-                if (DisableMainCollider.Value && animal.MainCollider)
-                    animal.MainCollider.enabled = false;
             }
         }
 
         public override bool TryActivate()
         {
-            var newWall = CheckClimbRay();
+            var ValidWall = CheckClimbRay();
 
-            if (animal.MovementDetected && animal.VerticalSmooth > 0.9f && automatic.Value || Automatic_By_State)
+            if (automatic && !ExitInputValue)
             {
-                ValidWall = newWall;
-                
-                if (ValidWall != null)
-                {
-                    return true;
-                }
+                return ValidWall;
             }
-            
             return false;
         }
+
 
         public override void ResetStateValues()
         {
             WallChest = null;
             WallAngle = 90;
+            LedgeHitDifference = 0;
             ExitOnLedge = false;
             animal.ResetCameraInput();
             InInnerCorner = /*InOuterCorner =*/false;
             ExitInputValue = false;
 
-
-            //Hide the Hit Transform
             if (m_HitTransform)
             {
                 EnableHitTransform(false);
                 m_HitTransform.ResetLocal();
             }
-
-            //Restore Main Collider 
-            if (DisableMainCollider.Value && animal.MainCollider)
-                animal.MainCollider.enabled = true;
         }
 
         public override void RestoreAnimalOnExit()
@@ -314,127 +210,87 @@ namespace MalbersAnimations.Controller
             return Up * (animal.VerticalSmooth) + Right * animal.HorizontalSmooth; //IMPORTANT OF ADDITIONAL SPEED
         }
 
-        private Transform CheckClimbRay()
+        private bool CheckClimbRay()
         {
-            if (InInnerCorner) return null; //Do nothing when the Animal is changing on the inner corner
+            if (InInnerCorner) return false; //Do nothing when the Animal is changing on the inner corner
 
             var Point_Chest = ClimbPivotChest(transform);
             var Point_Hip = ClimbPivotHip(transform);
-
-            var ClimbRayLength = !animal.Sprint ? CurrentRayLength : CurrentRayLengthSprint; //Find the override
-
             var Length = animal.ScaleFactor * ClimbRayLength;
 
             HitChest = new RaycastHit();
             HitHip = new RaycastHit();
 
-            var ForwardScale = Forward * ScaleFactor;
 
+            Debug.DrawRay(Point_Chest, Forward * ClimbRayLength, Color.green);
+            Debug.DrawRay(Point_Chest, Forward * WallDistance, Color.red);
 
-            if (GizmoDebug)
-            {
-                Debug.DrawRay(Point_Chest, ForwardScale * ClimbRayLength, Color.green);
-                Debug.DrawRay(Point_Chest, ForwardScale * WallDistance, Color.red);
+            Debug.DrawRay(Point_Hip, Forward * ClimbRayLength, Color.green);
+            Debug.DrawRay(Point_Hip, Forward * WallDistance, Color.red);
 
-                Debug.DrawRay(Point_Hip, ForwardScale * ClimbRayLength, Color.green);
-                Debug.DrawRay(Point_Hip, ForwardScale * WallDistance, Color.red);
-            }
-          
-
-         //  var ValidWall = false;
-            AverageNormal = ForwardScale;
+            ValidWall = false;
+            AverageNormal = Forward;
 
             if (Physics.SphereCast(Point_Chest, RayRadius, Forward, out HitChest, Length, ClimbLayer.Value, IgnoreTrigger))
             {
-                var valid = HitChest.collider.sharedMaterial == Surface;
+                ValidWall = HitChest.collider.sharedMaterial == Surface;
 
-                if (valid)
+                if (ValidWall)
                 {
                     AverageNormal = HitChest.normal;
                     DebugRays(HitChest.point, HitChest.normal);
-                    //ValidWall = HitChest.transform;
+
+
+                    //REMOVED MAYBE IS BETTER THIS WAY??
+                  //  ValidWall = false; //Reset again just to check that the second cast works too
 
                     if (Physics.SphereCast(Point_Hip, RayRadius, Forward, out HitHip, Length, ClimbLayer.Value, IgnoreTrigger))
                     {
-                        valid = HitHip.collider.sharedMaterial == Surface;
+                        ValidWall = HitHip.collider.sharedMaterial == Surface;
                         DebugRays(HitHip.point, HitHip.normal);
-
-                        var Dir = HitChest.point - HitHip.point;
-
-                        var avNorm = AverageNormal + HitHip.normal;
-                        var avNorm2 = Vector3.Cross(Dir, -avNorm);
-                        var AverageResult = Vector3.Cross(Dir, avNorm2);
-
-                        #region Debug Normal
-#if UNITY_EDITOR
-                        if (m_debug && animal.debugGizmos)
-                        {
-                            var Pos = (HitChest.point + HitHip.point) / 2;
-                            Debug.DrawLine(HitChest.point, HitHip.point, Color.green);
-                            Debug.DrawRay(Pos, AverageResult.normalized * 0.5f, Color.white);
-                        }
-#endif
-                        #endregion
-
-                        AverageNormal = AverageResult;
-
-                       // ValidWall = HitHip.transform;
-
-                        //AverageNormal += HitHip.normal;
+                        AverageNormal += HitHip.normal;
                     }
-
-                    //Set new Platform
-                    if (animal.platform != HitChest.transform && HitChest.transform != null)
-                        animal.SetPlatform(HitChest.transform);
-
-                    //Get the Wall Angle!!
-                    WallAngle = Vector3.SignedAngle(AverageNormal, animal.UpVector, animal.Right);
-
-                    if (animal.activeState != this)
-                    {
-                        m_HitTransform.position = HitChest.point;
-                        EnableHitTransform(valid);
-                    }
-
-                    return animal.platform;
                 }
             }
-            else
+
+            //Set new Platform
+            if (animal.platform != HitChest.transform && HitChest.transform != null)
+                animal.SetPlatform(HitChest.transform);
+
+            WallAngle = Vector3.SignedAngle(AverageNormal, animal.UpVector, animal.Right);
+
+            //  if (!automatic.Value) Debugging($"Try Activate: Valid Wall {ValidWall}");
+
+            if (animal.activeState != this)
             {
-                if (GizmoDebug)
-                {
-                    MDebug.DrawWireSphere(Point_Hip + (ClimbRayLength * ScaleFactor * Forward), Color.gray, RayRadius);
-                    MDebug.DrawWireSphere(Point_Chest + (ClimbRayLength * ScaleFactor * Forward), Color.gray, RayRadius);
-                }
-
-                EnableHitTransform(false);
+                m_HitTransform.position = HitChest.point;
+                EnableHitTransform(ValidWall);
             }
-            return null;
+
+            return ValidWall;
         }
 
         public override void OnStateMove(float deltatime)
         {
-            if (CurrentAnimTag == LedgeHash)
+            if (ExitOnLedge) //Meaning It can Exit on Ledge so smooth the exit
             {
+                var dif = LedgeHitDifference * deltatime * AlignSmoothness;
+                animal.AdditivePosition -= dif * animal.UpVector;
+                LedgeHitDifference -= Mathf.Clamp(dif, 0, dif);
+                //Debug.Log("LedgeHitDifference: " + LedgeHitDifference);
+                animal.PlatformMovement();
+                return;
             }
-            else if (InCoreAnimation)
+
+            if (InCoreAnimation)
             {
-                if (NoHorizontal) //Remove Horizontal Side movement
-                {
-                    animal.MovementAxis.x = 0;
-                    animal.MovementAxisRaw.x = 0;
-                    //animal.movementAxisRaw.x = 0;
-                }
-
-              //  animal.PlatformMovement(); //This needs to be calculated first!!! 
-
-                if (LastWall != ValidWall) LastWall = ValidWall;
-
                 var Right = animal.Right;
 
                 if (CheckClimbRay())
                 {
-                    animal.SetPlatform(HitChest.transform);
+                    if (HitChest.transform != null)
+                        animal.PlatformMovement();
+                    //CheckMovingWall(HitHip.transform, deltatime);
 
                     if (MovementRaw.x > 0) //Means is going Right
                     {
@@ -444,9 +300,9 @@ namespace MalbersAnimations.Controller
                     {
                         CalculateSideClimbHit(-Right);
                     }
-                    //else //Not moving Horizontally
-                    //{
-                    //}
+                    else //Not moving Horizontally
+                    {
+                    }
 
                     AlignToWall(HitChest.distance, deltatime);
                     OrientToWall(AverageNormal, deltatime);
@@ -458,15 +314,19 @@ namespace MalbersAnimations.Controller
                     if (Angle < 5f) InInnerCorner = false;
                 }
             }
+            //Climb from ground.
             else if (InEnterAnimation)  //If we are on Climb Start do a quick alignment to the Wall.
             {
                 if (CheckClimbRay())
                 {
                     OrientToWall(AverageNormal, deltatime);
                     AlignToWall(HitChest.distance, deltatime);
-                    animal.SetPlatform(HitChest.transform);
-                   // CheckMovingWall(HitChest.transform, deltatime);
+                    animal.PlatformMovement();
                 }
+            }
+            else if (InExitAnimation)
+            {
+                animal.CheckIfGrounded_Height();
             }
         }
 
@@ -475,16 +335,6 @@ namespace MalbersAnimations.Controller
         {
             var MainPivot = ClimbPivotChest(transform) + animal.AdditivePosition;
 
-            //if (InInnerCorner) return; //Fo nothing when the animal is changing from inner corners
-
-            //The Animal did not touch a Wall Tagged Climb
-            if (!ValidWall) 
-            {
-                Debugging("[Allow Exit] Exit when Wall is not Climbable");
-                ValidWall = LastWall;
-                AllowExit();
-                return;
-            } 
 
             if (Mathf.Abs(WallAngle) < ExitSlope)//Exit when the angle is max from the slope
             {
@@ -497,48 +347,37 @@ namespace MalbersAnimations.Controller
             //Moving Down
             if (MovementRaw.z < 0) //Means the animal is going down
             {
-                Debug.DrawRay(MainPivot, GroundDistance * ScaleFactor * -Up, Color.white);
+                Debug.DrawRay(MainPivot, -Up * ScaleFactor * GroundDistance, Color.white);
 
                 //Means that the Animal is going down and touching the ground
-                if (Physics.Raycast(MainPivot, -Up, out var hit, ScaleFactor * GroundDistance, animal.GroundLayer, IgnoreTrigger))
+                if (Physics.Raycast(MainPivot, -Up, out _, ScaleFactor * GroundDistance, animal.GroundLayer, IgnoreTrigger))
                 {
-                    var FallRayAngle = Vector3.SignedAngle(hit.normal, animal.UpVector, animal.Right);
-
-                    var DeepSlope = Mathf.Abs(FallRayAngle) >= animal.SlopeLimit;
-
-                    if (hit.transform.gameObject != GameObjectHit) //Check if what the Fall Ray Hit was a Debree
-                    {
-                        GameObjectHit = hit.transform.gameObject;
-                        IsDebree = GameObjectHit.CompareTag(animal.DebrisTag);
-                    }
-
-                    if (!DeepSlope || IsDebree) //Check if we are not on a deep slope
-                    {
-                        Debugging("[Allow Exit] when Grounded and pressing Down and touched the ground");
-                        AllowExit(StateEnum.Idle, ClimbDown); //Force the Idle State to be the next State
-                        animal.CheckIfGrounded();
-                    }
+                    Debugging("[Allow Exit] when Grounded and pressing Down and touched the ground");
+                    AllowExit(StateEnum.Idle, ClimbDown); //Force the Idle State to be the next State
+                    animal.CheckIfGrounded();
                 }
+
 
                 var Point_Hip = ClimbPivotHip(transform) + DeltaPos;
                 var Length = animal.ScaleFactor * ClimbRayLength;
 
                 Debug.DrawRay(Point_Hip, Forward * Length, Color.white);
-
                 if (!Physics.Raycast(Point_Hip, Forward, out _, Length, animal.GroundLayer, IgnoreTrigger))
                 {
                     Debugging("[Allow Exit] No Front Wall ");
                     AllowExit();
                 }
             }
-            if (!ExitOnLedge) //Means the Animal going Up
+            else if (!ValidWall)  //Means the Animal did not touch a Wall Tagged Climb
+            {
+                Debugging("[Allow Exit] Exit when Wall is not Climbable");
+                AllowExit();
+            }
+            else if (!ExitOnLedge) //Means the Animal going Up
             {
                 CheckLedgeExit();
             }
         }
-
-        private GameObject GameObjectHit;
-        private bool IsDebree;
 
         /// <summary> Using this to show if a surface can be climb  </summary>
         private void EnableHitTransform(bool v)
@@ -548,19 +387,12 @@ namespace MalbersAnimations.Controller
 
         private void DebugRays(Vector3 p, Vector3 Normal)
         {
-#if UNITY_EDITOR
-            if (m_debug && animal.debugGizmos)
-            {
-                MDebug.DrawCircle(p, Normal, RayRadius, Color.green, true);
-
-               // MDebug.DrawWireSphere(p + (Normal * RayRadius), Color.green, RayRadius);
-                Debug.DrawRay(p, 2 * RayRadius * Normal, Color.green);
-            }
-#endif
+            MDebug.DrawWireSphere(p + (Normal * RayRadius), Color.green, RayRadius);
+            Debug.DrawRay(p, Normal * RayRadius * 2, Color.green);
         }
 
-        /// <summary>Use Climb side</summary>
-        /// <param name="Direction"></param>
+        private float LedgeHitDifference;
+
         private void CalculateSideClimbHit(Vector3 Direction)
         {
             var Ray1 = Color.blue;
@@ -576,7 +408,6 @@ namespace MalbersAnimations.Controller
 
             if (Physics.Raycast(point, Direction, out HitSide, CornerLength, ClimbLayer, IgnoreTrigger))
             {
-
                 Ray1 = Color.green;
 
                 if (HitSide.collider.sharedMaterial == Surface) //Next Surface is Climbable
@@ -595,7 +426,7 @@ namespace MalbersAnimations.Controller
                     {
                         if (HitSide.collider.sharedMaterial != Surface)
                         {
-                            MovementAxisMult.x = 0;
+                            MovementAxisMult.x = 0; //Remove all Horizontal Movement
                             animal.additivePosition.x = 0;
                         }
                     }
@@ -614,7 +445,7 @@ namespace MalbersAnimations.Controller
                         }
                         else
                         {
-                            animal.AdditivePosition += animal.DeltaTime * OuterCornerSpeed * Direction; //Make a Fast Movement to quickly move to the next corner
+                            animal.AdditivePosition += Direction * animal.DeltaTime * OuterCornerSpeed; //Make a Fast Movement to quickly move to the next corner
                         }
                     }
 
@@ -627,11 +458,6 @@ namespace MalbersAnimations.Controller
             Debug.DrawRay(point, Direction * CornerLength, Ray1);
         }
 
-        //private Vector3 platform_Pos;
-        //private Quaternion platform_Rot;
-
-        
-
         //Align the Animal to the Wall
         private void AlignToWall(float distance, float deltatime)
         {
@@ -639,17 +465,17 @@ namespace MalbersAnimations.Controller
 
             if (!Mathf.Approximately(distance, WallDistance * animal.ScaleFactor))
             {
-                Vector3 align = AlignSmoothness * deltatime * difference * ScaleFactor * animal.Forward;
+                Vector3 align = animal.Forward * difference * deltatime * AlignSmoothness;
                 animal.AdditivePosition += align;
             }
         }
 
-        private void OrientToWall(Vector3 normal,  float deltatime)
+        private void OrientToWall(Vector3 normal, float deltatime)
         {
             Quaternion AlignRot = Quaternion.FromToRotation(Forward, -normal) * transform.rotation;  //Calculate the orientation to Terrain 
             Quaternion Inverse_Rot = Quaternion.Inverse(transform.rotation);
             Quaternion Target = Inverse_Rot * AlignRot;
-            Quaternion Delta = Quaternion.Lerp(Quaternion.identity, Target, deltatime * AlignSmoothness);      //Calculate the Delta Align Rotation
+            Quaternion Delta = Quaternion.Lerp(Quaternion.identity, Target, deltatime * AlignSmoothness); //Calculate the Delta Align Rotation
             animal.AdditiveRotation *= Delta;
 
             //Update the Rotation to always look Upwards
@@ -660,62 +486,47 @@ namespace MalbersAnimations.Controller
             Target = Inverse_Rot * AlignRot;
             animal.AdditiveRotation *= Target;
         }
-       
         private void CheckLedgeExit()
         {
             if (UseLedgeDetection)
             {
-                var LedgePivotUP = transform.TransformPoint(ClimbChest + RayLedgeOffset + 2 * m_rayRadius * ScaleFactor * Up) + DeltaPos;
+                var LedgePivotUP = transform.TransformPoint(ClimbChest + RayLedgeOffset);
 
                 //Check Upper Ground legde Detection
-               // bool LedgeHit = Physics.RaycastNonAlloc(LedgePivotUP, Forward, EdgeHit, ScaleFactor * RayLedgeLength, ClimbLayer.Value, IgnoreTrigger) > 0;
-                bool LedgeHit = Physics.Raycast(LedgePivotUP, Forward, out EdgeHit[0], ScaleFactor * RayLedgeLength, ClimbLayer.Value, IgnoreTrigger);
+                bool LedgeHit = Physics.RaycastNonAlloc(LedgePivotUP, Forward, EdgeHit, ScaleFactor * RayLedgeLength, ClimbLayer.Value, IgnoreTrigger) > 0;
+                var SecondRayPivot = new Ray(LedgePivotUP, Forward).GetPoint(RayLedgeLength);
 
-                MDebug.DrawWireSphere(LedgePivotUP, Color.green, 0.01f*ScaleFactor);
-                MDebug.DrawWireSphere(EdgeHit[0].point, Color.green, 0.01f * ScaleFactor);
-                Debug.DrawRay(LedgePivotUP, RayLedgeLength * ScaleFactor * Forward, Color.green);
-              
+                Debug.DrawRay(LedgePivotUP, Forward * RayLedgeLength, Color.green);
+                Debug.DrawRay(SecondRayPivot, Gravity * RayLedgeLength * 2, Color.green);
+                Debug.DrawRay(SecondRayPivot, Gravity * LedgeExitDistance, Color.red);
 
                 if (!LedgeHit)
                 {
-                    var SecondRayPivot = new Ray(LedgePivotUP, Forward * ScaleFactor).GetPoint(RayLedgeLength * ScaleFactor);
+                    LedgeHit = Physics.RaycastNonAlloc(SecondRayPivot, Gravity, EdgeHit, ScaleFactor * RayLedgeLength * 2, ClimbLayer.Value, IgnoreTrigger) > 0;
 
-                    MDebug.DrawWireSphere(SecondRayPivot, Color.green, 0.01f * ScaleFactor);
-
-                   // Debug.DrawRay(SecondRayPivot, 2 * RayLedgeLength * Gravity, Color.green);
-                    Debug.DrawRay(SecondRayPivot, LedgeExitDistance * ScaleFactor * Gravity, Color.yellow);
-
-                    //LedgeHit = Physics.RaycastNonAlloc(SecondRayPivot, Gravity, EdgeHit, ScaleFactor * RayLedgeLength * 2, ClimbLayer.Value, IgnoreTrigger) > 0;
-                    //  if (LedgeHit)
-                    if (Physics.Raycast(SecondRayPivot, Gravity, out var DownHit, ScaleFactor * RayLedgeLength * 2, ClimbLayer.Value, IgnoreTrigger))
+                    if (LedgeHit)
                     {
-                       // Debug.Break();
+                        var LedgeAngle = Vector3.Angle(EdgeHit[0].normal, Up);
+                        var WallAngle = Vector3.Angle(HitChest.normal, Up);
 
-                        //var LedgeAngle = Vector3.Angle(DownHit.normal, Up);
-                        //var WallAngle = Vector3.Angle(HitHip.normal, Up);
-
-                        MDebug.DrawWireSphere(DownHit.point, Color.white, 0.01f * ScaleFactor);
-
-                        //if ((WallAngle - LedgeAngle) > MinLedgeAngle) //Only check the angles if they match to be a Ledge
+                        if ((WallAngle - LedgeAngle) > MinLedgeAngle) //Only check the angles if they match to be a Ledge
                         {
-                            if (DownHit.distance > LedgeExitDistance * ScaleFactor)
+                            var hit = EdgeHit[0];
+                            if (hit.distance > LedgeExitDistance * ScaleFactor)
                             {
-                               // LedgeHitDifference = (DownHit.distance - LedgeExitDistance * ScaleFactor);
+                                LedgeHitDifference = (hit.distance - LedgeExitDistance * ScaleFactor);
                                 ExitOnLedge = true; //Activate Exit OnLedge
-                                Debugging($"Allow Exit - Exit on a Ledge [{DownHit.collider.name}]");
+                                Debugging("Allow Exit - Exit on a Ledge");
                                 SetExitStatus(ClimbLedge); //Keep this State as the Active State
+
                             }
                         }
                     }
                 }
             }
         }
-
-
-
         public override void StateGizmos(MAnimal animal)
         {
-
             if (m_debug && !Application.isPlaying)
             {
                 var Forward = animal.Forward;
@@ -729,47 +540,45 @@ namespace MalbersAnimations.Controller
                 var Hip_Point = ClimbPivotHip(t);
 
                 var LedgePivotUP = t.TransformPoint(ClimbChest + RayLedgeOffset);
-                var SecondRayPivot = new Ray(LedgePivotUP, ScaleFactor * ScaleFactor * ScaleFactor * animal.Forward).GetPoint(RayLedgeLength * ScaleFactor);
+                var SecondRayPivot = new Ray(LedgePivotUP, animal.Forward * ScaleFactor).GetPoint(RayLedgeLength);
 
 
                 Gizmos.color = Color.green;
-                Gizmos.DrawRay(SecondRayPivot, 2 * RayLedgeLength * ScaleFactor * Gravity);
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawRay(SecondRayPivot, LedgeExitDistance * ScaleFactor * Gravity);
+                Gizmos.DrawRay(SecondRayPivot, Gravity * ScaleFactor * RayLedgeLength * 2);
+                Gizmos.color = Color.red;
+                Gizmos.DrawRay(SecondRayPivot, Gravity * ScaleFactor * LedgeExitDistance);
 
                 Gizmos.color = Color.green;
-                Gizmos.DrawRay(LedgePivotUP, RayLedgeLength * ScaleFactor * Forward);
+                Gizmos.DrawRay(LedgePivotUP, Forward * ScaleFactor * RayLedgeLength);
 
-                Gizmos.DrawRay(Chest_Point, ClimbRayLength * ScaleFactor * Forward);
-                Gizmos.DrawRay(Hip_Point, ClimbRayLength * ScaleFactor * Forward);
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawRay(Chest_Point, ScaleFactor * WallDistance * Forward);
-                Gizmos.DrawRay(Hip_Point, ScaleFactor * WallDistance * Forward);
+                Gizmos.DrawRay(Chest_Point, Forward * ScaleFactor * ClimbRayLength);
+                Gizmos.DrawRay(Hip_Point, Forward * ScaleFactor * ClimbRayLength);
+                Gizmos.color = Color.red;
+                Gizmos.DrawRay(Chest_Point, Forward * ScaleFactor * WallDistance);
+                Gizmos.DrawRay(Hip_Point, Forward * ScaleFactor * WallDistance);
 
 
                 Gizmos.color = Color.green;
-                Gizmos.DrawWireSphere(Chest_Point + Forward * ScaleFactor * (ClimbRayLength - (m_rayRadius * ScaleFactor)), m_rayRadius * ScaleFactor);
-                Gizmos.DrawWireSphere(Hip_Point + (ClimbRayLength - (m_rayRadius * ScaleFactor)) * ScaleFactor * Forward, m_rayRadius * ScaleFactor);
-                Gizmos.DrawRay(Chest_Point, InnerCorner * ScaleFactor * Right);
-                Gizmos.DrawRay(Chest_Point, InnerCorner * ScaleFactor * -Right);
+                Gizmos.DrawWireSphere(Chest_Point + Forward * (ClimbRayLength - (m_rayRadius * ScaleFactor)), m_rayRadius * ScaleFactor);
+                Gizmos.DrawWireSphere(Hip_Point + Forward * (ClimbRayLength - (m_rayRadius * ScaleFactor)), m_rayRadius * ScaleFactor);
+                Gizmos.DrawRay(Chest_Point, Right * ScaleFactor * InnerCorner);
+                Gizmos.DrawRay(Chest_Point, -Right * ScaleFactor * InnerCorner);
                 Gizmos.color = Color.white;
                 var MainPivot = ClimbPivotChest(t);
-                Gizmos.DrawRay(MainPivot, GroundDistance * ScaleFactor * -animal.Up);
+                Gizmos.DrawRay(MainPivot, -animal.Up * ScaleFactor * GroundDistance);
             }
         }
 
         private void OnValidate()
         {
             LedgeExitDistance = Mathf.Clamp(LedgeExitDistance, 0, RayLedgeLength);
-
-            if (SprintClimbRayLength < ClimbRayLength) SprintClimbRayLength = ClimbRayLength;
         }
 
 
 #if UNITY_EDITOR
-        internal override void Reset()
+        void Reset()
         {
-            base.Reset();
+            ID = MTools.GetInstance<StateID>("Climb");
 
             Surface = MTools.GetResource<PhysicMaterial>("Climbable");
 

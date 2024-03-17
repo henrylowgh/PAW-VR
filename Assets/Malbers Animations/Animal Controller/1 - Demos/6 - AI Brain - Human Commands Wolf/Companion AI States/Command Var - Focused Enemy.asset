@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Command Var - Focused Enemy
   m_EditorClassIdentifier: 
   Description: Focus an Enemy using Aim Target
-  debug: 1
+  debug: 0
   value: {fileID: 0}

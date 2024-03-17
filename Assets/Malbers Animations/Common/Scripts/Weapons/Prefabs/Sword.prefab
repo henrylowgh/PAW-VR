@@ -26,17 +26,17 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000012785853844}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4000011040160172}
   - {fileID: 5394148892248859332}
   - {fileID: 4565945206512087331}
   - {fileID: 1948302843888213389}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114000011653941726
 MonoBehaviour:
@@ -61,19 +61,13 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 3230662657
     Variable: {fileID: 0}
-  AttackDirection: 0
   triggerInteraction: 1
   owner: {fileID: 1000012785853844}
   m_HitEffect:
     UseConstant: 1
     ConstantValue: {fileID: 1947218636460032601}
     Variable: {fileID: 0}
-  hitEffects: []
-  hitSound:
-    UseConstant: 1
-    ConstantValue: {fileID: 0}
-    Variable: {fileID: 0}
-  DestroyHitEffect: 0.2
+  DestroyHitEffect: 0
   dontHitOwner:
     UseConstant: 1
     ConstantValue: 1
@@ -176,7 +170,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   Profiles:
   - Name: Final Blow
-    modify: 5
+    modify: 1
     interact:
       UseConstant: 1
       ConstantValue: 1
@@ -230,7 +224,7 @@ MonoBehaviour:
       ConstantValue: {fileID: 1947218636460032601}
       Variable: {fileID: 0}
     CustomReaction:
-      rid: 5468061679352020995
+      rid: -2
     element: {fileID: 0}
   DefaultProfile:
     Name: 
@@ -291,7 +285,6 @@ MonoBehaviour:
       rid: -2
     element: {fileID: 0}
   debug: 0
-  m_audio: {fileID: 0}
   m_UI: {fileID: 0}
   description:
     UseConstant: 1
@@ -299,7 +292,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   chargeTime:
     UseConstant: 1
-    ConstantValue: 1
+    ConstantValue: 0
     Variable: {fileID: 0}
   m_MaxCharge:
     UseConstant: 1
@@ -332,8 +325,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   GroundArmPose: 1
   RidingArmPose: 1
-  GroundCombo: {fileID: 11400000, guid: dc411047be38d924fbfc67128f6957f2, type: 2}
-  RidingCombo: {fileID: 0}
+  GroundCombo: 1
+  RidingCombo: -1
   m_AimOrigin: {fileID: 0}
   m_AimSide: 0
   weaponType: {fileID: 11400000, guid: dc411047be38d924fbfc67128f6957f2, type: 2}
@@ -346,7 +339,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   m_rate:
     UseConstant: 1
-    ConstantValue: 0.2
+    ConstantValue: 1
     Variable: {fileID: 0}
   m_Automatic:
     UseConstant: 1
@@ -365,7 +358,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  strafeOnEquip:
+  UseStrafe:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
@@ -396,6 +389,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5d57cd60566a34d429591148beecc370, type: 3}
   - {fileID: 8300000, guid: 68c1c6ee9ddcd0341a672e9f7ecbbef0, type: 3}
   - {fileID: 0}
+  WeaponSound: {fileID: 0}
   OnEquiped:
     m_PersistentCalls:
       m_Calls:
@@ -431,9 +425,6 @@ MonoBehaviour:
   OnCharged:
     m_PersistentCalls:
       m_Calls: []
-  OnMaxCharged:
-    m_PersistentCalls:
-      m_Calls: []
   OnChargedFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -446,8 +437,8 @@ MonoBehaviour:
   OnReleaseFreeHand:
     m_PersistentCalls:
       m_Calls: []
-  Editor_Tabs1: 3
-  Editor_Tabs2: 4
+  Editor_Tabs1: 4
+  Editor_Tabs2: 2
   meleeTrigger: {fileID: 1054929852354334767}
   ignoreStaticObjects: 1
   OnCauseDamage:
@@ -463,21 +454,6 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5468061679352020995
-      type: {class: ModeReaction, ns: MalbersAnimations.Reactions, asm: MalbersAnimations}
-      data:
-        Active: 1
-        useLocalTarget: 0
-        LocalTarget: {fileID: 0}
-        delay: 0
-        type: 0
-        ID: {fileID: 11400000, guid: 4721f79850ae1be43aec2bccdea79fdc, type: 2}
-        Ability: 1
-        HasCoolDown: 1
-        coolDown: 0
-        abilityStatus: 0
-        AbilityTime: 3
-        ModePower: 0
 --- !u!114 &114887345159916104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -578,13 +554,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000013456519404}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: -0, z: 0.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000012805563850}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &33000010990607716
 MeshFilter:
@@ -661,13 +637,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4641039516145571975}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.187}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000012805563850}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1054929852354334767
 BoxCollider:
@@ -677,17 +653,9 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4641039516145571975}
   m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 3
+  serializedVersion: 2
   m_Size: {x: 0.35696238, y: 0.35620067, z: 0.66968185}
   m_Center: {x: 5.6141257e-13, y: -9.382575e-14, z: 0.32793653}
 --- !u!114 &1783436828812147581
@@ -736,10 +704,6 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  OneTimeUse:
-    UseConstant: 1
-    ConstantValue: 0
-    Variable: {fileID: 0}
   trigger: {fileID: 0}
   Editor_Tabs1: 0
 --- !u!1 &7458751067517391639
@@ -766,13 +730,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7458751067517391639}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4000012805563850}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3499954880014662351
 AudioSource:
@@ -785,7 +749,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 0
+  m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -875,7 +839,6 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 3
     m_TransformParent: {fileID: 4000012805563850}
     m_Modifications:
     - target: {fileID: 1091566395842728, guid: 400e06051701a8c4998087ae421728e3, type: 3}
@@ -927,9 +890,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 400e06051701a8c4998087ae421728e3, type: 3}
 --- !u!1 &1947218636460032601 stripped
 GameObject:

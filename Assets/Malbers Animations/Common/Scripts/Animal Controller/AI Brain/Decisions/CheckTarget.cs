@@ -7,14 +7,13 @@ namespace MalbersAnimations.Controller.AI
     public class CheckTarget : MAIDecision
     {
         public override string DisplayName => "Movement/Check Target";
+        [Space,Tooltip("(OPTIONAL)Use it if you want to know if we have arrived to a specific Target")]
+        public string TargetName = string.Empty;
 
         public CompareTarget compare = CompareTarget.IsNull;
 
-        [Hide("compare",2)]
         public RuntimeGameObjects set;
-        [Hide("compare", 1)]
         public TransformVar transform;
-        [Hide("compare", 3)]
         public string m_name;
 
 
@@ -25,19 +24,28 @@ namespace MalbersAnimations.Controller.AI
                 case CompareTarget.IsNull:
                     return brain.Target == null;
                 case CompareTarget.isTransformVar:
-                    return transform.Value != null && brain.Target == transform.Value;
+                    return transform.Value != null ? brain.Target == transform.Value : false;
                 case CompareTarget.IsInRuntimeSet:
-                    return set != null && set.Items.Contains(brain.Target.gameObject);
+                    return set != null ? set.Items.Contains(brain.Target.gameObject) : false;
                 case CompareTarget.HasName:
-                    return string.IsNullOrEmpty(m_name) && brain.Target.name.Contains(m_name);
-                case CompareTarget.IsActiveInHierarchy:
-                    return brain.Target && brain.Target.gameObject.activeInHierarchy;
+                    return string.IsNullOrEmpty(m_name) ? brain.Target.name.Contains(m_name) : false;
                 default:
                     break;
             }
             return false;
         }
 
-        public enum CompareTarget {IsNull, isTransformVar, IsInRuntimeSet, HasName,  IsActiveInHierarchy}
+
+        [SerializeField, HideInInspector] private bool showSet, showname,showTrans;
+        private void OnValidate()
+        {
+            showSet = compare == CompareTarget.IsInRuntimeSet;
+            showname = compare == CompareTarget.HasName;
+            showTrans = compare == CompareTarget.isTransformVar;
+        }
+
+
+
+        public enum CompareTarget {IsNull, isTransformVar, IsInRuntimeSet, HasName,  }
     }
 }

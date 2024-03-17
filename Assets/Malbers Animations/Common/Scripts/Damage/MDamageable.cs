@@ -32,41 +32,29 @@ namespace MalbersAnimations
         [SerializeReference, SubclassSelector]
         public Reaction damagerReaction;
 
-        [Tooltip("Type of surface the Damageable is. (Flesh, Metal, Wood,etc)")]
-        public SurfaceID surface;
-
-        public Transform Transform => transform;
-
 
         [Tooltip("The Damageable will ignore the Reaction coming from the Damager. Use this when this Damager Needs to have the Default Reaction")]
-        [SerializeField] private BoolReference ignoreDamagerReaction = new();
+        [SerializeField] private BoolReference ignoreDamagerReaction = new BoolReference(false);
 
         [Tooltip("Stats component to apply the Damage")]
         public Stats stats;
 
         [Tooltip("Multiplier for the Stat modifier Value. Use this to increase or decrease the final value of the Stat")]
-        public FloatReference multiplier = new(1);
+        public FloatReference multiplier = new FloatReference(1);
 
         [Tooltip("When Enabled the animal will rotate towards the Damage direction"), UnityEngine.Serialization.FormerlySerializedAs("AlingToDamage")]
-        public BoolReference AlignToDamage = new();
+        public BoolReference AlignToDamage = new BoolReference(false);
 
         [Tooltip("Time to align to the damage direction")]
-        public FloatReference AlignTime = new(0.25f);
+        public FloatReference AlignTime = new FloatReference(0.25f);
         [Tooltip("Aligmend curve")]
-        public AnimationCurve AlignCurve = new(MTools.DefaultCurve);
-
-        [Tooltip("Point Forward to align the animal to the Damage, It will rotate around this point")]
-        public FloatReference AlignOffset = new();
+        public AnimationCurve AlignCurve = new AnimationCurve(MTools.DefaultCurve);
 
         public MDamageable Root;
-        public DamagerEvents events;
+        public damagerEvents events;
 
         public Vector3 HitDirection { get; set; }
-        public Vector3 HitPosition { get; set; }
         public GameObject Damager { get; set; }
-        public Collider HitCollider { get; set; }
-        public ForceMode LastForceMode { get; set; }
-        public SurfaceID Surface { get => surface; set { surface = value; } }
         public GameObject Damagee => gameObject;
 
         public bool IgnoreDamagerReaction { get => ignoreDamagerReaction; set => ignoreDamagerReaction.Value = value; }
@@ -74,43 +62,32 @@ namespace MalbersAnimations
         public DamageData LastDamage;
 
         [Tooltip("Elements that affect the MDamageable")]
-        public List<ElementMultiplier> elements = new();
+        public List<ElementMultiplier> elements = new List<ElementMultiplier>();
 
-        public MDamageableProfile Default { get; set; }
+        private MDamageableProfile Default;
+
         private string currentProfileName = "Default";
 
 
         [Tooltip("The Damageable can Change profiles to Change the way the Animal React to the Damage")]
-        public List<MDamageableProfile> profiles = new();
+        public List<MDamageableProfile> profiles = new List<MDamageableProfile>();
 
 
         [HideInInspector] public int Editor_Tabs1;
 
         private void Start()
         {
-            if (stats != null)
+            if (character == null && reaction != null)
+                character = stats.GetComponent(reaction.ReactionType); //Find the character where the Stats are
+            else
             {
-                if (character == null && reaction != null)
-                {
-                    character = stats.GetComponent(reaction.ReactionType); //Find the character where the Stats are
-                }
-                else
-                {
-                    character = stats.transform;
-                }
+                character = stats.transform;
             }
 
             //Store the default values
-            Default = new MDamageableProfile("Default", surface,
-                reaction, criticalReaction, damagerReaction, ignoreDamagerReaction,
-                multiplier, AlignToDamage, elements);
+            Default = new MDamageableProfile("Default", reaction,criticalReaction, damagerReaction, ignoreDamagerReaction, multiplier, AlignToDamage, elements);
 
-            profiles ??= new();
-        }
-
-        private void OnDisable()
-        {
-            StopAllCoroutines();
+            if (profiles == null) profiles = new List<MDamageableProfile>(); //Unullify the profiles
         }
 
 
@@ -118,7 +95,6 @@ namespace MalbersAnimations
         public virtual void Profile_Restore()
         {
             reaction = Default.reaction;
-            surface = Default.surface;
             damagerReaction = Default.DamagerReaction;
             multiplier = Default.multiplier;
             AlignToDamage = Default.AlignToDamage;
@@ -132,7 +108,6 @@ namespace MalbersAnimations
             var Damagprof = new MDamageableProfile()
             {
                 name = this.currentProfileName,
-                surface = this.surface,
                 AlignToDamage = this.AlignToDamage,
                 DamagerReaction = this.damagerReaction,
                 elements = this.elements,
@@ -158,7 +133,6 @@ namespace MalbersAnimations
                 {
                     var D = profiles[index];
                     currentProfileName = D.name;
-                    surface = D.surface;
                     reaction = D.reaction;
                     damagerReaction = D.DamagerReaction;
                     ignoreDamagerReaction = D.ignoreDamagerReaction;
@@ -180,77 +154,14 @@ namespace MalbersAnimations
         /// <param name="isCritical">is the Damage Critical?</param>
         /// <param name="react">Does the Damage that is coming has a Custom Reaction? </param>
         /// <param name="customReaction">The Attacker Brings a custom Reaction to override the Default one</param>
-        /// <param name="pureDamage">Pure damage means that the multipliers wont be applied</param>
+        /// <param name="pureDamage"></param>
         /// <param name="element"></param>
-        public virtual void ReceiveDamage(Vector3 Direction, Vector3 Position, GameObject Damager, StatModifier damage,
+        public virtual void ReceiveDamage(Vector3 Direction, GameObject Damager, StatModifier damage,
             bool isCritical, bool react, Reaction customReaction, bool pureDamage, StatElement element)
         {
             if (!enabled) return;       //This makes the Animal Immortal.
-            HitDirection = Direction;   //Store the Last Direction
-            HitPosition = Position;   //Store the Last Position
+            HitDirection = Direction;   //IMPORTANT!!! to React
 
-            var stat = stats.Stat_Get(damage.ID);
-            if (stat == null || !stat.Active || stat.IsEmpty || stat.IsInmune) return; //Do nothing if the stat is empty, null or disabled
-
-            ReactionLogic(isCritical, react, customReaction);
-
-            ElementMultiplier statElement = new(element, 1);
-
-            //Apply the Element Multiplier
-            if (element != null && elements.Count > 0)
-            {
-                statElement = elements.Find(x => element.ID == x.element.ID);
-
-                if (statElement.multiplier != null)
-                {
-                    damage.Value *= statElement.multiplier;
-                    events.OnElementDamage.Invoke(statElement.element.ID);
-                    if (Root) Root.events.OnElementDamage.Invoke(statElement.element.ID);
-                }
-            }
-
-            SetDamageable(Direction, Damager);
-            if (Root) Root.SetDamageable(Direction, Damager);                     //Send the Direction and Damager to the Root 
-
-
-            //Store the last damage applied to the Damageable
-            LastDamage = new DamageData(Damager, gameObject, damage, isCritical, statElement);
-            if (Root) Root.LastDamage = LastDamage;
-
-
-            if (isCritical)
-            {
-                events.OnCriticalDamage.Invoke();
-                if (Root) Root.events.OnCriticalDamage.Invoke();
-            }
-
-            if (!pureDamage)
-                damage.Value *= multiplier;               //Apply to the Stat modifier a new Modification
-
-            events.OnReceivingDamage.Invoke(damage.Value);
-            events.OnDamager.Invoke(Damager);
-
-            //Send the Events on the Root
-            if (Root)
-            {
-                Root.events.OnReceivingDamage.Invoke(damage.Value);
-                Root.events.OnDamager.Invoke(Damager);
-            }
-            damage.ModifyStat(stat);
-
-            AlignmentLogic(Damager);
-        }
-
-        private void AlignmentLogic(GameObject Damager)
-        {
-            if (AlignToDamage.Value)
-            {
-                AlignToDamageDirection(Damager);
-            }
-        }
-
-        private void ReactionLogic(bool isCritical, bool react, Reaction customReaction)
-        {
             if (react)
             {
                 //Custom reaction if the Attacker sends one and Ignore Damager is False
@@ -267,8 +178,59 @@ namespace MalbersAnimations
                 }
             }
 
+
             //Make the Damager react to the Damageable
             if (Damager) damagerReaction?.React(Damager);
+            
+
+
+
+            var stat = stats.Stat_Get(damage.ID);
+            if (stat == null || !stat.Active || stat.IsEmpty || stat.IsInmune) return; //Do nothing if the stat is empty, null or disabled
+
+            ElementMultiplier statElement = new ElementMultiplier(element, 1);
+
+
+            //Apply the Element Multiplier
+            if (element != null && elements.Count > 0)
+            {
+                statElement = elements.Find(x => element.ID == x.element.ID);
+                damage.Value *= statElement.multiplier;
+                events.OnElementDamage.Invoke(statElement.element.ID);
+                Root?.events.OnElementDamage.Invoke(statElement.element.ID);
+            }
+
+            SetDamageable(Direction, Damager);
+            Root?.SetDamageable(Direction, Damager);                     //Send the Direction and Damager to the Root 
+
+
+            //Store the last damage applied to the Damageable
+            LastDamage = new DamageData(Damager, gameObject, damage, isCritical, statElement);
+            if (Root) Root.LastDamage = LastDamage;
+
+
+            if (isCritical)
+            {
+                events.OnCriticalDamage.Invoke();
+                Root?.events.OnCriticalDamage.Invoke();
+            }
+
+            if (!pureDamage)
+                damage.Value *= multiplier;               //Apply to the Stat modifier a new Modification
+
+            events.OnReceivingDamage.Invoke(damage.Value);
+            events.OnDamager.Invoke(Damager);
+
+            //Send the Events on the Root
+            Root?.events.OnReceivingDamage.Invoke(damage.Value);
+            Root?.events.OnDamager.Invoke(Damager);
+
+            damage.ModifyStat(stat);
+
+            if (AlignToDamage.Value)
+            {
+                AlignToDamageDirection(Damager);
+            }
         }
 
         private void DoReaction(bool isCritical)
@@ -281,14 +243,8 @@ namespace MalbersAnimations
 
         private void AlignToDamageDirection(GameObject Direction)
         {
-            
-            if (isActiveAndEnabled && !Direction.IsDestroyed())
-            {
-                StopAllCoroutines();
-                StartCoroutine(MTools.AlignLookAtTransform(
-                    character.transform, Direction.transform.position, AlignOffset, AlignTime.Value,
-                    stats.transform.localScale.y, AlignCurve));
-            }
+            if (!Direction.IsDestroyed() )
+            StartCoroutine(MTools.AlignLookAtTransform(character.transform, Direction.transform.position, AlignTime.Value, AlignCurve));
         }
 
         /// <summary>  Receive Damage from external sources simplified </summary>
@@ -297,8 +253,10 @@ namespace MalbersAnimations
         public virtual void ReceiveDamage(StatID stat, float amount)
         {
             var modifier = new StatModifier() { ID = stat, modify = StatOption.SubstractValue, Value = amount };
-            ReceiveDamage(Vector3.forward, Vector3.forward, null, modifier, false, true, null, false, null);
+            ReceiveDamage(Vector3.forward, null, modifier, false, true, null, false, null);
         }
+
+
 
         /// <summary>  Receive Damage from external sources simplified </summary>
         /// <param name="stat"> What stat will be modified</param>
@@ -306,7 +264,7 @@ namespace MalbersAnimations
         public virtual void ReceiveDamage(StatID stat, float amount, StatOption modifyStat = StatOption.SubstractValue)
         {
             var modifier = new StatModifier() { ID = stat, modify = modifyStat, Value = amount };
-            ReceiveDamage(Vector3.forward, transform.position, null, modifier, false, true, null, false, null);
+            ReceiveDamage(Vector3.forward, null, modifier, false, true, null, false, null);
         }
 
 
@@ -325,7 +283,7 @@ namespace MalbersAnimations
              bool isCritical = false, bool react = true, Reaction customReaction = null, bool pureDamage = false, StatElement element = null)
         {
             var modifier = new StatModifier() { ID = stat, modify = modifyStat, Value = amount };
-            ReceiveDamage(Direction, transform.position, Damager, modifier, isCritical, react, customReaction, pureDamage, element);
+            ReceiveDamage(Direction, Damager, modifier, isCritical, react, customReaction, pureDamage, element);
         }
 
 
@@ -342,7 +300,7 @@ namespace MalbersAnimations
             float amount, bool isCritical = false, bool react = true, Reaction customReaction = null, bool pureDamage = false)
         {
             var modifier = new StatModifier() { ID = stat, modify = StatOption.SubstractValue, Value = amount };
-            ReceiveDamage(Direction, transform.position, Damager, modifier, isCritical, react, customReaction, pureDamage, null);
+            ReceiveDamage(Direction, Damager, modifier, isCritical, react, customReaction, pureDamage, null);
         }
 
 
@@ -357,9 +315,8 @@ namespace MalbersAnimations
         /// <param name="amount"> value to substact to the stat</param>
         public virtual void ReceiveDamage(Vector3 Direction, GameObject Damager, StatModifier damage,
         bool isCritical, bool react, Reaction customReaction, bool pureDamage) =>
-         ReceiveDamage(Direction, transform.position,Damager, damage, isCritical, react, customReaction, pureDamage, null);
+         ReceiveDamage(Direction, Damager, damage, isCritical, react, customReaction, pureDamage, null);
 
-        /// <summary>  Fill the Local Values of the MDamageable  </summary>
         internal void SetDamageable(Vector3 Direction, GameObject Damager)
         {
             HitDirection = Direction;
@@ -367,26 +324,26 @@ namespace MalbersAnimations
         }
 
         [System.Serializable]
-        public class DamagerEvents
+        public class damagerEvents
         {
-            public FloatEvent OnReceivingDamage = new();
-            public UnityEvent OnCriticalDamage = new();
-            public GameObjectEvent OnDamager = new();
-            public IntEvent OnElementDamage = new();
+            public FloatEvent OnReceivingDamage = new FloatEvent();
+            public UnityEvent OnCriticalDamage = new UnityEvent();
+            public GameObjectEvent OnDamager = new GameObjectEvent();
+            public IntEvent OnElementDamage = new IntEvent();
         }
 
         public struct DamageData
         {
-            /// <summary> Who is doing the damage </summary>
+            /// <summary>  Who made the Damage ? </summary>
             public GameObject Damager;
-            /// <summary>Who received the damage </summary>
+            /// <summary>  Who made the Damage ? </summary>
             public GameObject Damagee;
-            /// <summary> Stat Modifier with the updated final stat values</summary>
+            /// <summary>  Final Stat Modifier ? </summary>
             public StatModifier stat;
 
 
             /// <summary> Final value who modified the Stat</summary>
-            public readonly float Damage => stat.modify != StatOption.None ? stat.Value : 0f;
+            public float Damage => stat.modify != StatOption.None ? stat.Value  : 0f;
 
             /// <summary>Store if the Damage was Critical</summary>
             public bool WasCritical;
@@ -411,10 +368,9 @@ namespace MalbersAnimations
             // reaction = MTools.GetInstance<ModeReaction>("Damaged");
 
             reaction = new ModeReaction()
-            { ID = MTools.GetInstance<ModeID>("Damage"), };
-
-            surface = MTools.GetInstance<SurfaceID>("Flesh");
-
+            {
+                ID = MTools.GetInstance<ModeID>("Damage"),
+            };
             stats = this.FindComponent<Stats>();
             Root = transform.FindComponent<MDamageable>();     //Check if there's a Damageable on the Root
             if (Root == this) Root = null;
@@ -440,17 +396,6 @@ namespace MalbersAnimations
                 MTools.SetDirty(this);
             }
         }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (AlignOffset != 0)
-            {
-                Vector3 Offset = transform.position + AlignOffset * transform.localScale.y * transform.forward; //Use Offset
-
-                Gizmos.color = Color.white;
-                Gizmos.DrawSphere(Offset, 0.075f);
-            }
-        }
 #endif
     }
 
@@ -460,9 +405,6 @@ namespace MalbersAnimations
     {
         [Tooltip("Name of the Profile. This is used for Setting a New Damageable Profile. E.g. When the Animal is blocking or Parrying")]
         public string name;
-
-        [Tooltip("Type of surface the Damageable is. (Flesh, Metal, Wood,etc)")]
-        public SurfaceID surface;
 
         [Tooltip("Animal Reaction to apply when the damage is done")]
         [SerializeReference, SubclassSelector]
@@ -487,15 +429,13 @@ namespace MalbersAnimations
         [Tooltip("Elements that affect the MDamageable")]
         public List<ElementMultiplier> elements;
 
-        public MDamageableProfile(string Name, SurfaceID surface,
-            Reaction reaction, Reaction criticalReaction, Reaction DamagerReaction, BoolReference ignoreDamagerReaction,
+        public MDamageableProfile(string Name, Reaction reaction, Reaction criticalReaction, Reaction DamagerReaction, BoolReference ignoreDamagerReaction,
             FloatReference multiplier, BoolReference AlignToDamage, List<ElementMultiplier> elements)
         {
             this.name = Name;
-            this.surface = surface;
             this.reaction = reaction;
             this.DamagerReaction = DamagerReaction;
-            this.multiplier = multiplier;
+            this.multiplier = multiplier; 
             this.criticalReaction = criticalReaction;
             this.AlignToDamage = AlignToDamage;
             this.elements = elements;
@@ -507,11 +447,9 @@ namespace MalbersAnimations
     [CustomEditor(typeof(MDamageable))]
     public class MDamageableEditor : Editor
     {
-        SerializedProperty reaction, damagerReaction, criticalReaction, surface,
-            stats,
-            multiplier, ignoreDamagerReaction, events, Root,
-            AlignTime, AlignCurve, AlignToDamage, AlignOffset,
-            Editor_Tabs1, elements, profiles;
+        SerializedProperty reaction, damagerReaction, criticalReaction, 
+            stats, 
+            multiplier, ignoreDamagerReaction, events, Root, AlignTime, AlignCurve, AlignToDamage, Editor_Tabs1, elements, profiles;
         MDamageable M;
 
         protected string[] Tabs1 = new string[] { "General", "Profiles", "Events" };
@@ -530,17 +468,12 @@ namespace MalbersAnimations
             multiplier = serializedObject.FindProperty("multiplier");
             events = serializedObject.FindProperty("events");
             Root = serializedObject.FindProperty("Root");
-
             AlignToDamage = serializedObject.FindProperty("AlignToDamage");
             AlignCurve = serializedObject.FindProperty("AlignCurve");
             AlignTime = serializedObject.FindProperty("AlignTime");
-            AlignOffset = serializedObject.FindProperty("AlignOffset");
-
-
             Editor_Tabs1 = serializedObject.FindProperty("Editor_Tabs1");
             elements = serializedObject.FindProperty("elements");
             profiles = serializedObject.FindProperty("profiles");
-            surface = serializedObject.FindProperty("surface");
             ignoreDamagerReaction = serializedObject.FindProperty("ignoreDamagerReaction");
 
             if (plus == null) plus = UnityEditor.EditorGUIUtility.IconContent("d_Toolbar Plus");
@@ -567,18 +500,26 @@ namespace MalbersAnimations
 
         private void DrawProfiles()
         {
+            //using (new GUILayout.HorizontalScope())
+            // {
             EditorGUILayout.PropertyField(profiles, true);
+
+            //if (GUILayout.Button(plus, UnityEditor.EditorStyles.helpBox))
+            //{
+            //    profiles.InsertArrayElementAtIndex(profiles.arraySize);
+            //    serializedObject.ApplyModifiedProperties();
+            //}
+            // }
         }
 
         private void DrawGeneral()
         {
-
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            if (M.transform.parent != null)
             {
-                if (M.transform.parent != null)
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
                     EditorGUILayout.PropertyField(Root);
-
-                EditorGUILayout.PropertyField(surface);
+                }
             }
 
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
@@ -611,7 +552,6 @@ namespace MalbersAnimations
                         EditorGUILayout.PropertyField(AlignTime);
                         EditorGUILayout.PropertyField(AlignCurve, GUIContent.none, GUILayout.MaxWidth(75));
                     }
-                    EditorGUILayout.PropertyField(AlignOffset);
                 }
             }
         }

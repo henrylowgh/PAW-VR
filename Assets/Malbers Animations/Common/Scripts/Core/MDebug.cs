@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace MalbersAnimations
 {
-    /// <summary> Malbers Debug Class to Draw Different debug shapes  </summary>
+    /// <summary>
+    /// Malbers Debug Class to Draw Different debug shapes
+    /// </summary>
     public static class MDebug
     {
         /// <summary>  Draw an arrow Using Gizmos  </summary>
         public static void Gizmo_Arrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.2f, float arrowHeadAngle = 20.0f)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
             if (direction == Vector3.zero) return;
 
             var length = direction.magnitude;
@@ -20,13 +20,11 @@ namespace MalbersAnimations
             Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - arrowHeadAngle, 0) * new Vector3(0, 0, 1);
             Gizmos.DrawRay(pos + direction, right * (arrowHeadLength * length));
             Gizmos.DrawRay(pos + direction, left * (arrowHeadLength * length));
-#endif
         }
 
         /// <summary>  Draw an arrow using Debug.Draw</summary>
         public static void Draw_Arrow(Vector3 pos, Vector3 direction, Color color, float duration = 0, float arrowHeadLength = 0.25f, float arrowHeadAngle = 20.0f)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
             if (direction == Vector3.zero) return;
             Debug.DrawRay(pos, direction, color, duration);
 
@@ -36,96 +34,18 @@ namespace MalbersAnimations
             Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - arrowHeadAngle, 0) * new Vector3(0, 0, 1);
             Debug.DrawRay(pos + direction, arrowHeadLength * length * right, color, duration);
             Debug.DrawRay(pos + direction, arrowHeadLength * length * left, color, duration);
-#endif
         }
 
-        public static void DrawRay(Vector3 pos, Vector3 direction, Color color, float duration = 0)
-        {
-#if UNITY_EDITOR && MALBERS_DEBUG
 
-            Debug.DrawRay(pos, direction, color, duration);
-#endif
+
+        public static void DrawWireSphere(Vector3 position, Color color, float radius = 1.0f, float drawDuration = 0, int Steps = 36)
+        {
+            DebugWireSphere(position, Quaternion.identity, color, radius, 1, drawDuration, Steps);
         }
 
-        public static void DrawLine(Vector3 pos1, Vector3 pos2, Color color, float duration = 0)
+        public static void DebugWireSphere(Vector3 position, Quaternion rotation, Color color, float radius = 1.0f, float scale = 1f, float drawDuration = 0, int Steps = 36)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
-            Debug.DrawLine(pos1, pos2, color, duration);
-#endif
-        }
-
-        public static void DrawCircle(Vector3 position, Quaternion rotation, float radius, Color color, float duration = 0, int Steps = 36)
-        {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
-
-            var drawAngle = 360 / Steps;
-            Vector3 Lastpoint = position + rotation * new Vector3(Mathf.Cos(0), Mathf.Sin(0)) * radius;
-
-            for (int i = 0; i <= Steps; i++)
-            {
-                float a = i * drawAngle * Mathf.Deg2Rad;
-                Vector3 point = position + rotation * new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * radius;
-                Debug.DrawLine(point, Lastpoint, color,duration,false);
-                Lastpoint = point;
-            }
-#endif
-
-        }
-
-        public static void DrawCircle(Vector3 position, Vector3 normal, float radius, Color color, bool cross = false , float duration = 0, int steps = 36)
-        {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
-
-            var forward = Vector3.Cross(normal, Vector3.up).normalized;
-            var right = Vector3.Cross(normal, forward).normalized;
-
-            var drawAngle = 360f / steps;
-            var lastPoint = position + forward * radius;
-
-            for (int i = 0; i <= steps; i++)
-            {
-                float angle = i * drawAngle * Mathf.Deg2Rad;
-                var point = position + (forward * Mathf.Cos(angle) + right * Mathf.Sin(angle)) * radius;
-                Debug.DrawLine(point, lastPoint, color, duration, false);
-                lastPoint = point;
-            }
-
-            //draw Cross
-            if (cross)
-            {
-                //first line
-                var firstPoint = position + forward * radius;
-                float angle = steps/2 * drawAngle * Mathf.Deg2Rad;
-                var point1 = position + (forward * Mathf.Cos(angle) + right * Mathf.Sin(angle)) * radius;
-                Debug.DrawLine(firstPoint, point1, color, duration, false);
-
-                //second line
-                angle = steps * 0.25f * drawAngle * Mathf.Deg2Rad;
-                firstPoint = position + (forward * Mathf.Cos(angle) + right * Mathf.Sin(angle)) * radius;
-                angle = steps * 0.75f * drawAngle * Mathf.Deg2Rad;
-                point1 = position + (forward * Mathf.Cos(angle) + right * Mathf.Sin(angle)) * radius;
-                Debug.DrawLine(firstPoint, point1, color, duration, false);
-            }
-
-#endif
-
-        }
-
-        public static void DrawWireSphere(Vector3 position, Color color, float radius = 1.0f, float drawDuration = 0, int Steps = 36) 
-            => DrawWireSphere(position, Quaternion.identity, color, radius, 1, drawDuration, Steps);
-
-        public static void DrawWireSphere(Vector3 position, float radius, Color color, float drawDuration = 0, int Steps = 36)
-            => DrawWireSphere(position, Quaternion.identity, color, radius, 1, drawDuration, Steps);
-
-        public static void DrawWireSphere(Vector3 position, Quaternion rotation, float radius, Color color, float drawDuration = 0, int Steps = 36)
-            => DrawWireSphere(position, rotation, color, radius, 1, drawDuration, Steps);
-
-        public static void DrawWireSphere(Vector3 position, Quaternion rotation, Color color, float radius = 1.0f, float scale = 1f, float drawDuration = 0, int Steps = 36)
-        {
-#if UNITY_EDITOR && MALBERS_DEBUG
+#if UNITY_EDITOR
             Vector3 forward = rotation * Vector3.forward;
             Vector3 endPosition = position;
 
@@ -160,8 +80,7 @@ namespace MalbersAnimations
 
         public static void GizmoWireSphere(Vector3 position, Quaternion rotation, float radius, Color color, float scale = 1, int Steps = 36)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR 
 
             Vector3 forward = rotation * Vector3.forward;
             Vector3 endPosition = position;
@@ -198,8 +117,7 @@ namespace MalbersAnimations
 
         public static void GizmoCircle(Vector3 position, Quaternion rotation, float radius, Color color, float scale = 1, int Steps = 36)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR
             Vector3 forward = rotation * Vector3.forward;
             Vector3 endPosition = position;
 
@@ -219,8 +137,7 @@ namespace MalbersAnimations
 
         public static void GizmoWireHemiSphere(Vector3 position, Quaternion rotation, float radius, Color color, float scale = 1, int Steps = 36)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR 
 
             Vector3 forward = rotation * Vector3.forward;
             Vector3 endPosition = position;
@@ -262,8 +179,7 @@ namespace MalbersAnimations
 
         public static void DrawCone(Vector3 position, Quaternion rotation, float FOV, float length, Color color, float scale = 1, int Steps = 4)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR
             Vector3 forward = rotation * Vector3.forward;
             Vector3 endPosition = position + forward * length * scale;
 
@@ -288,9 +204,6 @@ namespace MalbersAnimations
 
         public static void DrawTriggers(Transform transform, Collider col, Color DebugColor, bool always = false)
         {
-
-#if UNITY_EDITOR && MALBERS_DEBUG
-
             Gizmos.color = DebugColor;
             var DColorFlat = new Color(DebugColor.r, DebugColor.g, DebugColor.b, 1f);
 
@@ -331,24 +244,17 @@ namespace MalbersAnimations
                     }
                     col.enabled = isen;
                 }
-#endif
         }
 
         public static void DebugCross(Vector3 center, float radius, Color color)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
             Debug.DrawLine(center - new Vector3(0, radius, 0), center + new Vector3(0, radius, 0), color);
             Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(radius, 0, 0), color);
             Debug.DrawLine(center - new Vector3(0, 0, radius), center + new Vector3(0, 0, radius), color);
-#endif
-
         }
 
         public static void DebugPlane(Vector3 center, float radius, Color color, bool cross = false)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
             Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(0, 0, -radius), color);
             Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(0, 0, radius), color);
             Debug.DrawLine(center + new Vector3(0, 0, radius), center - new Vector3(-radius, 0, 0), color);
@@ -359,14 +265,10 @@ namespace MalbersAnimations
                 Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(radius, 0, 0), color);
                 Debug.DrawLine(center - new Vector3(0, 0, radius), center + new Vector3(0, 0, radius), color);
             }
-#endif
-
         }
 
         public static void DebugTriangle(Vector3 center, float radius, Color color)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
             Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(radius, 0, 0), color);
             Debug.DrawLine(center - new Vector3(0, 0, radius), center + new Vector3(0, 0, radius), color);
 
@@ -379,14 +281,11 @@ namespace MalbersAnimations
             Debug.DrawLine(center - new Vector3(radius, 0, 0), center + new Vector3(0, 0, radius), color);
             Debug.DrawLine(center + new Vector3(0, 0, radius), center - new Vector3(-radius, 0, 0), color);
             Debug.DrawLine(center - new Vector3(0, 0, radius), center + new Vector3(radius, 0, 0), color);
-#endif
-
         }
 
         public static void DrawThickLine(Vector3 start, Vector3 end, float thickness = 2f)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR
 
             Camera c = Camera.current;
             if (c == null) return;
@@ -411,8 +310,7 @@ namespace MalbersAnimations
 
         public static void GizmoRay(Vector3 p1, Vector3 dir, float width = 2f)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR
             var p2 = p1 + dir;
 
             int count = 1 + Mathf.CeilToInt(width); // how many lines are needed.
@@ -447,8 +345,7 @@ namespace MalbersAnimations
 
         public static void DrawLine(Vector3 p1, Vector3 p2, float width = 2f)
         {
-#if UNITY_EDITOR && MALBERS_DEBUG
-
+#if UNITY_EDITOR
 
             int count = 1 + Mathf.CeilToInt(width); // how many lines are needed.
             if (count == 1)

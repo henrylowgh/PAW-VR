@@ -9,25 +9,17 @@ namespace MalbersAnimations
 
         public AudioClip[] sounds;
 
-        [Tooltip("Play the sound when the Animation Starts")]
         public bool playOnEnter = true;
-
-        [Hide(nameof(playOnEnter))]
-        [Tooltip("PlayOnEnter After the transition is over")]
-        public bool SkipTransition = false;
-        [Tooltip("Loop forever the sound")]
         public bool Loop = false;
-        [Tooltip("Stop playing if the Animation exits")]
         public bool stopOnExit;
-
         [Hide("playOnEnter", true)]
         [Range(0, 1)]
         public float PlayOnTime = 0.5f;
         [Space]
         [MinMaxRange(-3, 3)]
-        public RangedFloat pitch = new(1, 1);
+        public RangedFloat pitch = new RangedFloat(1, 1);
         [MinMaxRange(0, 1)]
-        public RangedFloat volume = new(1, 1);
+        public RangedFloat volume = new RangedFloat(1, 1);
 
         private AudioSource _audio;
         private Transform audioTransform;
@@ -74,8 +66,8 @@ namespace MalbersAnimations
             CheckAudioSource(animator);
             played = false;
 
-            if (playOnEnter && !SkipTransition)
-                PlaySound();
+            //if (playOnEnter)
+            //    PlaySound();
         }
 
 
@@ -85,12 +77,11 @@ namespace MalbersAnimations
         {
             if (played || animator.IsInTransition(layerIndex)) return; //Do not play while in transition
 
-            if (playOnEnter && SkipTransition)
+            if (playOnEnter)
             {
                 PlaySound();
             }
-            else
-            if (stateInfo.normalizedTime > PlayOnTime)
+            else if (stateInfo.normalizedTime > PlayOnTime)
             {
                 PlaySound();
             } 
@@ -115,7 +106,7 @@ namespace MalbersAnimations
 
                 if (_audio.loop && clip == _audio.clip)
                 {
-                  // Debug.Log("LOOP");
+                  //  Debug.Log("LOOP");
                     played = true;
                     return; //meaning is looping 
                 }
@@ -134,7 +125,7 @@ namespace MalbersAnimations
                     _audio.volume = volume.RandomValue;
                     _audio.loop = Loop;
                     _audio.Play();
-                    //Debug.Log($"Play {clip.name}");
+                   // Debug.Log($"Play {clip.name}");
                 }
                 played = true;
             }

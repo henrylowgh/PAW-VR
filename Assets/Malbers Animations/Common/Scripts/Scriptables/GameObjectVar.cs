@@ -7,8 +7,7 @@ namespace MalbersAnimations.Scriptables
     [CreateAssetMenu(menuName = "Malbers Animations/Variables/Game Object", order = 3000)]
     public class GameObjectVar : ScriptableVar
     {
-        [SerializeField,HideInInspector]
-        private GameObject value;
+        [SerializeField] private GameObject value;
 
         /// <summary>Invoked when the value changes </summary>
         public Action<GameObject> OnValueChanged;
@@ -36,9 +35,11 @@ namespace MalbersAnimations.Scriptables
 
     [System.Serializable]
     public class GameObjectReference : ReferenceVar
-    {
+    { 
+#pragma warning disable CA2235 // Mark all non-serializable fields
         public GameObject ConstantValue;
         [RequiredField] public GameObjectVar Variable;
+#pragma warning restore CA2235 // Mark all non-serializable fields
 
         public GameObjectReference() => UseConstant = true;
         public GameObjectReference(GameObject value) => Value = value;

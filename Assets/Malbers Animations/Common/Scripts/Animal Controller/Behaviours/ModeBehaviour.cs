@@ -1,4 +1,5 @@
-﻿using UnityEngine; 
+﻿using UnityEngine;
+using MalbersAnimations.Weapons;
 
 #if UNITY_EDITOR
 using UnityEditor;

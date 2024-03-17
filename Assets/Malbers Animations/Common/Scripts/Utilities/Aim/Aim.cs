@@ -10,7 +10,6 @@ namespace MalbersAnimations.Utilities
 {
     [DefaultExecutionOrder(10000)]
     [AddComponentMenu("Malbers/Utilities/Aiming/Aim")]
-    [HelpURL("https://malbersanimations.gitbook.io/animal-controller/utilities/aim")]
     public class Aim : MonoBehaviour, IAim, IAnimatorListener
     {
         #region Vars and Props
@@ -19,8 +18,8 @@ namespace MalbersAnimations.Utilities
         [SerializeField, Tooltip("Is the Aim Active")]
         private BoolReference m_active = new(true);
 
-        [SerializeField, Tooltip("Aim Origin Reference (Required)"), ContextMenuItem("Head as AimOrigin", "HeadAimOrigin")]
-        [RequiredField] private Transform m_aimOrigin;
+        [SerializeField, Tooltip("Aim Origin Reference"), ContextMenuItem("Head as AimOrigin", "HeadAimOrigin")]
+        private Transform m_aimOrigin;
         [SerializeField, Tooltip("Smoothness Lerp value to change from Active to Disable")]
         private float m_Smoothness = 10f;
 
@@ -42,7 +41,7 @@ namespace MalbersAnimations.Utilities
         private TransformReference m_camera = new();
 
         [SerializeField, Tooltip("Cast the Camera Ray a bit forward to avoid colliding with near the camera colliders ")]
-        private FloatReference m_forwardCam = new(0.2f);
+        private FloatReference m_forwardCam = new FloatReference(0.2f);
 
         private Camera cam;
 
@@ -80,15 +79,15 @@ namespace MalbersAnimations.Utilities
         [Tooltip("Maximum Ray Hits for the Ray casting")]
         public int RayHits = 5;
 
-        public TransformEvent OnAimRayTarget = new();
-        public Vector3Event OnScreenCenter = new();
-        public IntEvent OnAimSide = new();
-        public BoolEvent OnAiming = new();
-        public BoolEvent OnUsingTarget = new();
-        public TransformEvent OnHit = new();
+        public TransformEvent OnAimRayTarget = new TransformEvent();
+        public Vector3Event OnScreenCenter = new Vector3Event();
+        public IntEvent OnAimSide = new IntEvent();
+        public BoolEvent OnAiming = new BoolEvent();
+        public BoolEvent OnUsingTarget = new BoolEvent();
+        public TransformEvent OnHit = new TransformEvent();
 
-        public TransformEvent OnSetTarget = new();
-        public UnityEvent OnClearTarget = new();
+        public TransformEvent OnSetTarget = new TransformEvent();
+        public UnityEvent OnClearTarget = new UnityEvent();
 
         public bool debug;
         private string hitName;
@@ -187,7 +186,25 @@ namespace MalbersAnimations.Utilities
             }
         }
 
+        public void EnterAim()
+        {
+            CalculateAiming();
+            OnAiming.Invoke(true);
+            if (AimPosition) AimPosition.gameObject.SetActive(true); //Hide the Helper
+        }
 
+        public void ExitAim()
+        {
+            GetCenterScreen();
+            OnScreenCenter.Invoke(ScreenCenter);
+            OnAimRayTarget.Invoke(null);
+            AimSide = AimSide.None;
+
+            OnAiming.Invoke(false);
+
+            if (AimPosition)
+                AimPosition.gameObject.SetActive(false); //Hide the Helper
+        }
 
         /// <summary> Last Raycast stored for calculating the Aim</summary>
         private RaycastHit aimHit;
@@ -233,7 +250,7 @@ namespace MalbersAnimations.Utilities
                         if (assist != null)
                         {
                             m_AimTarget.Value = assist.AimPoint;
-                        }
+                        } 
                         enabled = true; //make sure the is Enabled on Target
                     }
                     else
@@ -242,14 +259,13 @@ namespace MalbersAnimations.Utilities
                         //if (!m_UseCamera.Value) { enabled = false; return; } //Do not Use AimState if is only meant to be use on Targets
                     }
 
-                    if (debug) Debug.Log($"<B>[{name}]</B> - New Target Set <B>[{value}]</B>", this);
-
                     OnSetTarget.Invoke(value);
                     OnUsingTarget.Invoke(value != null);
                     OnAimRayTarget.Invoke(value);
                 }
             }
         }
+
 
         /// <summary>Tranform Helper use to Ping the Hit Point</summary>
         public Transform AimPosition { get => m_AimPosition.Value; set => m_AimPosition.Value = value; }
@@ -285,7 +301,17 @@ namespace MalbersAnimations.Utilities
 
         void Awake()
         {
-            FindCamera();
+            //Find the Main Camera on the Scene
+            if (MainCamera == null)
+            {
+                cam = MTools.FindMainCamera();
+                if (cam) MainCamera = cam.transform;
+            }
+            else
+            {
+                cam = MainCamera.GetComponent<Camera>();
+            }
+
 
             m_Animator = GetComponentInParent<Animator>();
 
@@ -307,20 +333,6 @@ namespace MalbersAnimations.Utilities
             CurrentCycles = UnityEngine.Random.Range(0, 999999);
         }
 
-        private void FindCamera()
-        {
-            //Find the Main Camera on the Scene
-            if (MainCamera == null)
-            {
-                cam = MTools.FindMainCamera();
-                if (cam) MainCamera = cam.transform;
-            }
-            else
-            {
-                cam = MainCamera.GetComponent<Camera>();
-            }
-        }
-
         private int TryOptionalParameter(string param)
         {
             var AnimHash = Animator.StringToHash(param);
@@ -336,33 +348,16 @@ namespace MalbersAnimations.Utilities
 
         void OnEnable()
         {
+            //  if (!m_UseCamera.Value && !AimTarget) { enabled = false; return; } //Do not Use AimState if is only meant to be use on Targets
+
             CalculateAiming();
 
             var newT = m_AimTarget.Value;
             m_AimTarget.Value = null;
             AimTarget = newT;     //Call the Events on the Aim Target
 
-            if (!m_camera.UseConstant && m_camera.Variable)
-            {
-                m_camera.Variable.OnValueChanged += SearchCamera;
-            }
         }
 
-        private void OnDisable()
-        {
-            if (!m_camera.UseConstant && m_camera.Variable)
-            {
-                m_camera.Variable.OnValueChanged -= SearchCamera;
-            }
-
-            LastAimTarget?.IsBeenAimed(false, gameObject);
-
-            LastAimTarget = null;
-
-            //THE AIM TARGET NEEDS TO BE STOPSD
-        }
-
-        private void SearchCamera(Transform obj) => FindCamera();
 
         private void FixedUpdate()
         {
@@ -382,7 +377,6 @@ namespace MalbersAnimations.Utilities
         {
             if (!Active) return;
 
-
             CurrentCycles++;
             var UseRay = UseRaycasting && (CurrentCycles % m_cycles == 0);
             if (UseRay) CurrentCycles = 0;
@@ -398,25 +392,7 @@ namespace MalbersAnimations.Utilities
             }
         }
 
-        public void EnterAim()
-        {
-            CalculateAiming();
-            OnAiming.Invoke(true);
-            if (AimPosition) AimPosition.gameObject.SetActive(true); //Hide the Helper
-        }
 
-        public void ExitAim()
-        {
-            GetCenterScreen();
-            OnScreenCenter.Invoke(ScreenCenter);
-            OnAimRayTarget.Invoke(null);
-            AimSide = AimSide.None;
-
-            OnAiming.Invoke(false);
-
-            if (AimPosition)
-                AimPosition.gameObject.SetActive(false); //Hide the Helper
-        }
 
         public virtual void TryAnimParameter(int Hash, float value)
         {
@@ -430,7 +406,7 @@ namespace MalbersAnimations.Utilities
                 aimHit = DirectionFromTarget(useRaycasting);
                 RawPoint = UseRaycasting ? aimHit.point : TargetCenter;
             }
-            else if (UseCamera && MainCamera && cam != null)
+            else if (UseCamera && MainCamera)
             {
                 aimHit = DirectionFromCamera(useRaycasting);
                 RawPoint = aimHit.point;
@@ -440,6 +416,8 @@ namespace MalbersAnimations.Utilities
                 aimHit = DirectionFromDirection(useRaycasting);
                 RawPoint = aimHit.point;
             }
+
+
 
             if (useRaycasting) //Invoke the OnHit Option
             {
@@ -516,21 +494,7 @@ namespace MalbersAnimations.Utilities
 
         private void GetCenterScreen()
         {
-            Vector3 SC;
-
-            if (cam != null)
-            {
-                SC = new Vector3(Screen.width * m_screenCenter.Value.x * cam.rect.width,
-                    Screen.height * m_screenCenter.Value.y * cam.rect.height); //Gets the Center of the Aim Dot Transform
-
-                //Add the Split Screen Offset
-                SC += new Vector3(Screen.width * cam.rect.x, Screen.height * cam.rect.y);
-            }
-            else
-            {
-                SC = new Vector3(Screen.width * m_screenCenter.Value.x,
-                    Screen.height * m_screenCenter.Value.y); //Gets the Center of the Aim Dot Transform No Cam
-            }
+            var SC = new Vector3(Screen.width * m_screenCenter.Value.x, Screen.height * m_screenCenter.Value.y); //Gets the Center of the Aim Dot Transform
 
             if (SC != ScreenCenter)
             {
@@ -541,18 +505,13 @@ namespace MalbersAnimations.Utilities
 
         public RaycastHit DirectionFromCamera(bool useray)
         {
-
+            GetCenterScreen();
             RawAimDirection = cam.transform.forward;
 
             Ray ray;
 
-            if (ScreenCenter != Vector3.zero)
-            {
-                GetCenterScreen();
-                ray = cam.ScreenPointToRay(ScreenCenter);
-            }
-            else
-                ray = new Ray(cam.transform.position, cam.transform.forward);
+            if (ScreenCenter != Vector3.zero) ray = cam.ScreenPointToRay(ScreenCenter);
+            else ray = new Ray(cam.transform.position, cam.transform.forward);
 
             ray.origin += cam.transform.forward * ForwardCam; //Push the ray forward so it does not touch near colliders
 
@@ -569,11 +528,13 @@ namespace MalbersAnimations.Utilities
             return CalculateRayCasting(UseRaycasting, ray, ref hit);
         }
 
+
+
         public RaycastHit DirectionFromDirection(bool UseRaycasting)
         {
             RawAimDirection = AimOrigin.forward;
 
-            Ray ray = new(AimOrigin.position, RawAimDirection);
+            Ray ray = new Ray(AimOrigin.position, RawAimDirection);
 
             var hit = new RaycastHit()
             {
@@ -585,13 +546,14 @@ namespace MalbersAnimations.Utilities
         }
 
 
+
         public RaycastHit DirectionFromTarget(bool UseRaycasting)
         {
             var TargetCenter = this.TargetCenter; //Cache the Center
 
             RawAimDirection = AimOrigin.DirectionTo(TargetCenter);
 
-            Ray ray = new(AimOrigin.position, RawAimDirection);
+            Ray ray = new Ray(AimOrigin.position, RawAimDirection);
 
             var hit = new RaycastHit()
             {
@@ -601,6 +563,7 @@ namespace MalbersAnimations.Utilities
 
             return CalculateRayCasting(UseRaycasting, ray, ref hit);
         }
+
         private RaycastHit CalculateRayCasting(bool UseRaycasting, Ray ray, ref RaycastHit hit)
         {
             if (UseRaycasting)
@@ -641,8 +604,6 @@ namespace MalbersAnimations.Utilities
         }
 
 
-       // private IAimTarget IAimTargetAssist;
-
         /// <summary> Find if the Transform Hit with the RayCast is an AimAssist </summary>
         /// <param name="hit"></param>
         /// <returns></returns>
@@ -653,24 +614,24 @@ namespace MalbersAnimations.Utilities
             hitName = hit.collider ? hit.collider.name : string.Empty; //For debbuging purposes
 #endif
 
-            IAimTarget IAimTargetAssist = hit.collider != null ? hit.collider.GetComponent<IAimTarget>() : null;
+            IAimTarget IAimTarg = hit.collider != null ? hit.collider.GetComponent<IAimTarget>() : null;
             IsTargetAssist = false;
 
-            if (IAimTargetAssist != null)
+            if (IAimTarg != null)
             {
-                if (IAimTargetAssist.AimAssist)
+                if (IAimTarg.AimAssist)
                 {
                     IsTargetAssist = true;
-                    AimRayTargetAssist = IAimTargetAssist.AimPoint;
-                    hit.point = IAimTargetAssist.AimPoint.position;
-                    //  Debug.Log("IAimTarg.AimAssist");
+                    AimRayTargetAssist = IAimTarg.AimPoint;
+                    hit.point = IAimTarg.AimPoint.position;
+                  //  Debug.Log("IAimTarg.AimAssist");
                 }
 
 
-                if (IAimTargetAssist != LastAimTarget)
+                if (IAimTarg != LastAimTarget)
                 {
                     LastAimTarget?.IsBeenAimed(false, gameObject); //Make sure is no longer being aimed
-                    LastAimTarget = IAimTargetAssist;
+                    LastAimTarget = IAimTarg;
                     LastAimTarget.IsBeenAimed(true, gameObject);
                 }
             }
@@ -714,7 +675,7 @@ namespace MalbersAnimations.Utilities
             if (MainCamera == null)
             {
                 cam = MTools.FindMainCamera();
-                if (cam)  MainCamera = cam.transform;
+                MainCamera = cam.transform;
             }
             else
             {
@@ -722,24 +683,6 @@ namespace MalbersAnimations.Utilities
             }
 
             AimOrigin = defaultOrigin = transform;
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (debug && enabled && !Application.isPlaying)
-            {
-                Gizmos.color = Color.green;
-                if (AimOrigin != null)
-                {
-                    Gizmos.DrawRay(AimOrigin.position, AimOrigin.forward * MaxDistance);
-                    if (rayRadius.Value > 0)
-                    {
-
-                        Gizmos.DrawWireSphere(AimOrigin.position + AimOrigin.forward * MaxDistance, rayRadius);
-                        Gizmos.DrawWireSphere(AimOrigin.position, rayRadius);
-                    }
-                }
-            }
         }
 
         void OnDrawGizmos()
@@ -755,13 +698,14 @@ namespace MalbersAnimations.Utilities
                         Gizmos.DrawWireSphere(AimPoint, radius);
                         Gizmos.DrawSphere(AimPoint, radius);
 
+
                         Gizmos.DrawLine(AimOrigin.position, AimPoint);
                         Gizmos.color = Color.black;
                         Gizmos.DrawLine(AimOrigin.position, RawPoint);
 
                         if (UseRaycasting)
                         {
-                            GUIStyle style = new(EditorStyles.label)
+                            GUIStyle style = new GUIStyle(UnityEditor.EditorStyles.label)
                             {
                                 fontStyle = FontStyle.Bold,
                                 fontSize = 10
@@ -769,7 +713,7 @@ namespace MalbersAnimations.Utilities
 
                             style.normal.textColor = Color.green;
 
-                            Handles.Label(AimPoint, hitName, style);
+                            UnityEditor.Handles.Label(AimPoint, hitName, style);
                         }
                     }
                 }
@@ -789,7 +733,7 @@ namespace MalbersAnimations.Utilities
         SerializedProperty m_active, m_aimOrigin, m_Smoothness, m_Animator, m_AimHorizontal, m_AimVertical,
             m_aimLayer, m_Triggers, m_AimTarget, m_AimPosition,
             m_AimSide, debug, m_UpdateMode, OnAiming, m_cycles, OnHit,
-            m_Ignore, m_camera, m_UseCamera, m_forwardCam,
+            m_Ignore, m_camera, m_UseCamera,   m_forwardCam, 
             m_screenCenter, rayRadius, RayHits, OnAimRayTarget, OnSetTarget, OnClearTarget,
             OnUsingTarget, OnScreenCenter, OnAimSide, EditorTab1, MaxDistance, m_UseRaycasting;
         private void OnEnable()
@@ -805,7 +749,7 @@ namespace MalbersAnimations.Utilities
             OnHit = serializedObject.FindProperty("OnHit");
             m_Smoothness = serializedObject.FindProperty("m_Smoothness");
             m_aimOrigin = serializedObject.FindProperty("m_aimOrigin");
-
+           
             m_aimLayer = serializedObject.FindProperty("m_aimLayer");
             m_Triggers = serializedObject.FindProperty("m_Triggers");
             m_AimTarget = serializedObject.FindProperty("m_AimTarget");
@@ -839,7 +783,7 @@ namespace MalbersAnimations.Utilities
 
             OnSetTarget = serializedObject.FindProperty("OnSetTarget");
             OnClearTarget = serializedObject.FindProperty("OnClearTarget");
-
+             
         }
 
         public override void OnInspectorGUI()
@@ -889,6 +833,7 @@ namespace MalbersAnimations.Utilities
 
                 EditorGUILayout.PropertyField(m_UpdateMode);
                 EditorGUILayout.PropertyField(m_AimSide);
+                EditorGUILayout.PropertyField(MaxDistance);
                 EditorGUILayout.PropertyField(m_Smoothness);
                 EditorGUILayout.PropertyField(m_aimOrigin);
                 if (m_aimOrigin.objectReferenceValue == null)
@@ -904,16 +849,24 @@ namespace MalbersAnimations.Utilities
                 {
                     if (m.UseRaycasting)
                     {
-                        EditorGUILayout.PropertyField(m_aimLayer, new GUIContent("Layer"));
-                        EditorGUILayout.PropertyField(m_Triggers);
-                        EditorGUILayout.PropertyField(MaxDistance);
                         EditorGUILayout.PropertyField(rayRadius);
                         EditorGUILayout.PropertyField(RayHits);
                         EditorGUILayout.PropertyField(m_cycles);
                     }
                 }
+
+
             }
-           
+
+            if (m.UseRaycasting)
+            {
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    EditorGUILayout.LabelField("Layer Interaction", EditorStyles.boldLabel);
+                    EditorGUILayout.PropertyField(m_aimLayer, new GUIContent("Layer"));
+                    EditorGUILayout.PropertyField(m_Triggers);
+                }
+            }
 
             if (Application.isPlaying && debug.boolValue)
             {
@@ -925,7 +878,7 @@ namespace MalbersAnimations.Utilities
                         EditorGUILayout.LabelField("Camera Side: " + (m.AimingSide ? "Right" : "Left"));
                         EditorGUILayout.FloatField("Vertical Angle", m.VerticalAngle);
                         EditorGUILayout.FloatField("Horizontal Angle", m.HorizontalAngle);
-                        EditorGUILayout.ObjectField("Hit", m.AimHit.transform, typeof(Transform), false);
+                        EditorGUILayout.ObjectField("Hit", m.AimHit.transform,typeof(Transform),false);
                     }
                 }
             }

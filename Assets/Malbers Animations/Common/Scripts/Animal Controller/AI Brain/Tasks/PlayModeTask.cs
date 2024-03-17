@@ -14,8 +14,8 @@ namespace MalbersAnimations.Controller.AI
         [Tooltip("Mode you want to activate when the brain is using this task")]
         public ModeID modeID;
         [Tooltip("Ability ID for the Mode... if is set to -99 it will play a random Ability")]
-        public IntReference AbilityID = new(-99);
-        public FloatReference ModePower = new();
+        public IntReference AbilityID = new IntReference(-99);
+        public FloatReference ModePower = new FloatReference();
         [Tooltip("Play the mode only when the animal has arrived to the target")]
         public bool near = false;
 
@@ -25,7 +25,7 @@ namespace MalbersAnimations.Controller.AI
         [Tooltip("Play Once: it will play only at the start of the Task. Play Forever: will play forever using the Cooldown property")]
         public PlayWhen Play = PlayWhen.PlayForever;
         [Tooltip("Time elapsed to Play the Mode again and Again")]
-        public FloatReference CoolDown = new(0f);
+        public FloatReference CoolDown = new FloatReference(2f);
         [Tooltip("Play the Mode if the Animal is Looking at the Target. Avoid playing modes while the target is behind the animal when this value is set to 180")]
         [Range(0f, 360f)]
         public float ModeAngle = 360f;
@@ -35,10 +35,7 @@ namespace MalbersAnimations.Controller.AI
 
         [Tooltip("When the mode is said to Play Forever, it will ignore the first cooldown")]
         public bool IgnoreFirstCoolDown = true;
-
-        [Tooltip("If the task was playing a mode when the AI State Exits, stop the playing Mode")]
-        public bool StopModeOnExit = true;
-
+         
         [Tooltip("Align time to rotate towards the Target")]
         public float alignTime = 0.3f;
 
@@ -157,18 +154,6 @@ namespace MalbersAnimations.Controller.AI
             }
         }
 
-        public override void ExitAIState(MAnimalBrain brain, int index)
-        {
-            base.ExitAIState(brain, index);
-
-            var animal = affect == Affected.Self ? brain.Animal : brain.TargetAnimal;
-
-            if (animal != null && animal.IsPlayingMode && StopModeOnExit)
-            {
-                animal.Mode_Stop();
-            }
-        }
-
         private bool PlayMode(MAnimalBrain brain)
         {
             switch (affect)
@@ -215,7 +200,7 @@ namespace MalbersAnimations.Controller.AI
 
 
 
-#if UNITY_EDITOR && MALBERS_DEBUG
+#if UNITY_EDITOR
         public override void DrawGizmos(MAnimalBrain brain)
         {
             var Eyes = brain.Eyes;
@@ -244,7 +229,7 @@ namespace MalbersAnimations.Controller.AI
     [UnityEditor.CustomEditor(typeof(PlayModeTask))]
     public class PlayModeTaksEditor : UnityEditor.Editor
     {
-        UnityEditor.SerializedProperty Description, MessageID, CoolDown, modeID, AbilityID, near, affect, ModePower, UpdateInterval, StopModeOnExit,
+        UnityEditor.SerializedProperty Description, MessageID, CoolDown, modeID, AbilityID, near, affect, ModePower, UpdateInterval,
             Play, ModeAngle, lookAtAlign, WaitForPreviousTask, alignTime, IgnoreFirstCoolDown;
 
         private void OnEnable()
@@ -264,7 +249,6 @@ namespace MalbersAnimations.Controller.AI
             IgnoreFirstCoolDown = serializedObject.FindProperty("IgnoreFirstCoolDown");
             WaitForPreviousTask = serializedObject.FindProperty("WaitForPreviousTask");
             UpdateInterval = serializedObject.FindProperty("UpdateInterval");
-            StopModeOnExit = serializedObject.FindProperty("StopModeOnExit");
         }
 
         public override void OnInspectorGUI()
@@ -292,7 +276,6 @@ namespace MalbersAnimations.Controller.AI
 
                 UnityEditor.EditorGUILayout.PropertyField(AbilityID);
                 UnityEditor.EditorGUILayout.PropertyField(ModePower);
-                UnityEditor.EditorGUILayout.PropertyField(StopModeOnExit);
 
 
                 UnityEditor.EditorGUILayout.PropertyField(CoolDown);

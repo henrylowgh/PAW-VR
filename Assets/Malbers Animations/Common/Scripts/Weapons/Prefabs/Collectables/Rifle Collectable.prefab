@@ -14,6 +14,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4537070842646239082, guid: 2d4c8c4f2e5c4f24bb7c1c0e5e8eafc9,
         type: 3}
+      propertyPath: Editor_Tabs1
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4537070842646239082, guid: 2d4c8c4f2e5c4f24bb7c1c0e5e8eafc9,
+        type: 3}
+      propertyPath: Editor_Tabs2
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4537070842646239082, guid: 2d4c8c4f2e5c4f24bb7c1c0e5e8eafc9,
+        type: 3}
       propertyPath: OnFireProjectile.m_PersistentCalls.m_Calls.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -231,7 +241,11 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  m_Amount:
+  SceneRoot:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  m_Value:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}

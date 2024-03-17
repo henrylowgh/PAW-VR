@@ -24,9 +24,8 @@ namespace MalbersAnimations.Controller.AI
         {
             if (MTools.ElapsedTime(brain.TasksUpdateTime[index], UpdateInterval))
             {
-                brain.TasksUpdateTime[index] = Time.time; //Reset the interval
                 UpdateTask(brain, index);
-                //Debug.Log($"brain --->  {brain.currentState.name} ---INDEXZ {index},   brain.TasksUpdateTime{brain.TasksUpdateTime.Length}");
+                brain.TasksUpdateTime[index] = Time.time; //Reset the interval
             }
         }
 

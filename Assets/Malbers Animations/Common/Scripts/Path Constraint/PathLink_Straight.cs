@@ -63,7 +63,7 @@ namespace MalbersAnimations.PathCreation
             if (ShowTangents)
             {
 
-                Gizmos.color = TangentColor;
+                Gizmos.color = Color.yellow;
 
                 for (int i = 0; i <= TangentCount; i++)
                 {

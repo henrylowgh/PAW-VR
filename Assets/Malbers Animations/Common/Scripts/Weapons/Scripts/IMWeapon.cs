@@ -9,7 +9,7 @@ namespace MalbersAnimations.Weapons
         void CheckAim();
         void FreeHandUse();
         void FreeHandRelease();
-        void ExitByAnimation(bool value);
+
         Transform transform { get; }
         
         MWeapon Weapon { get; }
@@ -101,11 +101,6 @@ namespace MalbersAnimations.Weapons
         /// <summary>is the Character Attacking or firing a projectile?</summary>
         bool IsAttacking { get; }
 
-        /// <summary>is the Character Playing the Draw Weapon Animation</summary>
-        bool DrawWeapon { get; }
-        /// <summary>is the Character Playing the Store Weapon Animation</summary>
-        bool StoreWeapon { get; }
-
         /// <summary>is the Character an Animal Controller?</summary>
         bool HasAnimal { get; }
 
@@ -141,8 +136,6 @@ namespace MalbersAnimations.Weapons
         Transform IgnoreTransform { get; set; }
 
 
-        /// <summary>Set Aiming on the Weapon Owner</summary>
-        void Aim_Set(bool value);
         void UnEquip();
     }
 

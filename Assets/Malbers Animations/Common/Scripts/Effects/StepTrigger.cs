@@ -9,9 +9,6 @@ namespace MalbersAnimations
         [RequiredField]
         public StepsManager m_StepsManager;
 
-        [Tooltip("Re Parent this GameObject to a new Bone on Awake")]
-        public Transform parent;
-
         public float WaitNextStep = 0.2f;
         public AudioSource StepAudio;
 
@@ -35,10 +32,6 @@ namespace MalbersAnimations
                 Destroy(gameObject);
                 return;
             }
-
-            //Reparent
-            if (parent != null)
-                transform.SetParent(parent, true);
 
             m_Trigger.isTrigger = true;
 
@@ -77,7 +70,18 @@ namespace MalbersAnimations
             }
         }
 
-  
+
+        void OnDrawGizmos()
+        {
+            GizmoSelected(false);
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            GizmoSelected(true);
+        }
+
+
         [ContextMenu("Find Sphere Trigger")]
         void GetTrigger()
         {
@@ -85,6 +89,19 @@ namespace MalbersAnimations
             MTools.SetDirty(this);
         }
 
+        void GizmoSelected(bool sel)
+        {
+            if (m_Trigger && m_Trigger.enabled)
+            {
+                var DebugColorWire = new Color(DebugColor.r, DebugColor.g, DebugColor.b, 1);
+                Gizmos.matrix = transform.localToWorldMatrix;
+
+                Gizmos.color = DebugColor;
+                Gizmos.DrawSphere(Vector3.zero + m_Trigger.center, m_Trigger.radius);
+                Gizmos.color = sel ? Color.yellow : DebugColorWire;
+                Gizmos.DrawWireSphere(Vector3.zero + m_Trigger.center, m_Trigger.radius);
+            }
+        }
 
 
         private void OnValidate()
@@ -106,35 +123,5 @@ namespace MalbersAnimations
             }
             MTools.SetDirty(StepAudio);
         }
-
-#if UNITY_EDITOR && MALBERS_DEBUG
-
-        void OnDrawGizmos()
-        {
-            GizmoSelected(false);
-        }
-
-        void OnDrawGizmosSelected()
-        {
-            GizmoSelected(true);
-        }
-
-
-      
-
-        void GizmoSelected(bool sel)
-        {
-            if (m_Trigger && m_Trigger.enabled)
-            {
-                var DebugColorWire = new Color(DebugColor.r, DebugColor.g, DebugColor.b, 1);
-                Gizmos.matrix = transform.localToWorldMatrix;
-
-                Gizmos.color = DebugColor;
-                Gizmos.DrawSphere(Vector3.zero + m_Trigger.center, m_Trigger.radius);
-                Gizmos.color = sel ? Color.yellow : DebugColorWire;
-                Gizmos.DrawWireSphere(Vector3.zero + m_Trigger.center, m_Trigger.radius);
-            }
-        }
-#endif
     }
 }

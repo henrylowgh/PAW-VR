@@ -42,10 +42,18 @@ namespace MalbersAnimations.Utilities
 
         public virtual void SendMessage(Component go)
         {
-            //Find the Right Root if the objets is a Malbers Core Object
-            var coreRoot = go.FindInterface<IObjectCore>(false);
+            Pinned = go;
 
-            Pinned = coreRoot != null ? coreRoot.transform : go;
+            var realRoot = go;
+
+            //Find the Right Root if the objets is a Malbers Core Object
+            var coreRoot = go.FindInterface<IObjectCore>();
+
+            if (coreRoot != null)
+            {
+                Pinned = coreRoot.transform;
+            }
+
 
             foreach (var m in messages)
             {
