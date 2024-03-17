@@ -991,7 +991,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Range:
     UseConstant: 1
-    ConstantValue: 9
+    ConstantValue: 2
     Variable: {fileID: 0}
   Priority:
     UseConstant: 1
