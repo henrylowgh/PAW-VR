@@ -30,6 +30,7 @@ public class BallGameReset : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);  // Wait for 1 second
         transform.position = holderObject.transform.position;
+        gameManager.IncreaseBallScore();
         gameManager.ResetMemoryGame();
     }
 

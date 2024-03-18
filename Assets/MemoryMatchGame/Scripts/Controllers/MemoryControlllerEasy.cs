@@ -136,9 +136,9 @@ public class MemoryControlllerEasy : MemoryControllerBase
 			//end game, do something
 			ShowPlayerScoreLevel((countMinutes * 60) + countSeconds);
 			GameController.GameControllerProperties.CurrentGameState = GameState.GAME_OVER;
-			RepositionBall();
+            RepositionBall();
             countMatch = 0;
-		}
+        }
 	}
 
 	///<summary>
@@ -163,7 +163,7 @@ public class MemoryControlllerEasy : MemoryControllerBase
 	{
         yield return new WaitForSeconds(1f);  // Wait for 1 second
 		//Debug.Log("Destroying!");
-        GameController.GameControllerProperties.ResetGameState();
+		GameController.GameControllerProperties.ResetGameState();
         Destroy(transform.parent.gameObject);
     }
 
