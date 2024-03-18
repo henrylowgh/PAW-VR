@@ -23,9 +23,7 @@ public class BallGameReset : MonoBehaviour
     // Reset
     public void PublicResetPosandGame()
     {
-        transform.position = holderObject.transform.position;
-        gameManager.ResetMemoryGame();
-        //PrivateResetPosandGame();
+        StartCoroutine(PrivateResetPosandGame());
     }
 
     private IEnumerator PrivateResetPosandGame()

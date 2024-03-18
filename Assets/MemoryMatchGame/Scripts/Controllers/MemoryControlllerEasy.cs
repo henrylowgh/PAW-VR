@@ -17,7 +17,9 @@ public class MemoryControlllerEasy : MemoryControllerBase
 
 	new void Start()
 	{
-		base.Start();
+        ballObject = GameObject.Find("Red Ball");
+        spawnObject = GameObject.Find("SpawnObject");
+        base.Start();
 	}
 
 	void Update()
@@ -40,8 +42,8 @@ public class MemoryControlllerEasy : MemoryControllerBase
 		//restart game
 		if (GameController.GameControllerProperties.CurrentGameState == GameState.GAME_OVER)
 			//HandleRestartGame();
-			PlaceholderFunction();
-	}
+			StartCoroutine(DestroyGameInstance());
+    }
 
 	#region EXTERNAL METHODS
 	///<summary>
@@ -157,10 +159,13 @@ public class MemoryControlllerEasy : MemoryControllerBase
 		ballObject.transform.position = spawnObject.transform.position;
 	}
 
-	void PlaceholderFunction()
+	IEnumerator DestroyGameInstance()
 	{
-		// Placeholder function
-	}
+        yield return new WaitForSeconds(1f);  // Wait for 1 second
+		//Debug.Log("Destroying!");
+        GameController.GameControllerProperties.ResetGameState();
+        Destroy(transform.parent.gameObject);
+    }
 
     #endregion
 }

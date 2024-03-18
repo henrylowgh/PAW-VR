@@ -56,4 +56,9 @@ public class GameController
 			Debug.Log(currentGameState);
         }
     }
+
+    public void ResetGameState()
+    {
+        currentGameState = GameState.MEMORY; // or any default state
+    }
 }
