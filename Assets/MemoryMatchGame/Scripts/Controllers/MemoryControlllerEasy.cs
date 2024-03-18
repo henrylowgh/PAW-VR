@@ -14,7 +14,6 @@ public class MemoryControlllerEasy : MemoryControllerBase
 
 	public GameObject ballObject;
 	public GameObject spawnObject; // Reposition location
-	public GameObject holderObject; // Holding location
 
 	new void Start()
 	{

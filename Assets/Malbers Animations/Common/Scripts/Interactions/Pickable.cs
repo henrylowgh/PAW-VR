@@ -15,6 +15,7 @@ namespace MalbersAnimations.Controller
     {
         //  public enum CollectType { Collectable, Hold, OneUse } //For different types of collectable items? FOR ANOTHER UPDATE
 
+
         public bool Align = true;
         public bool AlignPos = true;
         [Min(0)] public float AlignTime = 0.15f;

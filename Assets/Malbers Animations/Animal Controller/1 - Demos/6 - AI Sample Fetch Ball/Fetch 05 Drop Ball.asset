@@ -98,7 +98,7 @@ MonoBehaviour:
     falseState: {fileID: 0}
   - decision: {fileID: 3679279294978835924, guid: b0abd06b44fcfad4c9f55df4fa203123,
       type: 2}
-    trueState: {fileID: 11400000, guid: 2294f87c65fdbf343ab4e8316acca518, type: 2}
+    trueState: {fileID: 11400000, guid: 1cc1d97de03d36049bbd42341beabf5a, type: 2}
     falseState: {fileID: 0}
   GizmoStateColor: {r: 0.5471698, g: 0.18779378, b: 0.1264685, a: 1}
   CreateTaskAsset: 1
