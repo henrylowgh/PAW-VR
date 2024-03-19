@@ -12,6 +12,7 @@ TagManager:
   - Water
   - Button
   - 3DButton
+  - Wall
   layers:
   - Default
   - TransparentFX

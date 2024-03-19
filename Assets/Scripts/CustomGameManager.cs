@@ -21,6 +21,14 @@ public class CustomGameManager : MonoBehaviour
     public TextMeshProUGUI timeUI; // Reference to a UI Text element to display the timer
     [SerializeField] private bool isCountingScore;
 
+    public GameObject dogObject; 
+    public GameObject wallObject; // Invisible wall to put in front of dog
+    public GameObject wallSpawnPositionObject;
+    public GameObject boundsObject; // Assign the large empty GameObject Cube in the inspector
+    private float lastBreathInputTime = 0f;
+    private float breathBufferPeriod = 10f;
+    private bool hasInstantiatedWall = false;
+
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +45,7 @@ public class CustomGameManager : MonoBehaviour
     {
         UpdateTime();
         UpdateScores();
+        CheckBreathInput();
     }
 
     public void UpdateTime()
@@ -105,4 +114,54 @@ public class CustomGameManager : MonoBehaviour
         int seconds = (int)(time % 60);
         return $"{minutes:00}:{seconds:00}";
     }
+
+    public void CheckBreathInput()
+    {
+        // Check for breath input
+        if (Input.GetKeyDown(KeyCode.Space)) // Temporary use space button as placeholder input
+        {
+            lastBreathInputTime = Time.time;
+        }
+
+        // Check if 10 seconds have passed since the last breath
+        // Debug.Log("Within bounds: " + IsWithinBounds());
+        // Debug.Log("Time since last breath input: " + (Time.time - lastBreathInputTime));
+        if (Time.time - lastBreathInputTime > breathBufferPeriod)
+        {
+            // Check if dog object is outside the bounds of boundary box
+            if (!IsWithinBounds() && !hasInstantiatedWall)
+            {
+                //wallObject.SetActive(true);
+                Instantiate(wallObject, wallSpawnPositionObject.transform.position, dogObject.transform.rotation);
+                hasInstantiatedWall = true;
+            }
+        }  
+        else
+        {
+            DestroyWalls();
+        }
+
+        if (IsWithinBounds()) {
+            DestroyWalls();
+        }
+    }
+
+    bool IsWithinBounds()
+    {
+        // Checking if dog object is outside of the boundsObject
+        Bounds bounds = boundsObject.GetComponent<Collider>().bounds;
+        return bounds.Contains(dogObject.transform.position);
+    }
+
+    public void DestroyWalls()
+    {
+        GameObject[] objectsToDestroy = GameObject.FindGameObjectsWithTag("Wall");
+
+        foreach (GameObject obj in objectsToDestroy)
+        {
+            Destroy(obj);
+        }
+        hasInstantiatedWall = false;
+    }
+
 }

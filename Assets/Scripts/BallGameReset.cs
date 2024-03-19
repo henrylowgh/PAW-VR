@@ -8,6 +8,7 @@ public class BallGameReset : MonoBehaviour
     public GameObject holderObject; // Holding location
     public CustomGameManager gameManager;
     public DistanceTracker distanceTracker;
+    public GameObject victoryEffect;
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +32,7 @@ public class BallGameReset : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);  // Wait for 1 second
         distanceTracker.DisableTracking();
+        Instantiate(victoryEffect, transform.position, Quaternion.identity);
         transform.position = holderObject.transform.position;
         gameManager.IncreaseBallScore();
         gameManager.ResetMemoryGame();

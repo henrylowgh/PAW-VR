@@ -12,10 +12,10 @@ public class MemoryControlllerEasy : MemoryControllerBase
 	[Header("Continue counting time during flip over?")]
 	public bool continueTime;
 
-	/* Custom code */
-	public GameObject ballObject;
-	public GameObject spawnObject; // Reposition location
-	public DistanceTracker distanceTracker;
+    /* Custom code */
+    [SerializeField] public GameObject ballObject;
+    [SerializeField] public GameObject spawnObject; // Reposition location
+    [SerializeField] public DistanceTracker distanceTracker;
 
 	new void Start()
 	{
