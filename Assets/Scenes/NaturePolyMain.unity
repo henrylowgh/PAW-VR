@@ -17843,7 +17843,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &660877160
 RectTransform:
   m_ObjectHideFlags: 0
@@ -17970,8 +17970,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 124.03676, y: 49.56114, z: 1}
+  m_Center: {x: -0.48311946, y: 0.0180006, z: 0}
 --- !u!1001 &663136382
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50129,6 +50129,21 @@ Camera:
   m_PrefabInstance: {fileID: 1513169142}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1741641697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005868746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b707a16846201e3488832b573c1ec5c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiLayerMask:
+    serializedVersion: 2
+    m_Bits: 32
+--- !u!114 &1741641698
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
