@@ -49,7 +49,11 @@ namespace MalbersAnimations.SA
         {
             RotateView();
             if (Input.GetButtonDown("Jump") && !m_Jump)  m_Jump = true;
+            
+            // Add custom raytracing code here
         }
+
+        
 
         public void RestartMouseLook()
         {

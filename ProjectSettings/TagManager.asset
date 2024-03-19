@@ -10,6 +10,8 @@ TagManager:
   - Fly
   - Animal
   - Water
+  - Button
+  - 3DButton
   layers:
   - Default
   - TransparentFX

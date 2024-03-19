@@ -12,13 +12,16 @@ public class MemoryControlllerEasy : MemoryControllerBase
 	[Header("Continue counting time during flip over?")]
 	public bool continueTime;
 
+	/* Custom code */
 	public GameObject ballObject;
 	public GameObject spawnObject; // Reposition location
+	public DistanceTracker distanceTracker;
 
 	new void Start()
 	{
         ballObject = GameObject.Find("Red Ball");
         spawnObject = GameObject.Find("SpawnObject");
+        distanceTracker = ballObject.GetComponent<DistanceTracker>();
         base.Start();
 	}
 
@@ -157,6 +160,7 @@ public class MemoryControlllerEasy : MemoryControllerBase
 	void RepositionBall()
 	{
 		ballObject.transform.position = spawnObject.transform.position;
+		distanceTracker.EnableTracking();
 	}
 
 	IEnumerator DestroyGameInstance()
